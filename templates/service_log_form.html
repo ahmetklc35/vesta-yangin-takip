@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="card form-card">
+    <div class="section-head">
+      <div>
+        <h1>Bakim Guncelle</h1>
+        <p class="muted">{{ extinguisher.company_name }} / {{ extinguisher.serial_number }}</p>
+      </div>
+    </div>
+
+    <form method="post" class="grid-form">
+      <label>
+        Bakim tarihi
+        <input type="date" name="service_date" value="{{ form.get('service_date', '') }}" required>
+      </label>
+      <label>
+        Sonraki bakim tarihi
+        <input type="date" name="next_service_date" value="{{ form.get('next_service_date', extinguisher.next_service_date) }}" required>
+      </label>
+      <label>
+        Teknisyen
+        <input type="text" name="technician_name" value="{{ form.get('technician_name', '') }}" required>
+      </label>
+      <label>
+        Basinç durumu
+        <input type="text" name="pressure_status" value="{{ form.get('pressure_status', extinguisher.pressure_status or '') }}">
+      </label>
+      <label>
+        Firma adi
+        <input type="text" name="company_name" value="{{ form.get('company_name', extinguisher.company_name) }}">
+      </label>
+      <label>
+        Firma ici konum
+        <input type="text" name="location_detail" value="{{ form.get('location_detail', extinguisher.location_detail) }}">
+      </label>
+      <label>
+        Kg
+        <input type="text" name="weight_kg" value="{{ form.get('weight_kg', extinguisher.weight_kg) }}">
+      </label>
+      <label>
+        Tup tipi
+        <input type="text" name="extinguisher_type" value="{{ form.get('extinguisher_type', extinguisher.extinguisher_type) }}">
+      </label>
+      <label class="full">
+        Yapilan islem
+        <textarea name="operation_summary" rows="3" required>{{ form.get('operation_summary', '') }}</textarea>
+      </label>
+      <label class="full">
+        Notlar
+        <textarea name="notes" rows="3">{{ form.get('notes', extinguisher.notes or '') }}</textarea>
+      </label>
+      <div class="full form-actions">
+        <button type="submit" class="button">Bakim Kaydini Ekle</button>
+      </div>
+    </form>
+  </section>
+{% endblock %}

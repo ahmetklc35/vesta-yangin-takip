@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Etiket Yazdir</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body class="label-page">
+    <main class="label-shell">
+      <section class="label-card">
+        <div class="label-qr-only">
+          <img src="{{ url_for('extinguisher_qr', public_id=public_id) }}" alt="QR kod">
+        </div>
+      </section>
+
+      <div class="label-actions no-print">
+        <button onclick="window.print()" class="button">Yazdir</button>
+      </div>
+    </main>
+  </body>
+</html>

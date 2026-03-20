@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="hero">
+    <div>
+      <p class="eyebrow">QR tabanli bakim takibi</p>
+      <h1>Tum yangin tuplerini tek ekranda yonet</h1>
+      <p class="lede">
+        Ilk kayitta firma, konum, kg ve tip bilgilerini gir. Sistem QR kodu uretsin.
+        Sonraki bakimlarda kaydi guncelle; musteri QR okutunca son kontrole ulassin.
+      </p>
+    </div>
+    <div class="hero-actions">
+      <a class="button" href="{{ url_for('create_extinguisher') }}">Yeni Tup Kaydi</a>
+      <a class="button secondary" href="{{ url_for('export_extinguishers') }}">Excel Tup Listesi</a>
+      <a class="button secondary" href="{{ url_for('export_service_logs') }}">Excel Bakim Gecmisi</a>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <h2>Kayitli Tupler</h2>
+      <span>{{ extinguishers|length }} adet</span>
+    </div>
+
+    {% if extinguishers %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Seri No</th>
+              <th>Firma</th>
+              <th>Konum</th>
+              <th>Kg</th>
+              <th>Tip</th>
+              <th>Son Bakim</th>
+              <th>Islemler</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for extinguisher in extinguishers %}
+              <tr>
+                <td>{{ extinguisher.serial_number }}</td>
+                <td>{{ extinguisher.company_name }}</td>
+                <td>{{ extinguisher.location_detail }}</td>
+                <td>{{ extinguisher.weight_kg }}</td>
+                <td>{{ extinguisher.extinguisher_type }}</td>
+                <td>{{ extinguisher.latest_log_date or "-" }}</td>
+                <td class="actions">
+                  <a href="{{ url_for('extinguisher_detail', public_id=extinguisher.public_id) }}">Detay</a>
+                  <a href="{{ url_for('add_service_log', public_id=extinguisher.public_id) }}">Bakim Ekle</a>
+                  <a href="{{ url_for('extinguisher_qr', public_id=extinguisher.public_id) }}">QR</a>
+                  <a href="{{ url_for('extinguisher_label', public_id=extinguisher.public_id) }}">Etiket</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>Henuz kayit yok.</p>
+    {% endif %}
+  </section>
+{% endblock %}
