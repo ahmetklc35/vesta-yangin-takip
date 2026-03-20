@@ -2,7 +2,7 @@ services:
   - type: web
     name: vesta-yangin-takip
     runtime: python
-    plan: starter
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn wsgi:app
     envVars:
@@ -15,4 +15,4 @@ services:
 
 databases:
   - name: vesta-yangin-db
-    plan: starter
+    plan: free

@@ -53,6 +53,7 @@ Uygulama `DATABASE_URL` yoksa otomatik olarak yerelde `SQLite` kullanir.
 - Canli ortamda `DATABASE_URL` bir PostgreSQL baglantisi olmali.
 - `render.yaml` dosyasi Render uzerinde web servis + PostgreSQL olusturmak icin eklendi.
 - Uygulama canlida `gunicorn wsgi:app` ile calisacak.
+- Render `free` planinda web servis bos kalinca uyuyabilir. Musteri taramada ilk acilis biraz gecikebilir.
 
 ## Eski Veriyi PostgreSQL'e Tasima
 
