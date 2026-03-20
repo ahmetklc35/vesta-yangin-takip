@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 import qrcode
+from qrcode.constants import ERROR_CORRECT_H
 from flask import (
     Flask,
     abort,
@@ -41,6 +42,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_SQLITE_URL = f"sqlite:///{(BASE_DIR / 'database.db').as_posix()}"
 BRAND_NAME = "Vesta Yangin"
+LOGO_PATH = BASE_DIR / "static" / "vesta-logo.png"
 
 
 def build_database_url() -> str:
@@ -144,19 +146,57 @@ def autosize_worksheet(worksheet) -> None:
         worksheet.column_dimensions[column_letter].width = min(max_length + 2, 40)
 
 
+def load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    font_candidates = [
+        Path("C:/Windows/Fonts/arialbd.ttf"),
+        Path("C:/Windows/Fonts/segoeuib.ttf"),
+        Path("C:/Windows/Fonts/arial.ttf"),
+    ]
+    for font_path in font_candidates:
+        if font_path.exists():
+            try:
+                return ImageFont.truetype(str(font_path), size)
+            except OSError:
+                continue
+    return ImageFont.load_default()
+
+
 def build_branded_qr(public_url: str) -> io.BytesIO:
-    qr_image = qrcode.make(public_url).convert("RGB")
+    qr = qrcode.QRCode(
+        version=None,
+        error_correction=ERROR_CORRECT_H,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(public_url)
+    qr.make(fit=True)
+    qr_image = qr.make_image(fill_color="black", back_color="white").convert("RGBA")
     qr_width, qr_height = qr_image.size
 
-    canvas = Image.new("RGB", (qr_width, qr_height + 72), "white")
+    if LOGO_PATH.exists():
+        logo = Image.open(LOGO_PATH).convert("RGBA")
+        max_logo_size = int(qr_width * 0.24)
+        logo.thumbnail((max_logo_size, max_logo_size))
+
+        logo_bg_size = max(logo.width, logo.height) + 20
+        logo_bg = Image.new("RGBA", (logo_bg_size, logo_bg_size), (255, 255, 255, 255))
+        bg_x = (logo_bg_size - logo.width) // 2
+        bg_y = (logo_bg_size - logo.height) // 2
+        logo_bg.alpha_composite(logo, (bg_x, bg_y))
+
+        logo_x = (qr_width - logo_bg_size) // 2
+        logo_y = (qr_height - logo_bg_size) // 2
+        qr_image.alpha_composite(logo_bg, (logo_x, logo_y))
+
+    canvas = Image.new("RGBA", (qr_width, qr_height + 78), "white")
     canvas.paste(qr_image, (0, 0))
 
     draw = ImageDraw.Draw(canvas)
-    font = ImageFont.load_default(size=28)
+    font = load_font(28)
     text_bbox = draw.textbbox((0, 0), BRAND_NAME, font=font)
     text_width = text_bbox[2] - text_bbox[0]
     text_x = (qr_width - text_width) // 2
-    text_y = qr_height + 22
+    text_y = qr_height + 24
     draw.text((text_x, text_y), BRAND_NAME, fill="black", font=font)
 
     buffer = io.BytesIO()
