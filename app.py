@@ -42,7 +42,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_SQLITE_URL = f"sqlite:///{(BASE_DIR / 'database.db').as_posix()}"
 BRAND_NAME = "Vesta Yangin"
-LOGO_PATH = BASE_DIR / "static" / "vesta-logo.png"
+LOGO_PATH = BASE_DIR / "static" / "vesta qr.png"
 
 
 def build_database_url() -> str:
