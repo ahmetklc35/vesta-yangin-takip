@@ -21,6 +21,7 @@ from flask import (
 from openpyxl import Workbook
 from PIL import Image, ImageDraw, ImageFont
 from sqlalchemy import (
+    Boolean,
     Column,
     Float,
     ForeignKey,
@@ -43,6 +44,14 @@ BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_SQLITE_URL = f"sqlite:///{(BASE_DIR / 'database.db').as_posix()}"
 BRAND_NAME = "Vesta Yangin"
 LOGO_PATH = BASE_DIR / "static" / "vesta qr.png"
+MONTHLY_CONTROL_ITEMS = [
+    ("item_1", "17.M.1001.A.1 YSC Konumu Değiştirilmemiş (belirlenen yerde duruyor)"),
+    ("item_2", "17.M.1001.A.2 YSC Kullanım Talimatı Kolay Okunabiliyor"),
+    ("item_3", "17.M.1001.A.3 YSC Mühür ve Basınç Göstergesinin uygunluğu"),
+    ("item_4", "17.M.1001.A.4 YSC Doluluk Durumu (el ile tartarak kontrol edilmeli)"),
+    ("item_5", "17.M.1001.A.5 YSC Paslanmamış ve Nozulda Tıkanıklık veya sızdırma yok"),
+    ("item_6", "17.M.1001.A.6 YSC Manometresinden Okunan Basınç Kabul Edilebilir aralıkta"),
+]
 
 
 def build_database_url() -> str:
@@ -92,6 +101,23 @@ service_logs = Table(
     Column("technician_name", String(255), nullable=False),
     Column("operation_summary", String, nullable=False),
     Column("pressure_status", String(255)),
+    Column("notes", String),
+    Column("created_at", String(32), nullable=False),
+)
+
+monthly_inspections = Table(
+    "monthly_inspections",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("extinguisher_id", Integer, ForeignKey("extinguishers.id"), nullable=False),
+    Column("inspection_date", String(32), nullable=False),
+    Column("inspector_name", String(255), nullable=False),
+    Column("item_1", Boolean, nullable=False),
+    Column("item_2", Boolean, nullable=False),
+    Column("item_3", Boolean, nullable=False),
+    Column("item_4", Boolean, nullable=False),
+    Column("item_5", Boolean, nullable=False),
+    Column("item_6", Boolean, nullable=False),
     Column("notes", String),
     Column("created_at", String(32), nullable=False),
 )
@@ -203,6 +229,24 @@ def build_branded_qr(public_url: str) -> io.BytesIO:
     canvas.save(buffer, format="PNG")
     buffer.seek(0)
     return buffer
+
+
+def with_monthly_control_labels(rows: list[dict]) -> list[dict]:
+    enriched_rows: list[dict] = []
+    for row in rows:
+        checks = []
+        passed_count = 0
+        for key, label in MONTHLY_CONTROL_ITEMS:
+            passed = bool(row.get(key))
+            if passed:
+                passed_count += 1
+            checks.append({"key": key, "label": label, "passed": passed})
+        copied = dict(row)
+        copied["checks"] = checks
+        copied["passed_count"] = passed_count
+        copied["total_count"] = len(MONTHLY_CONTROL_ITEMS)
+        enriched_rows.append(copied)
+    return enriched_rows
 
 
 @app.route("/")
@@ -392,15 +436,27 @@ def create_extinguisher():
 @app.route("/extinguishers/<public_id>")
 def extinguisher_detail(public_id: str):
     extinguisher = get_extinguisher(public_id)
-    logs = fetch_all(
+    service_history = fetch_all(
         select(service_logs)
         .where(service_logs.c.extinguisher_id == extinguisher["id"])
         .order_by(desc(service_logs.c.service_date), desc(service_logs.c.id))
     )
+    monthly_history = with_monthly_control_labels(
+        fetch_all(
+            select(monthly_inspections)
+            .where(monthly_inspections.c.extinguisher_id == extinguisher["id"])
+            .order_by(
+                desc(monthly_inspections.c.inspection_date),
+                desc(monthly_inspections.c.id),
+            )
+        )
+    )
     return render_template(
         "extinguisher_detail.html",
         extinguisher=extinguisher,
-        service_logs=logs,
+        service_logs=service_history,
+        monthly_inspections=monthly_history,
+        monthly_control_items=MONTHLY_CONTROL_ITEMS,
     )
 
 
@@ -487,10 +543,71 @@ def public_detail(public_id: str):
         .order_by(desc(service_logs.c.service_date), desc(service_logs.c.id))
         .limit(1)
     )
+    latest_monthly_inspection_raw = fetch_one(
+        select(monthly_inspections)
+        .where(monthly_inspections.c.extinguisher_id == extinguisher["id"])
+        .order_by(
+            desc(monthly_inspections.c.inspection_date),
+            desc(monthly_inspections.c.id),
+        )
+        .limit(1)
+    )
+    latest_monthly_inspection = (
+        with_monthly_control_labels([latest_monthly_inspection_raw])[0]
+        if latest_monthly_inspection_raw
+        else None
+    )
     return render_template(
         "public_detail.html",
         extinguisher=extinguisher,
         latest_log=latest_log,
+        latest_monthly_inspection=latest_monthly_inspection,
+    )
+
+
+@app.route("/extinguishers/<public_id>/monthly-inspection", methods=["GET", "POST"])
+def add_monthly_inspection(public_id: str):
+    extinguisher = get_extinguisher(public_id)
+    if request.method == "POST":
+        form = parse_required_form(request.form)
+        required_fields = {
+            "inspection_date": "Kontrol tarihi",
+            "inspector_name": "Kontrol eden",
+        }
+        missing = [label for key, label in required_fields.items() if not form.get(key)]
+        if missing:
+            flash(f"Eksik alanlar: {', '.join(missing)}", "error")
+            return render_template(
+                "monthly_inspection_form.html",
+                extinguisher=extinguisher,
+                monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                form=form,
+            )
+
+        now = datetime.now().isoformat(timespec="seconds")
+        inspection_values = {
+            key: request.form.get(key) == "on" for key, _label in MONTHLY_CONTROL_ITEMS
+        }
+        with engine.begin() as connection:
+            connection.execute(
+                insert(monthly_inspections).values(
+                    extinguisher_id=extinguisher["id"],
+                    inspection_date=form["inspection_date"],
+                    inspector_name=form["inspector_name"],
+                    notes=form.get("notes"),
+                    created_at=now,
+                    **inspection_values,
+                )
+            )
+
+        flash("Aylık kontrol kaydı eklendi.", "success")
+        return redirect(url_for("extinguisher_detail", public_id=public_id))
+
+    return render_template(
+        "monthly_inspection_form.html",
+        extinguisher=extinguisher,
+        monthly_control_items=MONTHLY_CONTROL_ITEMS,
+        form={},
     )
 
 

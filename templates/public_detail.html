@@ -32,6 +32,21 @@
             {% endif %}
           </section>
         {% endif %}
+
+        {% if latest_monthly_inspection %}
+          <section class="note-box">
+            <h2>Son Aylik Kontrol</h2>
+            <p><strong>Tarih:</strong> {{ latest_monthly_inspection.inspection_date }}</p>
+            <p><strong>Kontrol Eden:</strong> {{ latest_monthly_inspection.inspector_name }}</p>
+            <p><strong>Durum:</strong> {{ latest_monthly_inspection.passed_count }}/{{ latest_monthly_inspection.total_count }} madde uygun</p>
+            {% for check in latest_monthly_inspection.checks %}
+              <p>{{ check.label }}: {% if check.passed %}Uygun{% else %}Uygun Degil{% endif %}</p>
+            {% endfor %}
+            {% if latest_monthly_inspection.notes %}
+              <p><strong>Not:</strong> {{ latest_monthly_inspection.notes }}</p>
+            {% endif %}
+          </section>
+        {% endif %}
       </section>
     </main>
   </body>

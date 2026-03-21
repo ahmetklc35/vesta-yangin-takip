@@ -8,7 +8,10 @@
           <h1>{{ extinguisher.company_name }}</h1>
           <p class="muted">{{ extinguisher.location_detail }}</p>
         </div>
-        <a class="button secondary" href="{{ url_for('add_service_log', public_id=extinguisher.public_id) }}">Bakim Guncelle</a>
+        <div class="button-row">
+          <a class="button secondary" href="{{ url_for('add_service_log', public_id=extinguisher.public_id) }}">Bakim Guncelle</a>
+          <a class="button secondary" href="{{ url_for('add_monthly_inspection', public_id=extinguisher.public_id) }}">Aylik Kontrol Ekle</a>
+        </div>
       </div>
 
       <div class="stats">
@@ -59,6 +62,38 @@
           </div>
         {% endfor %}
       </div>
+    </article>
+
+    <article class="card detail-full">
+      <div class="section-head">
+        <h2>Aylik Kontrol Gecmisi</h2>
+        <span>{{ monthly_inspections|length }} kayit</span>
+      </div>
+
+      {% if monthly_inspections %}
+        <div class="timeline">
+          {% for inspection in monthly_inspections %}
+            <div class="timeline-item">
+              <strong>{{ inspection.inspection_date }}</strong>
+              <span>{{ inspection.inspector_name }}</span>
+              <small>{{ inspection.passed_count }}/{{ inspection.total_count }} madde uygun</small>
+              <div class="inspection-list">
+                {% for check in inspection.checks %}
+                  <div class="inspection-row {% if check.passed %}passed{% else %}failed{% endif %}">
+                    <span>{{ check.label }}</span>
+                    <strong>{% if check.passed %}Uygun{% else %}Uygun Degil{% endif %}</strong>
+                  </div>
+                {% endfor %}
+              </div>
+              {% if inspection.notes %}
+                <small>Not: {{ inspection.notes }}</small>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p>Henuz aylik kontrol kaydi yok.</p>
+      {% endif %}
     </article>
   </section>
 {% endblock %}

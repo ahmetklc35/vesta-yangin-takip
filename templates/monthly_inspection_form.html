@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="card form-card">
+    <div class="section-head">
+      <div>
+        <h1>Aylik Kontrol Ekle</h1>
+        <p class="muted">{{ extinguisher.company_name }} / {{ extinguisher.serial_number }}</p>
+      </div>
+    </div>
+
+    <form method="post" class="grid-form">
+      <label>
+        Kontrol tarihi
+        <input type="date" name="inspection_date" value="{{ form.get('inspection_date', '') }}" required>
+      </label>
+      <label>
+        Kontrol eden
+        <input type="text" name="inspector_name" value="{{ form.get('inspector_name', '') }}" required>
+      </label>
+
+      <section class="full checklist-card">
+        <h2>Aylik Kontrol Maddeleri</h2>
+        <div class="checklist-grid">
+          {% for key, label in monthly_control_items %}
+            <label class="check-item">
+              <input type="checkbox" name="{{ key }}" {% if form.get(key) %}checked{% endif %}>
+              <span>{{ label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </section>
+
+      <label class="full">
+        Notlar
+        <textarea name="notes" rows="4">{{ form.get('notes', '') }}</textarea>
+      </label>
+      <div class="full form-actions">
+        <button type="submit" class="button">Aylik Kontrol Kaydet</button>
+      </div>
+    </form>
+  </section>
+{% endblock %}

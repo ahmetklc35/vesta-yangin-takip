@@ -128,6 +128,13 @@ p {
   background: var(--accent-dark);
 }
 
+.button-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .section-head {
   display: flex;
   align-items: center;
@@ -266,6 +273,59 @@ th {
 .timeline-item small {
   display: block;
   margin-bottom: 6px;
+}
+
+.detail-full {
+  grid-column: 1 / -1;
+}
+
+.checklist-card {
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.checklist-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.check-item {
+  display: flex;
+  flex-direction: row !important;
+  align-items: flex-start;
+  gap: 12px;
+  font-weight: 500 !important;
+}
+
+.check-item input {
+  width: auto !important;
+  margin-top: 3px;
+}
+
+.inspection-list {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.inspection-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.inspection-row.passed {
+  background: rgba(47, 109, 68, 0.08);
+}
+
+.inspection-row.failed {
+  background: rgba(141, 44, 44, 0.08);
 }
 
 .flash-stack {
