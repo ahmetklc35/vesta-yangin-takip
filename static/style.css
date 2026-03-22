@@ -346,6 +346,18 @@ th {
   background: white;
 }
 
+.monthly-table th,
+.monthly-table td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.monthly-table td:first-child,
+.monthly-table th:first-child {
+  text-align: left;
+  min-width: 110px;
+}
+
 .flash-stack {
   display: grid;
   gap: 10px;

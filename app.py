@@ -81,6 +81,20 @@ MONTHLY_CONTROL_ITEMS = [
     ("item_5", "17.M.1001.A.5 YSC Paslanmamış ve Nozulda Tıkanıklık veya sızdırma yok"),
     ("item_6", "17.M.1001.A.6 YSC Manometresinden Okunan Basınç Kabul Edilebilir aralıkta"),
 ]
+MONTH_LABELS = [
+    (1, "OCAK"),
+    (2, "ŞUBAT"),
+    (3, "MART"),
+    (4, "NİSAN"),
+    (5, "MAYIS"),
+    (6, "HAZİRAN"),
+    (7, "TEMMUZ"),
+    (8, "AĞUSTOS"),
+    (9, "EYLÜL"),
+    (10, "EKİM"),
+    (11, "KASIM"),
+    (12, "ARALIK"),
+]
 
 
 def build_database_url() -> str:
@@ -307,6 +321,47 @@ def get_equipment_preset(extinguisher_type: str | None) -> dict | None:
     if not extinguisher_type:
         return None
     return EQUIPMENT_PRESETS.get(extinguisher_type)
+
+
+def build_monthly_table(rows: list[dict]) -> dict:
+    if rows:
+        sorted_rows = sorted(rows, key=lambda row: row["inspection_date"], reverse=True)
+        target_year = datetime.strptime(sorted_rows[0]["inspection_date"], "%Y-%m-%d").year
+    else:
+        target_year = datetime.now().year
+
+    latest_by_month: dict[int, dict] = {}
+    for row in sorted(rows, key=lambda row: row["inspection_date"], reverse=True):
+        inspection_date = datetime.strptime(row["inspection_date"], "%Y-%m-%d")
+        if inspection_date.year != target_year:
+            continue
+        if inspection_date.month not in latest_by_month:
+            latest_by_month[inspection_date.month] = row
+
+    month_rows = []
+    for month_number, month_label in MONTH_LABELS:
+        source = latest_by_month.get(month_number)
+        cells = []
+        for key, label in MONTHLY_CONTROL_ITEMS:
+            code = label.split(" ", 1)[0]
+            value = None if source is None else bool(source.get(key))
+            cells.append({"code": code, "value": value})
+        month_rows.append(
+            {
+                "month_label": month_label,
+                "inspection_date": source["inspection_date"] if source else None,
+                "cells": cells,
+            }
+        )
+
+    return {
+        "year": target_year,
+        "headers": [
+            {"key": key, "code": label.split(" ", 1)[0]}
+            for key, label in MONTHLY_CONTROL_ITEMS
+        ],
+        "rows": month_rows,
+    }
 
 
 @app.route("/")
@@ -660,6 +715,14 @@ def public_detail(public_id: str):
         )
         .limit(1)
     )
+    monthly_history_raw = fetch_all(
+        select(monthly_inspections)
+        .where(monthly_inspections.c.extinguisher_id == extinguisher["id"])
+        .order_by(
+            desc(monthly_inspections.c.inspection_date),
+            desc(monthly_inspections.c.id),
+        )
+    )
     latest_monthly_inspection = (
         with_monthly_control_labels([latest_monthly_inspection_raw])[0]
         if latest_monthly_inspection_raw
@@ -671,6 +734,7 @@ def public_detail(public_id: str):
         latest_log=latest_log,
         latest_monthly_inspection=latest_monthly_inspection,
         equipment_preset=get_equipment_preset(extinguisher.get("extinguisher_type")),
+        monthly_table=build_monthly_table(monthly_history_raw),
     )
 
 

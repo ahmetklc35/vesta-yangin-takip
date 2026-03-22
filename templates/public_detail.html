@@ -48,6 +48,40 @@
           </section>
         {% endif %}
 
+        <section class="note-box">
+          <h2>Aylik Kontrol Tablosu ({{ monthly_table.year }})</h2>
+          <div class="table-wrap">
+            <table class="monthly-table">
+              <thead>
+                <tr>
+                  <th>PERIYOD</th>
+                  {% for header in monthly_table.headers %}
+                    <th>{{ header.code }}</th>
+                  {% endfor %}
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in monthly_table.rows %}
+                  <tr>
+                    <td>{{ row.month_label }}</td>
+                    {% for cell in row.cells %}
+                      <td>
+                        {% if cell.value is sameas true %}
+                          ✓
+                        {% elif cell.value is sameas false %}
+                          x
+                        {% else %}
+                          -
+                        {% endif %}
+                      </td>
+                    {% endfor %}
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         {% if equipment_preset %}
           <section class="note-box equipment-card">
             <h2>{{ equipment_preset.title }}</h2>
