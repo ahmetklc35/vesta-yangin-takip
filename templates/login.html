@@ -3,32 +3,16 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Yangin Tupu Takip</title>
+    <title>Giris | Vesta Yangin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   </head>
-  <body>
+  <body class="login-page">
     <div class="page-glow page-glow-one"></div>
     <div class="page-glow page-glow-two"></div>
-    <header class="topbar">
-      <div class="shell">
-        <a class="brand" href="{{ url_for('index') }}">
-          <span class="brand-mark">V</span>
-          <span class="brand-copy">
-            <strong>Vesta Yangin</strong>
-            <small>Bakim ve QR Takip</small>
-          </span>
-        </a>
-        <nav>
-          <a href="{{ url_for('create_extinguisher') }}">Yeni Kayit</a>
-          <a href="{{ url_for('logout') }}">Cikis</a>
-        </nav>
-      </div>
-    </header>
-
-    <main class="shell">
+    <main class="login-shell">
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
           <section class="flash-stack">
@@ -38,8 +22,28 @@
           </section>
         {% endif %}
       {% endwith %}
-
-      {% block content %}{% endblock %}
+      <section class="login-card">
+        <div class="brand login-brand">
+          <span class="brand-mark">V</span>
+          <span class="brand-copy">
+            <strong>Vesta Yangin</strong>
+            <small>Sirket Ici Giris</small>
+          </span>
+        </div>
+        <h1>Yonetim Paneli</h1>
+        <p class="muted">Tup kayitlari, bakim girisleri ve Excel raporlari icin giris yap.</p>
+        <form method="post" class="login-form">
+          <label>
+            Kullanici adi
+            <input type="text" name="username" required>
+          </label>
+          <label>
+            Sifre
+            <input type="password" name="password" required>
+          </label>
+          <button type="submit" class="button login-button">Giris Yap</button>
+        </form>
+      </section>
     </main>
   </body>
 </html>

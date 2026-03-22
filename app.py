@@ -6,6 +6,7 @@ import os
 import uuid
 from datetime import datetime
 from pathlib import Path
+from functools import wraps
 
 import qrcode
 from qrcode.constants import ERROR_CORRECT_H
@@ -17,6 +18,7 @@ from flask import (
     render_template,
     request,
     send_file,
+    session,
     url_for,
 )
 from openpyxl import Workbook
@@ -170,6 +172,32 @@ metadata.create_all(engine)
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "change-this-secret-key")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # type: ignore[assignment]
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "vestaadmin")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "degistir-beni-2026")
+
+
+def is_authenticated() -> bool:
+    return session.get("authenticated") is True
+
+
+def login_required(view_func):
+    @wraps(view_func)
+    def wrapped_view(*args, **kwargs):
+        if not is_authenticated():
+            return redirect(url_for("login", next=request.path))
+        return view_func(*args, **kwargs)
+
+    return wrapped_view
+
+
+@app.before_request
+def protect_private_routes():
+    allowed_endpoints = {"login", "public_detail", "static"}
+    if request.endpoint in allowed_endpoints or request.endpoint is None:
+        return None
+    if not is_authenticated():
+        return redirect(url_for("login", next=request.path))
+    return None
 
 
 def fetch_all(statement):
@@ -364,7 +392,29 @@ def build_monthly_table(rows: list[dict]) -> dict:
     }
 
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+            session["authenticated"] = True
+            flash("Giris yapildi.", "success")
+            next_url = request.args.get("next") or url_for("index")
+            return redirect(next_url)
+        flash("Kullanici adi veya sifre hatali.", "error")
+    return render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("Cikis yapildi.", "success")
+    return redirect(url_for("login"))
+
+
 @app.route("/")
+@login_required
 def index():
     latest_log_date = (
         select(service_logs.c.service_date)
@@ -381,6 +431,7 @@ def index():
 
 
 @app.route("/export/extinguishers.xlsx")
+@login_required
 def export_extinguishers():
     rows = fetch_all(
         select(
@@ -431,6 +482,7 @@ def export_extinguishers():
 
 
 @app.route("/export/service-logs.xlsx")
+@login_required
 def export_service_logs():
     statement = (
         select(
@@ -480,6 +532,7 @@ def export_service_logs():
 
 
 @app.route("/extinguishers/new", methods=["GET", "POST"])
+@login_required
 def create_extinguisher():
     if request.method == "POST":
         form = parse_required_form(request.form)
@@ -577,6 +630,7 @@ def create_extinguisher():
 
 
 @app.route("/extinguishers/<public_id>")
+@login_required
 def extinguisher_detail(public_id: str):
     extinguisher = get_extinguisher(public_id)
     service_history = fetch_all(
@@ -605,6 +659,7 @@ def extinguisher_detail(public_id: str):
 
 
 @app.route("/extinguishers/<public_id>/service", methods=["GET", "POST"])
+@login_required
 def add_service_log(public_id: str):
     extinguisher = get_extinguisher(public_id)
     if request.method == "POST":
@@ -739,6 +794,7 @@ def public_detail(public_id: str):
 
 
 @app.route("/extinguishers/<public_id>/monthly-inspection", methods=["GET", "POST"])
+@login_required
 def add_monthly_inspection(public_id: str):
     extinguisher = get_extinguisher(public_id)
     if request.method == "POST":
@@ -782,6 +838,7 @@ def add_monthly_inspection(public_id: str):
 
 
 @app.route("/extinguishers/<public_id>/qr")
+@login_required
 def extinguisher_qr(public_id: str):
     get_extinguisher(public_id)
     public_url = url_for("public_detail", public_id=public_id, _external=True)
@@ -790,6 +847,7 @@ def extinguisher_qr(public_id: str):
 
 
 @app.route("/extinguishers/<public_id>/label")
+@login_required
 def extinguisher_label(public_id: str):
     get_extinguisher(public_id)
     return render_template("label.html", public_id=public_id)

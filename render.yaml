@@ -8,6 +8,10 @@ services:
     envVars:
       - key: SECRET_KEY
         generateValue: true
+      - key: ADMIN_USERNAME
+        value: vestaadmin
+      - key: ADMIN_PASSWORD
+        value: degistir-beni-2026
       - key: DATABASE_URL
         fromDatabase:
           name: vesta-yangin-db
