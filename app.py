@@ -44,6 +44,11 @@ BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_SQLITE_URL = f"sqlite:///{(BASE_DIR / 'database.db').as_posix()}"
 BRAND_NAME = "Vesta Yangin"
 LOGO_PATH = BASE_DIR / "static" / "vesta qr.png"
+EQUIPMENT_OPTIONS = [
+    "Kuru Kimyevi Toz",
+    "CO2",
+    "Kopuk",
+]
 MONTHLY_CONTROL_ITEMS = [
     ("item_1", "17.M.1001.A.1 YSC Konumu Değiştirilmemiş (belirlenen yerde duruyor)"),
     ("item_2", "17.M.1001.A.2 YSC Kullanım Talimatı Kolay Okunabiliyor"),
@@ -231,6 +236,31 @@ def build_branded_qr(public_url: str) -> io.BytesIO:
     return buffer
 
 
+def build_monthly_inspection_values(form_data) -> dict[str, bool]:
+    return {key: form_data.get(key) == "on" for key, _label in MONTHLY_CONTROL_ITEMS}
+
+
+def save_monthly_inspection(
+    connection,
+    extinguisher_id: int,
+    inspection_date: str,
+    inspector_name: str,
+    notes: str | None,
+    inspection_values: dict[str, bool],
+    created_at: str,
+) -> None:
+    connection.execute(
+        insert(monthly_inspections).values(
+            extinguisher_id=extinguisher_id,
+            inspection_date=inspection_date,
+            inspector_name=inspector_name,
+            notes=notes,
+            created_at=created_at,
+            **inspection_values,
+        )
+    )
+
+
 def with_monthly_control_labels(rows: list[dict]) -> list[dict]:
     enriched_rows: list[dict] = []
     for row in rows:
@@ -388,10 +418,16 @@ def create_extinguisher():
             weight_kg = parse_float(form["weight_kg"], "Kg")
         except ValueError as exc:
             flash(str(exc), "error")
-            return render_template("create_extinguisher.html", form=form)
+            return render_template(
+                "create_extinguisher.html",
+                form=form,
+                monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                equipment_options=EQUIPMENT_OPTIONS,
+            )
 
         now = datetime.now().isoformat(timespec="seconds")
         public_id = uuid.uuid4().hex[:12]
+        inspection_values = build_monthly_inspection_values(request.form)
 
         try:
             with engine.begin() as connection:
@@ -423,14 +459,33 @@ def create_extinguisher():
                         created_at=now,
                     )
                 )
+                save_monthly_inspection(
+                    connection=connection,
+                    extinguisher_id=extinguisher_id,
+                    inspection_date=form["last_service_date"],
+                    inspector_name=form["technician_name"],
+                    notes=form.get("notes"),
+                    inspection_values=inspection_values,
+                    created_at=now,
+                )
         except IntegrityError:
             flash("Bu seri numarasi zaten kayitli.", "error")
-            return render_template("create_extinguisher.html", form=form)
+            return render_template(
+                "create_extinguisher.html",
+                form=form,
+                monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                equipment_options=EQUIPMENT_OPTIONS,
+            )
 
         flash("Tup kaydedildi ve QR olusturuldu.", "success")
         return redirect(url_for("extinguisher_detail", public_id=public_id))
 
-    return render_template("create_extinguisher.html", form={})
+    return render_template(
+        "create_extinguisher.html",
+        form={},
+        monthly_control_items=MONTHLY_CONTROL_ITEMS,
+        equipment_options=EQUIPMENT_OPTIONS,
+    )
 
 
 @app.route("/extinguishers/<public_id>")
@@ -478,6 +533,8 @@ def add_service_log(public_id: str):
                 "service_log_form.html",
                 extinguisher=extinguisher,
                 form=form,
+                monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                equipment_options=EQUIPMENT_OPTIONS,
             )
 
         try:
@@ -491,9 +548,12 @@ def add_service_log(public_id: str):
                 "service_log_form.html",
                 extinguisher=extinguisher,
                 form=form,
+                monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                equipment_options=EQUIPMENT_OPTIONS,
             )
 
         now = datetime.now().isoformat(timespec="seconds")
+        inspection_values = build_monthly_inspection_values(request.form)
         with engine.begin() as connection:
             connection.execute(
                 insert(service_logs).values(
@@ -523,6 +583,15 @@ def add_service_log(public_id: str):
                     updated_at=now,
                 )
             )
+            save_monthly_inspection(
+                connection=connection,
+                extinguisher_id=extinguisher["id"],
+                inspection_date=form["service_date"],
+                inspector_name=form["technician_name"],
+                notes=form.get("notes"),
+                inspection_values=inspection_values,
+                created_at=now,
+            )
 
         flash("Bakim kaydi eklendi.", "success")
         return redirect(url_for("extinguisher_detail", public_id=public_id))
@@ -531,6 +600,8 @@ def add_service_log(public_id: str):
         "service_log_form.html",
         extinguisher=extinguisher,
         form={},
+        monthly_control_items=MONTHLY_CONTROL_ITEMS,
+        equipment_options=EQUIPMENT_OPTIONS,
     )
 
 
@@ -585,19 +656,16 @@ def add_monthly_inspection(public_id: str):
             )
 
         now = datetime.now().isoformat(timespec="seconds")
-        inspection_values = {
-            key: request.form.get(key) == "on" for key, _label in MONTHLY_CONTROL_ITEMS
-        }
+        inspection_values = build_monthly_inspection_values(request.form)
         with engine.begin() as connection:
-            connection.execute(
-                insert(monthly_inspections).values(
-                    extinguisher_id=extinguisher["id"],
-                    inspection_date=form["inspection_date"],
-                    inspector_name=form["inspector_name"],
-                    notes=form.get("notes"),
-                    created_at=now,
-                    **inspection_values,
-                )
+            save_monthly_inspection(
+                connection=connection,
+                extinguisher_id=extinguisher["id"],
+                inspection_date=form["inspection_date"],
+                inspector_name=form["inspector_name"],
+                notes=form.get("notes"),
+                inspection_values=inspection_values,
+                created_at=now,
             )
 
         flash("Aylık kontrol kaydı eklendi.", "success")

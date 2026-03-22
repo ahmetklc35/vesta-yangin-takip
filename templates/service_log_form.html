@@ -40,12 +40,29 @@
       </label>
       <label>
         Tup tipi
-        <input type="text" name="extinguisher_type" value="{{ form.get('extinguisher_type', extinguisher.extinguisher_type) }}">
+        <select name="extinguisher_type">
+          <option value="">Seciniz</option>
+          {% for option in equipment_options %}
+            {% set selected_type = form.get('extinguisher_type', extinguisher.extinguisher_type) %}
+            <option value="{{ option }}" {% if selected_type == option %}selected{% endif %}>{{ option }}</option>
+          {% endfor %}
+        </select>
       </label>
       <label class="full">
         Yapilan islem
         <textarea name="operation_summary" rows="3" required>{{ form.get('operation_summary', '') }}</textarea>
       </label>
+      <section class="full checklist-card">
+        <h2>Aylik Kontrol Maddeleri</h2>
+        <div class="checklist-grid">
+          {% for key, label in monthly_control_items %}
+            <label class="check-item">
+              <input type="checkbox" name="{{ key }}" {% if form.get(key) %}checked{% endif %}>
+              <span>{{ label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </section>
       <label class="full">
         Notlar
         <textarea name="notes" rows="3">{{ form.get('notes', extinguisher.notes or '') }}</textarea>

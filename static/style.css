@@ -188,7 +188,8 @@ th {
 }
 
 .grid-form input,
-.grid-form textarea {
+.grid-form textarea,
+.grid-form select {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 14px;
