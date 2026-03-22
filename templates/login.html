@@ -23,12 +23,9 @@
         {% endif %}
       {% endwith %}
       <section class="login-card">
-        <div class="brand login-brand">
-          <span class="brand-mark">V</span>
-          <span class="brand-copy">
-            <strong>vestaa2</strong>
-            <small>Yonetim Paneli</small>
-          </span>
+        <div class="login-brand">
+          <img src="{{ url_for('static', filename='vestaa2.png') }}" alt="Vesta Yangin">
+          <small>Yonetim Paneli</small>
         </div>
         <form method="post" class="login-form">
           <label>

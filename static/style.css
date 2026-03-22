@@ -659,17 +659,23 @@ tbody tr:nth-child(odd) td {
 
 .login-brand {
   margin-bottom: 22px;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
 }
 
-.login-brand .brand-copy strong {
-  color: var(--ink);
-  font-size: 1.3rem;
-  text-transform: lowercase;
+.login-brand img {
+  width: min(100%, 260px);
+  height: auto;
+  display: block;
 }
 
-.login-brand .brand-copy small {
+.login-brand small {
   color: var(--muted);
   font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 800;
 }
 
 .login-form label {
