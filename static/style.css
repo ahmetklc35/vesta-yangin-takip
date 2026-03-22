@@ -399,6 +399,16 @@ tbody tr:nth-child(odd) td {
   font-weight: 600;
 }
 
+.checkbox-label {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 12px !important;
+}
+
+.checkbox-label input {
+  width: auto !important;
+}
+
 .grid-form input,
 .grid-form textarea,
 .grid-form select {
@@ -418,6 +428,18 @@ tbody tr:nth-child(odd) td {
 .form-actions {
   display: flex;
   justify-content: flex-end;
+}
+
+.inline-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.compact-button {
+  min-height: 40px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
 }
 
 .detail-layout {

@@ -32,6 +32,7 @@ from sqlalchemy import (
     MetaData,
     String,
     Table,
+    text,
     create_engine,
     desc,
     insert,
@@ -128,6 +129,7 @@ users = Table(
     Column("full_name", String(255), nullable=False),
     Column("password_hash", String(255), nullable=False),
     Column("is_admin", Boolean, nullable=False, default=False),
+    Column("is_active", Boolean, nullable=False, default=True),
     Column("created_at", String(32), nullable=False),
     Column("updated_at", String(32), nullable=False),
 )
@@ -232,12 +234,39 @@ def seed_default_users() -> None:
                     full_name=user["full_name"],
                     password_hash=generate_password_hash(user["password"]),
                     is_admin=user["is_admin"],
+                    is_active=True,
                     created_at=now,
                     updated_at=now,
                 )
             )
 
 
+def run_schema_migrations() -> None:
+    if DATABASE_URL.startswith("sqlite"):
+        with engine.begin() as connection:
+            columns = {
+                row[1] for row in connection.execute(text("PRAGMA table_info(users)")).fetchall()
+            }
+            if "is_active" not in columns:
+                connection.execute(text("ALTER TABLE users ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT 1"))
+    else:
+        with engine.begin() as connection:
+            result = connection.execute(
+                text(
+                    """
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = 'users' AND column_name = 'is_active'
+                    """
+                )
+            ).fetchone()
+            if result is None:
+                connection.execute(
+                    text("ALTER TABLE users ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE")
+                )
+
+
+run_schema_migrations()
 seed_default_users()
 
 
@@ -249,11 +278,27 @@ def current_user_full_name() -> str:
     return session.get("full_name", "")
 
 
+def is_admin_user() -> bool:
+    return session.get("is_admin") is True
+
+
 def login_required(view_func):
     @wraps(view_func)
     def wrapped_view(*args, **kwargs):
         if not is_authenticated():
             return redirect(url_for("login", next=request.path))
+        return view_func(*args, **kwargs)
+
+    return wrapped_view
+
+
+def admin_required(view_func):
+    @wraps(view_func)
+    def wrapped_view(*args, **kwargs):
+        if not is_authenticated():
+            return redirect(url_for("login", next=request.path))
+        if not is_admin_user():
+            abort(403)
         return view_func(*args, **kwargs)
 
     return wrapped_view
@@ -467,7 +512,7 @@ def login():
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
         user = fetch_one(select(users).where(users.c.username == username))
-        if user and check_password_hash(user["password_hash"], password):
+        if user and bool(user["is_active"]) and check_password_hash(user["password_hash"], password):
             session["authenticated"] = True
             session["user_id"] = user["id"]
             session["username"] = user["username"]
@@ -485,6 +530,102 @@ def logout():
     session.clear()
     flash("Cikis yapildi.", "success")
     return redirect(url_for("login"))
+
+
+@app.route("/users", methods=["GET"])
+@admin_required
+def user_management():
+    user_rows = fetch_all(
+        select(
+            users.c.id,
+            users.c.username,
+            users.c.full_name,
+            users.c.is_admin,
+            users.c.is_active,
+            users.c.created_at,
+        ).order_by(users.c.full_name)
+    )
+    return render_template("user_management.html", users=user_rows)
+
+
+@app.route("/users/create", methods=["POST"])
+@admin_required
+def create_user():
+    username = request.form.get("username", "").strip()
+    full_name = request.form.get("full_name", "").strip()
+    password = request.form.get("password", "")
+    is_admin = request.form.get("is_admin") == "on"
+
+    if not username or not full_name or not password:
+        flash("Kullanici adi, ad soyad ve sifre gerekli.", "error")
+        return redirect(url_for("user_management"))
+
+    now = datetime.now().isoformat(timespec="seconds")
+    try:
+        with engine.begin() as connection:
+            connection.execute(
+                insert(users).values(
+                    username=username,
+                    full_name=full_name,
+                    password_hash=generate_password_hash(password),
+                    is_admin=is_admin,
+                    is_active=True,
+                    created_at=now,
+                    updated_at=now,
+                )
+            )
+    except IntegrityError:
+        flash("Bu kullanici adi zaten mevcut.", "error")
+        return redirect(url_for("user_management"))
+
+    flash("Kullanici olusturuldu.", "success")
+    return redirect(url_for("user_management"))
+
+
+@app.route("/users/<int:user_id>/password", methods=["POST"])
+@admin_required
+def update_user_password(user_id: int):
+    password = request.form.get("password", "")
+    if not password:
+        flash("Yeni sifre bos olamaz.", "error")
+        return redirect(url_for("user_management"))
+
+    now = datetime.now().isoformat(timespec="seconds")
+    with engine.begin() as connection:
+        connection.execute(
+            update(users)
+            .where(users.c.id == user_id)
+            .values(
+                password_hash=generate_password_hash(password),
+                updated_at=now,
+            )
+        )
+    flash("Sifre guncellendi.", "success")
+    return redirect(url_for("user_management"))
+
+
+@app.route("/users/<int:user_id>/toggle-active", methods=["POST"])
+@admin_required
+def toggle_user_active(user_id: int):
+    target_user = fetch_one(select(users).where(users.c.id == user_id))
+    if not target_user:
+        abort(404)
+    if target_user["username"] == session.get("username"):
+        flash("Kendi hesabini pasife alamazsin.", "error")
+        return redirect(url_for("user_management"))
+
+    now = datetime.now().isoformat(timespec="seconds")
+    with engine.begin() as connection:
+        connection.execute(
+            update(users)
+            .where(users.c.id == user_id)
+            .values(
+                is_active=not bool(target_user["is_active"]),
+                updated_at=now,
+            )
+        )
+    flash("Kullanici durumu guncellendi.", "success")
+    return redirect(url_for("user_management"))
 
 
 @app.route("/")

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="detail-layout">
+    <article class="card">
+      <div class="section-head">
+        <h1>Kullanici Yonetimi</h1>
+        <span class="count-pill">{{ users|length }} kullanici</span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Ad Soyad</th>
+              <th>Kullanici Adi</th>
+              <th>Rol</th>
+              <th>Durum</th>
+              <th>Sifre</th>
+              <th>Islem</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+              <tr>
+                <td>{{ user.full_name }}</td>
+                <td>{{ user.username }}</td>
+                <td>{% if user.is_admin %}Admin{% else %}Personel{% endif %}</td>
+                <td>{% if user.is_active %}Aktif{% else %}Pasif{% endif %}</td>
+                <td>
+                  <form method="post" action="{{ url_for('update_user_password', user_id=user.id) }}" class="inline-form">
+                    <input type="password" name="password" placeholder="Yeni sifre" required>
+                    <button type="submit" class="button secondary compact-button">Kaydet</button>
+                  </form>
+                </td>
+                <td>
+                  <form method="post" action="{{ url_for('toggle_user_active', user_id=user.id) }}">
+                    <button type="submit" class="button secondary compact-button">
+                      {% if user.is_active %}Pasife Al{% else %}Aktif Et{% endif %}
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="section-head">
+        <h2>Yeni Kullanici Olustur</h2>
+      </div>
+
+      <form method="post" action="{{ url_for('create_user') }}" class="grid-form">
+        <label>
+          Ad Soyad
+          <input type="text" name="full_name" required>
+        </label>
+        <label>
+          Kullanici Adi
+          <input type="text" name="username" required>
+        </label>
+        <label>
+          Sifre
+          <input type="password" name="password" required>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" name="is_admin">
+          <span>Admin yetkisi ver</span>
+        </label>
+        <div class="full form-actions">
+          <button type="submit" class="button">Kullanici Olustur</button>
+        </div>
+      </form>
+    </article>
+  </section>
+{% endblock %}
