@@ -532,6 +532,45 @@ def logout():
     return redirect(url_for("login"))
 
 
+@app.route("/profile", methods=["GET", "POST"])
+@login_required
+def profile():
+    current_user = fetch_one(select(users).where(users.c.id == session.get("user_id")))
+    if current_user is None:
+        session.clear()
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        current_password = request.form.get("current_password", "")
+        new_password = request.form.get("new_password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        if not check_password_hash(current_user["password_hash"], current_password):
+            flash("Mevcut sifre hatali.", "error")
+            return redirect(url_for("profile"))
+        if not new_password:
+            flash("Yeni sifre bos olamaz.", "error")
+            return redirect(url_for("profile"))
+        if new_password != confirm_password:
+            flash("Yeni sifreler eslesmiyor.", "error")
+            return redirect(url_for("profile"))
+
+        now = datetime.now().isoformat(timespec="seconds")
+        with engine.begin() as connection:
+            connection.execute(
+                update(users)
+                .where(users.c.id == current_user["id"])
+                .values(
+                    password_hash=generate_password_hash(new_password),
+                    updated_at=now,
+                )
+            )
+        flash("Sifren guncellendi.", "success")
+        return redirect(url_for("profile"))
+
+    return render_template("profile.html", current_user=current_user)
+
+
 @app.route("/users", methods=["GET"])
 @admin_required
 def user_management():

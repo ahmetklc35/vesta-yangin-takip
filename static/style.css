@@ -442,6 +442,10 @@ tbody tr:nth-child(odd) td {
   font-size: 0.85rem;
 }
 
+.profile-card {
+  max-width: 760px;
+}
+
 .detail-layout {
   display: grid;
   grid-template-columns: 1.3fr 1fr;

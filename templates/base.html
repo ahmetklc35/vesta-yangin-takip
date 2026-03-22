@@ -23,6 +23,7 @@
         </a>
         <nav>
           <span class="user-pill">{{ session.get('full_name', 'Kullanici') }}</span>
+          <a href="{{ url_for('profile') }}">Profil</a>
           {% if session.get('is_admin') %}
             <a href="{{ url_for('user_management') }}">Kullanicilar</a>
           {% endif %}

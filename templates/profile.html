@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="card profile-card">
+    <div class="section-head">
+      <div>
+        <h1>Profil</h1>
+        <p class="muted">{{ current_user.full_name }} / {{ current_user.username }}</p>
+      </div>
+    </div>
+
+    <form method="post" class="grid-form">
+      <label class="full">
+        Mevcut sifre
+        <input type="password" name="current_password" required>
+      </label>
+      <label>
+        Yeni sifre
+        <input type="password" name="new_password" required>
+      </label>
+      <label>
+        Yeni sifre tekrar
+        <input type="password" name="confirm_password" required>
+      </label>
+      <div class="full form-actions">
+        <button type="submit" class="button">Sifreyi Guncelle</button>
+      </div>
+    </form>
+  </section>
+{% endblock %}
