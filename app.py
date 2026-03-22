@@ -306,7 +306,7 @@ def admin_required(view_func):
 
 @app.before_request
 def protect_private_routes():
-    allowed_endpoints = {"login", "logout", "public_detail", "static"}
+    allowed_endpoints = {"login", "logout", "public_detail", "health", "static"}
     if request.endpoint in allowed_endpoints or request.endpoint is None:
         return None
     if not is_authenticated():
@@ -523,6 +523,11 @@ def login():
             return redirect(next_url)
         flash("Kullanici adi veya sifre hatali.", "error")
     return render_template("login.html")
+
+
+@app.route("/health")
+def health():
+    return {"status": "ok"}, 200
 
 
 @app.route("/logout")
