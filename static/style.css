@@ -658,42 +658,30 @@ tbody tr:nth-child(odd) td {
 }
 
 .login-brand {
-  margin-bottom: 18px;
+  margin-bottom: 22px;
 }
 
 .login-brand .brand-copy strong {
   color: var(--ink);
+  font-size: 1.3rem;
+  text-transform: lowercase;
 }
 
 .login-brand .brand-copy small {
   color: var(--muted);
-}
-
-.login-form {
-  display: grid;
-  gap: 16px;
-  margin-top: 22px;
-}
-
-.login-help {
-  display: grid;
-  gap: 6px;
-  margin-top: 18px;
-  padding: 14px 16px;
-  border-radius: 18px;
-  background: rgba(212, 66, 31, 0.08);
-  border: 1px solid rgba(123, 76, 48, 0.12);
-}
-
-.login-help small {
-  color: var(--muted);
-  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.82rem;
 }
 
 .login-form label {
   display: grid;
   gap: 8px;
   font-weight: 700;
+}
+
+.login-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 8px;
 }
 
 .login-form input {
