@@ -17,6 +17,14 @@
         <input type="text" name="company_name" value="{{ form.get('company_name', '') }}" required>
       </label>
       <label>
+        Muayene adresi
+        <input type="text" name="company_address" value="{{ form.get('company_address', '') }}" required>
+      </label>
+      <label>
+        Firma yetkili kisi
+        <input type="text" name="company_contact" value="{{ form.get('company_contact', '') }}" required>
+      </label>
+      <label>
         Firma ici konum
         <input type="text" name="location_detail" value="{{ form.get('location_detail', '') }}" placeholder="Depo girisi, 2. kat koridoru..." required>
       </label>
@@ -38,8 +46,20 @@
         <input type="text" name="pressure_status" value="{{ form.get('pressure_status', '') }}" placeholder="Normal, dusuk, yenilendi">
       </label>
       <label>
+        YSC sinifi
+        <input type="text" name="fire_class" value="{{ form.get('fire_class', '') }}" required>
+      </label>
+      <label>
+        YSC uretici
+        <input type="text" name="manufacturer" value="{{ form.get('manufacturer', '') }}" required>
+      </label>
+      <label>
         Son bakim tarihi
         <input type="date" name="last_service_date" value="{{ form.get('last_service_date', '') }}" required>
+      </label>
+      <label>
+        Hidrostatik test tarihi
+        <input type="date" name="hydrostatic_test_date" value="{{ form.get('hydrostatic_test_date', '') }}" required>
       </label>
       <label>
         Sonraki bakim tarihi
@@ -62,6 +82,18 @@
               <span>{{ label }}</span>
             </label>
           {% endfor %}
+        </div>
+      </section>
+      <section class="full checklist-card">
+        <h2>6 Aylik Kontrol Formu Maddeleri</h2>
+        <div class="checklist-grid">
+          <label class="check-item"><input type="checkbox" name="check_a" {% if form.get('check_a') %}checked{% endif %}><span>a) BELIRLENEN YERE KONULDUĞU</span></label>
+          <label class="check-item"><input type="checkbox" name="check_b" {% if form.get('check_b') %}checked{% endif %}><span>b) KULLANMA TALIMATLARI GORUNUMU</span></label>
+          <label class="check-item"><input type="checkbox" name="check_c" {% if form.get('check_c') %}checked{% endif %}><span>c) KULLANMA TALIMATI OKUNURLUGU</span></label>
+          <label class="check-item"><input type="checkbox" name="check_d" {% if form.get('check_d') %}checked{% endif %}><span>d) MUHUR VE BASINÇ GOSTERGESI UYGUNLUGU</span></label>
+          <label class="check-item"><input type="checkbox" name="check_e" {% if form.get('check_e') %}checked{% endif %}><span>e) DOLULUK DURUMU</span></label>
+          <label class="check-item"><input type="checkbox" name="check_f" {% if form.get('check_f') %}checked{% endif %}><span>f) NOZUL UYGUNLUGU (PASLANMA VB.)</span></label>
+          <label class="check-item"><input type="checkbox" name="check_g" {% if form.get('check_g') %}checked{% endif %}><span>g) BASINÇ GOSTERGESI ISLEVSELLIGI</span></label>
         </div>
       </section>
       <section class="full equipment-card" id="equipment-preset-card" hidden>

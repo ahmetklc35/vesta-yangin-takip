@@ -31,6 +31,18 @@
         </div>
       </section>
 
+      <section class="full checklist-card">
+        <h2>6 Aylik Kontrol Formu Maddeleri</h2>
+        <div class="checklist-grid">
+          {% for key, label in control_form_items %}
+            <label class="check-item">
+              <input type="checkbox" name="{{ key }}" {% if form.get(key) %}checked{% endif %}>
+              <span>{{ label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </section>
+
       <label class="full">
         Notlar
         <textarea name="notes" rows="4">{{ form.get('notes', '') }}</textarea>

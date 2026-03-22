@@ -23,6 +23,11 @@ from flask import (
 )
 from openpyxl import Workbook
 from PIL import Image, ImageDraw, ImageFont
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import mm
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table as PdfTable, TableStyle
 from sqlalchemy import (
     Boolean,
     Column,
@@ -85,6 +90,15 @@ MONTHLY_CONTROL_ITEMS = [
     ("item_5", "17.M.1001.A.5 YSC Paslanmamış ve Nozulda Tıkanıklık veya sızdırma yok"),
     ("item_6", "17.M.1001.A.6 YSC Manometresinden Okunan Basınç Kabul Edilebilir aralıkta"),
 ]
+CONTROL_FORM_ITEMS = [
+    ("check_a", "a) BELİRLENEN YERE KONULDUĞU"),
+    ("check_b", "b) KULLANMA TALİMATLARI GÖRÜNÜMÜ"),
+    ("check_c", "c) KULLANMA TALİMATI OKUNURLUĞU"),
+    ("check_d", "d) MÜHÜR VE BASINÇ GÖSTERGESİ UYGUNLUĞU"),
+    ("check_e", "e) DOLULUK DURUMU"),
+    ("check_f", "f) NOZUL UYGUNLUĞU (PASLANMA VB.)"),
+    ("check_g", "g) BASINÇ GÖSTERGESİ İŞLEVSELLİĞİ"),
+]
 MONTH_LABELS = [
     (1, "OCAK"),
     (2, "ŞUBAT"),
@@ -144,6 +158,11 @@ extinguishers = Table(
     Column("location_detail", String(255), nullable=False),
     Column("weight_kg", Float, nullable=False),
     Column("extinguisher_type", String(255), nullable=False),
+    Column("fire_class", String(255)),
+    Column("manufacturer", String(255)),
+    Column("hydrostatic_test_date", String(32)),
+    Column("company_address", String(255)),
+    Column("company_contact", String(255)),
     Column("pressure_status", String(255)),
     Column("notes", String),
     Column("last_service_date", String(32)),
@@ -178,6 +197,13 @@ monthly_inspections = Table(
     Column("item_4", Boolean, nullable=False),
     Column("item_5", Boolean, nullable=False),
     Column("item_6", Boolean, nullable=False),
+    Column("check_a", Boolean, nullable=False, default=False),
+    Column("check_b", Boolean, nullable=False, default=False),
+    Column("check_c", Boolean, nullable=False, default=False),
+    Column("check_d", Boolean, nullable=False, default=False),
+    Column("check_e", Boolean, nullable=False, default=False),
+    Column("check_f", Boolean, nullable=False, default=False),
+    Column("check_g", Boolean, nullable=False, default=False),
     Column("notes", String),
     Column("created_at", String(32), nullable=False),
 )
@@ -249,6 +275,27 @@ def run_schema_migrations() -> None:
             }
             if "is_active" not in columns:
                 connection.execute(text("ALTER TABLE users ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT 1"))
+            extinguisher_columns = {
+                row[1] for row in connection.execute(text("PRAGMA table_info(extinguishers)")).fetchall()
+            }
+            for column_name, column_def in [
+                ("fire_class", "TEXT"),
+                ("manufacturer", "TEXT"),
+                ("hydrostatic_test_date", "TEXT"),
+                ("company_address", "TEXT"),
+                ("company_contact", "TEXT"),
+            ]:
+                if column_name not in extinguisher_columns:
+                    connection.execute(text(f"ALTER TABLE extinguishers ADD COLUMN {column_name} {column_def}"))
+
+            inspection_columns = {
+                row[1] for row in connection.execute(text("PRAGMA table_info(monthly_inspections)")).fetchall()
+            }
+            for column_name in ["check_a", "check_b", "check_c", "check_d", "check_e", "check_f", "check_g"]:
+                if column_name not in inspection_columns:
+                    connection.execute(
+                        text(f"ALTER TABLE monthly_inspections ADD COLUMN {column_name} BOOLEAN NOT NULL DEFAULT 0")
+                    )
     else:
         with engine.begin() as connection:
             result = connection.execute(
@@ -264,6 +311,32 @@ def run_schema_migrations() -> None:
                 connection.execute(
                     text("ALTER TABLE users ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE")
                 )
+            for column_name in ["fire_class", "manufacturer", "hydrostatic_test_date", "company_address", "company_contact"]:
+                result = connection.execute(
+                    text(
+                        f"""
+                        SELECT column_name
+                        FROM information_schema.columns
+                        WHERE table_name = 'extinguishers' AND column_name = '{column_name}'
+                        """
+                    )
+                ).fetchone()
+                if result is None:
+                    connection.execute(text(f"ALTER TABLE extinguishers ADD COLUMN {column_name} TEXT"))
+            for column_name in ["check_a", "check_b", "check_c", "check_d", "check_e", "check_f", "check_g"]:
+                result = connection.execute(
+                    text(
+                        f"""
+                        SELECT column_name
+                        FROM information_schema.columns
+                        WHERE table_name = 'monthly_inspections' AND column_name = '{column_name}'
+                        """
+                    )
+                ).fetchone()
+                if result is None:
+                    connection.execute(
+                        text(f"ALTER TABLE monthly_inspections ADD COLUMN {column_name} BOOLEAN NOT NULL DEFAULT FALSE")
+                    )
 
 
 run_schema_migrations()
@@ -420,6 +493,10 @@ def build_monthly_inspection_values(form_data) -> dict[str, bool]:
     return {key: form_data.get(key) == "on" for key, _label in MONTHLY_CONTROL_ITEMS}
 
 
+def build_control_form_values(form_data) -> dict[str, bool]:
+    return {key: form_data.get(key) == "on" for key, _label in CONTROL_FORM_ITEMS}
+
+
 def save_monthly_inspection(
     connection,
     extinguisher_id: int,
@@ -427,6 +504,7 @@ def save_monthly_inspection(
     inspector_name: str,
     notes: str | None,
     inspection_values: dict[str, bool],
+    control_values: dict[str, bool],
     created_at: str,
 ) -> None:
     connection.execute(
@@ -437,6 +515,7 @@ def save_monthly_inspection(
             notes=notes,
             created_at=created_at,
             **inspection_values,
+            **control_values,
         )
     )
 
@@ -504,6 +583,100 @@ def build_monthly_table(rows: list[dict]) -> dict:
         ],
         "rows": month_rows,
     }
+
+
+def build_control_form_pdf(company_name: str, extinguishers_for_company: list[dict], latest_inspections: dict[int, dict]) -> io.BytesIO:
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(A4),
+        leftMargin=10 * mm,
+        rightMargin=10 * mm,
+        topMargin=10 * mm,
+        bottomMargin=10 * mm,
+    )
+    styles = getSampleStyleSheet()
+    story = []
+    story.append(Paragraph("Taşınabilir Yangın Söndürme Cihazı 6 Aylık Bakım Kontrol Formu", styles["Title"]))
+    story.append(Spacer(1, 4 * mm))
+
+    first = extinguishers_for_company[0] if extinguishers_for_company else {}
+    general_data = [
+        ["FİRMA ADI", company_name, "KONTROL TARİHİ", datetime.now().strftime("%d.%m.%Y")],
+        ["MUAYENE ADRESİ", first.get("company_address") or "-", "FİRMA YETKİLİ KİŞİ", first.get("company_contact") or "-"],
+        ["PERİYODİK KONTROL PERSONELİ", current_user_full_name() or "-", "AÇIKLAMALAR", "-"],
+    ]
+    general_table = PdfTable(general_data, colWidths=[32 * mm, 86 * mm, 42 * mm, 90 * mm])
+    general_table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), colors.whitesmoke),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+                ("FONTSIZE", (0, 0), (-1, -1), 8),
+                ("BACKGROUND", (0, 0), (0, -1), colors.lightgrey),
+                ("BACKGROUND", (2, 0), (2, -1), colors.lightgrey),
+            ]
+        )
+    )
+    story.append(general_table)
+    story.append(Spacer(1, 6 * mm))
+
+    header = [
+        "CİHAZ NO",
+        "YSC CİNSİ",
+        "YSC SINIFI",
+        "SERİ NO / KOD",
+        "YSC ÜRETİCİ",
+        "DOLUM TARİHİ",
+        "HİDROSTATİK TEST TARİHİ",
+        "BULUNDUĞU YER",
+    ] + [label.split(")")[0] + ")" for _key, label in CONTROL_FORM_ITEMS]
+    rows = [header]
+    for index, extinguisher in enumerate(extinguishers_for_company, start=1):
+        inspection = latest_inspections.get(extinguisher["id"], {})
+        row = [
+            str(index),
+            extinguisher.get("extinguisher_type") or "-",
+            extinguisher.get("fire_class") or "-",
+            extinguisher.get("serial_number") or "-",
+            extinguisher.get("manufacturer") or "-",
+            extinguisher.get("last_service_date") or "-",
+            extinguisher.get("hydrostatic_test_date") or "-",
+            extinguisher.get("location_detail") or "-",
+        ]
+        for key, _label in CONTROL_FORM_ITEMS:
+            value = inspection.get(key)
+            row.append("✔" if value is True else "X" if value is False and inspection else "─")
+        rows.append(row)
+
+    table = PdfTable(rows, repeatRows=1)
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e9d6cf")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
+                ("GRID", (0, 0), (-1, -1), 0.4, colors.grey),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+                ("FONTSIZE", (0, 0), (-1, -1), 6.5),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ]
+        )
+    )
+    story.append(table)
+    story.append(Spacer(1, 4 * mm))
+    story.append(Paragraph("NOT 1: Yangın söndürücünün kontrolü Madde a) ve b) bendindeki gibi listelenmiş koşullarda, bir eksikliği ortaya çıkardığı zaman, acil düzeltici faaliyet yapılmalıdır.", styles["BodyText"]))
+    story.append(Paragraph("NOT 2: Yangın söndürücünün kontrolü Madde c), d), e), f) veya g) bendindeki koşullarından herhangi birinde bir eksikliği ortaya çıkardığı zaman, söndürücü uygun bakım işlemlerine VESTA YANGIN tarafından tabi tutulmalıdır.", styles["BodyText"]))
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
+
+
+def build_company_filename(company_name: str) -> str:
+    safe = "".join(char if char.isalnum() else "-" for char in company_name.lower()).strip("-")
+    return safe or "kontrol-formu"
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -799,10 +972,15 @@ def create_extinguisher():
         required_fields = {
             "serial_number": "Seri numarasi",
             "company_name": "Firma adi",
+            "company_address": "Muayene adresi",
+            "company_contact": "Firma yetkili kisi",
             "location_detail": "Firma ici konum",
             "weight_kg": "Kg bilgisi",
             "extinguisher_type": "Tup tipi",
+            "fire_class": "YSC sinifi",
+            "manufacturer": "YSC uretici",
             "last_service_date": "Son bakim tarihi",
+            "hydrostatic_test_date": "Hidrostatik test tarihi",
             "next_service_date": "Sonraki bakim tarihi",
             "technician_name": "Teknisyen",
             "operation_summary": "Yapilan islem",
@@ -810,7 +988,13 @@ def create_extinguisher():
         missing = [label for key, label in required_fields.items() if not form.get(key)]
         if missing:
             flash(f"Eksik alanlar: {', '.join(missing)}", "error")
-            return render_template("create_extinguisher.html", form=form)
+            return render_template(
+                "create_extinguisher.html",
+                form=form,
+                monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                equipment_options=EQUIPMENT_OPTIONS,
+                equipment_presets=EQUIPMENT_PRESETS,
+            )
 
         try:
             weight_kg = parse_float(form["weight_kg"], "Kg")
@@ -827,6 +1011,7 @@ def create_extinguisher():
         now = datetime.now().isoformat(timespec="seconds")
         public_id = uuid.uuid4().hex[:12]
         inspection_values = build_monthly_inspection_values(request.form)
+        control_values = build_control_form_values(request.form)
 
         try:
             with engine.begin() as connection:
@@ -835,9 +1020,14 @@ def create_extinguisher():
                         public_id=public_id,
                         serial_number=form["serial_number"],
                         company_name=form["company_name"],
+                        company_address=form["company_address"],
+                        company_contact=form["company_contact"],
                         location_detail=form["location_detail"],
                         weight_kg=weight_kg,
                         extinguisher_type=form["extinguisher_type"],
+                        fire_class=form["fire_class"],
+                        manufacturer=form["manufacturer"],
+                        hydrostatic_test_date=form["hydrostatic_test_date"],
                         pressure_status=form.get("pressure_status"),
                         notes=form.get("notes"),
                         last_service_date=form["last_service_date"],
@@ -865,6 +1055,7 @@ def create_extinguisher():
                     inspector_name=form["technician_name"],
                     notes=form.get("notes"),
                     inspection_values=inspection_values,
+                    control_values=control_values,
                     created_at=now,
                 )
         except IntegrityError:
@@ -918,6 +1109,41 @@ def extinguisher_detail(public_id: str):
     )
 
 
+@app.route("/extinguishers/<public_id>/control-form.pdf")
+@login_required
+def control_form_pdf(public_id: str):
+    extinguisher = get_extinguisher(public_id)
+    company_name = extinguisher["company_name"]
+    company_extinguishers = fetch_all(
+        select(extinguishers)
+        .where(extinguishers.c.company_name == company_name)
+        .order_by(extinguishers.c.location_detail, extinguishers.c.serial_number)
+    )
+    extinguisher_ids = [row["id"] for row in company_extinguishers]
+    latest_inspections: dict[int, dict] = {}
+    if extinguisher_ids:
+        inspection_rows = fetch_all(
+            select(monthly_inspections)
+            .where(monthly_inspections.c.extinguisher_id.in_(extinguisher_ids))
+            .order_by(
+                monthly_inspections.c.extinguisher_id,
+                desc(monthly_inspections.c.inspection_date),
+                desc(monthly_inspections.c.id),
+            )
+        )
+        for row in inspection_rows:
+            latest_inspections.setdefault(row["extinguisher_id"], row)
+
+    pdf_buffer = build_control_form_pdf(company_name, company_extinguishers, latest_inspections)
+    filename = f"{build_company_filename(company_name)}-kontrol-formu.pdf"
+    return send_file(
+        pdf_buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=filename,
+    )
+
+
 @app.route("/extinguishers/<public_id>/service", methods=["GET", "POST"])
 @login_required
 def add_service_log(public_id: str):
@@ -929,6 +1155,14 @@ def add_service_log(public_id: str):
             "service_date": "Bakim tarihi",
             "next_service_date": "Sonraki bakim tarihi",
             "technician_name": "Teknisyen",
+            "company_name": "Firma adi",
+            "company_address": "Muayene adresi",
+            "company_contact": "Firma yetkili kisi",
+            "location_detail": "Firma ici konum",
+            "extinguisher_type": "Tup tipi",
+            "fire_class": "YSC sinifi",
+            "manufacturer": "YSC uretici",
+            "hydrostatic_test_date": "Hidrostatik test tarihi",
             "operation_summary": "Yapilan islem",
         }
         missing = [label for key, label in required_fields.items() if not form.get(key)]
@@ -961,6 +1195,7 @@ def add_service_log(public_id: str):
 
         now = datetime.now().isoformat(timespec="seconds")
         inspection_values = build_monthly_inspection_values(request.form)
+        control_values = build_control_form_values(request.form)
         with engine.begin() as connection:
             connection.execute(
                 insert(service_logs).values(
@@ -978,11 +1213,16 @@ def add_service_log(public_id: str):
                 .where(extinguishers.c.id == extinguisher["id"])
                 .values(
                     company_name=form.get("company_name") or extinguisher["company_name"],
+                    company_address=form.get("company_address") or extinguisher.get("company_address"),
+                    company_contact=form.get("company_contact") or extinguisher.get("company_contact"),
                     location_detail=form.get("location_detail")
                     or extinguisher["location_detail"],
                     weight_kg=weight_kg,
                     extinguisher_type=form.get("extinguisher_type")
                     or extinguisher["extinguisher_type"],
+                    fire_class=form.get("fire_class") or extinguisher.get("fire_class"),
+                    manufacturer=form.get("manufacturer") or extinguisher.get("manufacturer"),
+                    hydrostatic_test_date=form.get("hydrostatic_test_date") or extinguisher.get("hydrostatic_test_date"),
                     pressure_status=form.get("pressure_status"),
                     notes=form.get("notes"),
                     last_service_date=form["service_date"],
@@ -997,6 +1237,7 @@ def add_service_log(public_id: str):
                 inspector_name=form["technician_name"],
                 notes=form.get("notes"),
                 inspection_values=inspection_values,
+                control_values=control_values,
                 created_at=now,
             )
 
@@ -1072,11 +1313,13 @@ def add_monthly_inspection(public_id: str):
                 "monthly_inspection_form.html",
                 extinguisher=extinguisher,
                 monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                control_form_items=CONTROL_FORM_ITEMS,
                 form=form,
             )
 
         now = datetime.now().isoformat(timespec="seconds")
         inspection_values = build_monthly_inspection_values(request.form)
+        control_values = build_control_form_values(request.form)
         with engine.begin() as connection:
             save_monthly_inspection(
                 connection=connection,
@@ -1085,6 +1328,7 @@ def add_monthly_inspection(public_id: str):
                 inspector_name=form["inspector_name"],
                 notes=form.get("notes"),
                 inspection_values=inspection_values,
+                control_values=control_values,
                 created_at=now,
             )
 
@@ -1095,6 +1339,7 @@ def add_monthly_inspection(public_id: str):
         "monthly_inspection_form.html",
         extinguisher=extinguisher,
         monthly_control_items=MONTHLY_CONTROL_ITEMS,
+        control_form_items=CONTROL_FORM_ITEMS,
         form={"inspector_name": current_user_full_name()},
     )
 
