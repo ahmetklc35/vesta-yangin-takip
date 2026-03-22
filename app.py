@@ -40,6 +40,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
+from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 
@@ -119,6 +120,18 @@ engine: Engine = create_engine(
 
 metadata = MetaData()
 
+users = Table(
+    "users",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("username", String(128), nullable=False, unique=True),
+    Column("full_name", String(255), nullable=False),
+    Column("password_hash", String(255), nullable=False),
+    Column("is_admin", Boolean, nullable=False, default=False),
+    Column("created_at", String(32), nullable=False),
+    Column("updated_at", String(32), nullable=False),
+)
+
 extinguishers = Table(
     "extinguishers",
     metadata,
@@ -174,10 +187,66 @@ app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "change-this-secret-key"
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # type: ignore[assignment]
 ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "vestaadmin")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "degistir-beni-2026")
+DEFAULT_USER_PASSWORD = os.environ.get("DEFAULT_USER_PASSWORD", "Vesta123!")
+DEFAULT_USERS = [
+    {
+        "username": ADMIN_USERNAME,
+        "full_name": "Admin",
+        "password": ADMIN_PASSWORD,
+        "is_admin": True,
+    },
+    {
+        "username": "yunus.emre.duman",
+        "full_name": "Yunus Emre Duman",
+        "password": DEFAULT_USER_PASSWORD,
+        "is_admin": False,
+    },
+    {
+        "username": "atil.bati",
+        "full_name": "Atıl Batı",
+        "password": DEFAULT_USER_PASSWORD,
+        "is_admin": False,
+    },
+    {
+        "username": "mustafa.kilic",
+        "full_name": "Mustafa Kiliç",
+        "password": DEFAULT_USER_PASSWORD,
+        "is_admin": False,
+    },
+]
+
+
+def seed_default_users() -> None:
+    now = datetime.now().isoformat(timespec="seconds")
+    with engine.begin() as connection:
+        existing = {
+            row[0]
+            for row in connection.execute(select(users.c.username)).all()
+        }
+        for user in DEFAULT_USERS:
+            if user["username"] in existing:
+                continue
+            connection.execute(
+                insert(users).values(
+                    username=user["username"],
+                    full_name=user["full_name"],
+                    password_hash=generate_password_hash(user["password"]),
+                    is_admin=user["is_admin"],
+                    created_at=now,
+                    updated_at=now,
+                )
+            )
+
+
+seed_default_users()
 
 
 def is_authenticated() -> bool:
     return session.get("authenticated") is True
+
+
+def current_user_full_name() -> str:
+    return session.get("full_name", "")
 
 
 def login_required(view_func):
@@ -192,7 +261,7 @@ def login_required(view_func):
 
 @app.before_request
 def protect_private_routes():
-    allowed_endpoints = {"login", "public_detail", "static"}
+    allowed_endpoints = {"login", "logout", "public_detail", "static"}
     if request.endpoint in allowed_endpoints or request.endpoint is None:
         return None
     if not is_authenticated():
@@ -397,8 +466,13 @@ def login():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
-        if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+        user = fetch_one(select(users).where(users.c.username == username))
+        if user and check_password_hash(user["password_hash"], password):
             session["authenticated"] = True
+            session["user_id"] = user["id"]
+            session["username"] = user["username"]
+            session["full_name"] = user["full_name"]
+            session["is_admin"] = bool(user["is_admin"])
             flash("Giris yapildi.", "success")
             next_url = request.args.get("next") or url_for("index")
             return redirect(next_url)
@@ -536,6 +610,7 @@ def export_service_logs():
 def create_extinguisher():
     if request.method == "POST":
         form = parse_required_form(request.form)
+        form["technician_name"] = form.get("technician_name") or current_user_full_name()
         required_fields = {
             "serial_number": "Seri numarasi",
             "company_name": "Firma adi",
@@ -622,7 +697,7 @@ def create_extinguisher():
 
     return render_template(
         "create_extinguisher.html",
-        form={},
+        form={"technician_name": current_user_full_name()},
         monthly_control_items=MONTHLY_CONTROL_ITEMS,
         equipment_options=EQUIPMENT_OPTIONS,
         equipment_presets=EQUIPMENT_PRESETS,
@@ -664,6 +739,7 @@ def add_service_log(public_id: str):
     extinguisher = get_extinguisher(public_id)
     if request.method == "POST":
         form = parse_required_form(request.form)
+        form["technician_name"] = form.get("technician_name") or current_user_full_name()
         required_fields = {
             "service_date": "Bakim tarihi",
             "next_service_date": "Sonraki bakim tarihi",
@@ -745,7 +821,7 @@ def add_service_log(public_id: str):
     return render_template(
         "service_log_form.html",
         extinguisher=extinguisher,
-        form={},
+        form={"technician_name": current_user_full_name()},
         monthly_control_items=MONTHLY_CONTROL_ITEMS,
         equipment_options=EQUIPMENT_OPTIONS,
         equipment_presets=EQUIPMENT_PRESETS,
@@ -799,6 +875,7 @@ def add_monthly_inspection(public_id: str):
     extinguisher = get_extinguisher(public_id)
     if request.method == "POST":
         form = parse_required_form(request.form)
+        form["inspector_name"] = form.get("inspector_name") or current_user_full_name()
         required_fields = {
             "inspection_date": "Kontrol tarihi",
             "inspector_name": "Kontrol eden",
@@ -833,7 +910,7 @@ def add_monthly_inspection(public_id: str):
         "monthly_inspection_form.html",
         extinguisher=extinguisher,
         monthly_control_items=MONTHLY_CONTROL_ITEMS,
-        form={},
+        form={"inspector_name": current_user_full_name()},
     )
 
 

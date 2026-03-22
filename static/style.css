@@ -132,6 +132,24 @@ nav a {
   background: rgba(255, 255, 255, 0.06);
 }
 
+.topbar nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: white;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-weight: 700;
+}
+
 main.shell {
   padding: 38px 0 54px;
 }
@@ -629,6 +647,21 @@ tbody tr:nth-child(odd) td {
   display: grid;
   gap: 16px;
   margin-top: 22px;
+}
+
+.login-help {
+  display: grid;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(212, 66, 31, 0.08);
+  border: 1px solid rgba(123, 76, 48, 0.12);
+}
+
+.login-help small {
+  color: var(--muted);
+  font-family: "Space Grotesk", sans-serif;
 }
 
 .login-form label {

@@ -22,6 +22,7 @@
           </span>
         </a>
         <nav>
+          <span class="user-pill">{{ session.get('full_name', 'Kullanici') }}</span>
           <a href="{{ url_for('create_extinguisher') }}">Yeni Kayit</a>
           <a href="{{ url_for('logout') }}">Cikis</a>
         </nav>
