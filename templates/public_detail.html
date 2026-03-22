@@ -47,6 +47,16 @@
             {% endif %}
           </section>
         {% endif %}
+
+        {% if equipment_preset %}
+          <section class="note-box equipment-card">
+            <h2>{{ equipment_preset.title }}</h2>
+            <p>{{ equipment_preset.summary }}</p>
+            <p>{{ equipment_preset.features }}</p>
+            <p>{{ equipment_preset.technical_details }}</p>
+            <img src="{{ url_for('static', filename=equipment_preset.image) }}" alt="Parca ve yedek parca listesi">
+          </section>
+        {% endif %}
       </section>
     </main>
   </body>

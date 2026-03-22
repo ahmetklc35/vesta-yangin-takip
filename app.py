@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import json
 import os
 import uuid
 from datetime import datetime
@@ -49,6 +50,29 @@ EQUIPMENT_OPTIONS = [
     "CO2",
     "Kopuk",
 ]
+EQUIPMENT_PRESETS = {
+    "Kopuk": {
+        "title": "Taşınılabilir Yangın Söndürücü, 9 Litre Köpük",
+        "summary": "YANGIN SINIFI: 21 A 183 B - 9 litrelik köpük yangın söndürücü , -30°C ila +60°C sıcaklık aralığında, UNI EN 3-7 standardına uygun olarak üretilmiş , MED 2014/90/EU Denizcilik Ekipmanları Direktifi onaylı, PED 2014/68/EU Basınçlı Ekipman Direktifi'ne göre sertifikalandırılmıştır . Üretim kontrolleri EN 3-10 standardına uygun olarak yapılmıştır . - Elektrik voltajı 1.000 V'a kadar olan yangınlarda, en az 1 metre mesafede kullanıma uygundur.",
+        "features": "Özellikler: - SİLİNDİR: Yüksek mukavemetli alaşımlı çelikten, 3 parçalı klipsli, dış yüzeyi RAL 3000 Kırmızı toz boya ile boyanmış. -  SÖNDÜRÜCÜ MADDE: Su bazlı köpük. - İTİCİ AKIŞKAN : Nemi alınmış hava veya azot (N2). - VALF: M. 30x1.5, pirinç gövde, kolları RAL 6029 yeşil boya ile boyanmış. - KULLANIM: AB yangın sınıfı (katı maddeler, yanıcı sıvılar).",
+        "technical_details": "Teknik Özellikler: -  YANGIN DAYANIKLILIĞI: 21 A 183 B -  SÖNDÜRÜCÜ MADDE: Köpük EW-30 (%100 Premix MG6-30) -  İTİCİ AKIŞKAN:  Nemi alınmış hava veya Azot (N2), 20°C'de 15 bar -  SICAKLIK ARALIĞI: -30°C / +60°C -  NOMİNAL HACİM:  9 Litre -  TOPLAM AĞIRLIK: ~ 15,1 Kg -  BOYUTLAR: Yükseklik (taban - valf) 635 +/- 5 mm - Çap (silindir) 170 +/- 2 mm -  BOŞALTMA SÜRESİ: ~ 34,8 saniye -  VALF SIKMA TORKU: Minimum 45 Nm, Maksimum 68 Nm -  SİLİNDİR BASINÇ  TESTİ : PT 27 bar -  SİLİNDİR HACMİ: 10,7 L. -  GÜVENLİK CİHAZI: Ayarlanmış 20 ile 26 bar arasında -  SİLİNDİR MALZEMESİ: Alaşımlı çelik -  İŞLEM: Dış yüzey: Kum püskürtme ve toz boyama, RAL 3000 - İç yüzey: Plastik kaplama",
+        "image": "equipment/kopuk.png",
+    },
+    "CO2": {
+        "title": "Taşınılabilir Yangın Söndürücü, 5 Kg CO₂",
+        "summary": "YANGIN SINIFI: 3 7 113 B  - 5 kg Karbondioksitli Yangın Söndürücü, çalışma sıcaklığı -30°C ile +60°C arasında, UNI EN 3-7 (DM 7.1.2005) standardına uygun olarak üretilmiş, Denizcilik Ekipmanları Direktifi MED 2014/90/UE tarafından onaylanmış, Basınçlı Ekipman Direktifi PED 2014/68/EU'ya göre sertifikalandırılmıştır. EN 3-10 ile mutabık kalınan üretim kontrollerine göre üretilmiştir. - Elektrik voltajı 1.000 V'a kadar olan yangınlarda, en az 1 metre mesafede kullanıma uygundur.",
+        "features": "Özellikler: - SİLİNDİR: Alaşımlı çelik, dış yüzey toz boya kaplama, renk Kırmızı RAL 3000. - SÖNDÜRÜCÜ MADDE: Karbondioksit %99,99 (CO2) - VALF: Levian M. 25x2, pirinç gövde, kol kırmızı RAL 3000. - KULLANIM: Yangın dayanıklılık sınıfı B (yanıcı sıvılar).",
+        "technical_details": "Teknik Özellikler: • YANGIN DAYANIKLILIĞI 113 B • SÖNDÜRÜCÜ MADDE Karbondioksit %99,99 (CO2) • SICAKLIK ARALIĞI -30°C/ +60°C • 5 kg için nominal ücret. • TOPLAM AĞIRLIK ~ 13,65 Kg • BOYUTLAR Yükseklik (taban - valf) 740 +/- 10 mm - Çap (silindir) 136 +/- 2 mm • Boşalma süresi  ~ 15,6 saniye",
+        "image": "equipment/co2.png",
+    },
+    "Kuru Kimyevi Toz": {
+        "title": "Taşınılabilir Yangın Söndürücü, 6 Kg ABC Tozu",
+        "summary": "YANGIN SINIFI: 34 A 233 B C  - 6 kg tozlu yangın söndürücü, -30°C ila +60°C sıcaklık aralığında, UNI EN 3-7 (DM 7.1.2005) standardına uygun olarak üretilmiş, PED 2014/68/EU basınçlı ekipman direktifine göre sertifikalandırılmıştır. Üretim kontrolleri EN 3-10 standardına uygun olarak gerçekleştirilmiştir. - Elektrik voltajı 1.000 V'a kadar olan yangınlarda, en az 1 metre mesafede kullanıma uygundur.",
+        "features": "Özellikler: - Silindir: Alaşımlı çelik, derin çekme, klipsli, epoksipolyester toz boya, Kırmızı RAL 3000. - Söndürücü Madde: ABC Tozu - MAP %20. - İtici Gaz: Nemi alınmış hava veya N2. - Vana: M. 58x2, hafif alüminyum alaşım AA6061 gövde, harici çek valfli, kırmızı RAL 3000 boyalı kollar. - Kullanım: ABC yangın sınıflandırması (katı maddeler, yanıcı sıvılar, yanıcı gazlar).",
+        "technical_details": "Teknik Özellikler: - Yangın Dayanımı: 34 A 233 BC - Söndürücü Madde: EPW 18462 (ABC Favorit Tertia) - ABC tozu - MAP %20 - İtici Gaz: Nemi alınmış hava veya N2, 20°C'de 15 Bar - Sıcaklık Aralığı: -30°C / +60°C - Nominal Şarj: 6 Kg - Tam Ağırlık: ~ 9,4 Kg - Boyutlar: Yükseklik 550 mm, Çap 160 mm - Boşaltma Süresi:  16,5 sn. - VALF SIKMA TORKU: Minimum 40 Nm, Maksimum 60 Nm - Silindir Basınç Testi: PT 27 bar - Silindir Hacmi: 7,8 L. - Emniyet Valfi: 22 ile 27 bar arasında ayarlanmıştır - Silindir Malzemesi: Alaşımlı çelik - Dış/İç İşlem: Kum püskürtme ve epoksipolyester toz boya, Kırmızı Ral 3000 rengi",
+        "image": "equipment/kuru-kimyevi-toz.png",
+    },
+}
 MONTHLY_CONTROL_ITEMS = [
     ("item_1", "17.M.1001.A.1 YSC Konumu Değiştirilmemiş (belirlenen yerde duruyor)"),
     ("item_2", "17.M.1001.A.2 YSC Kullanım Talimatı Kolay Okunabiliyor"),
@@ -279,6 +303,12 @@ def with_monthly_control_labels(rows: list[dict]) -> list[dict]:
     return enriched_rows
 
 
+def get_equipment_preset(extinguisher_type: str | None) -> dict | None:
+    if not extinguisher_type:
+        return None
+    return EQUIPMENT_PRESETS.get(extinguisher_type)
+
+
 @app.route("/")
 def index():
     latest_log_date = (
@@ -423,6 +453,7 @@ def create_extinguisher():
                 form=form,
                 monthly_control_items=MONTHLY_CONTROL_ITEMS,
                 equipment_options=EQUIPMENT_OPTIONS,
+                equipment_presets=EQUIPMENT_PRESETS,
             )
 
         now = datetime.now().isoformat(timespec="seconds")
@@ -475,6 +506,7 @@ def create_extinguisher():
                 form=form,
                 monthly_control_items=MONTHLY_CONTROL_ITEMS,
                 equipment_options=EQUIPMENT_OPTIONS,
+                equipment_presets=EQUIPMENT_PRESETS,
             )
 
         flash("Tup kaydedildi ve QR olusturuldu.", "success")
@@ -485,6 +517,7 @@ def create_extinguisher():
         form={},
         monthly_control_items=MONTHLY_CONTROL_ITEMS,
         equipment_options=EQUIPMENT_OPTIONS,
+        equipment_presets=EQUIPMENT_PRESETS,
     )
 
 
@@ -512,6 +545,7 @@ def extinguisher_detail(public_id: str):
         service_logs=service_history,
         monthly_inspections=monthly_history,
         monthly_control_items=MONTHLY_CONTROL_ITEMS,
+        equipment_preset=get_equipment_preset(extinguisher.get("extinguisher_type")),
     )
 
 
@@ -535,6 +569,7 @@ def add_service_log(public_id: str):
                 form=form,
                 monthly_control_items=MONTHLY_CONTROL_ITEMS,
                 equipment_options=EQUIPMENT_OPTIONS,
+                equipment_presets=EQUIPMENT_PRESETS,
             )
 
         try:
@@ -550,6 +585,7 @@ def add_service_log(public_id: str):
                 form=form,
                 monthly_control_items=MONTHLY_CONTROL_ITEMS,
                 equipment_options=EQUIPMENT_OPTIONS,
+                equipment_presets=EQUIPMENT_PRESETS,
             )
 
         now = datetime.now().isoformat(timespec="seconds")
@@ -602,6 +638,7 @@ def add_service_log(public_id: str):
         form={},
         monthly_control_items=MONTHLY_CONTROL_ITEMS,
         equipment_options=EQUIPMENT_OPTIONS,
+        equipment_presets=EQUIPMENT_PRESETS,
     )
 
 
@@ -633,6 +670,7 @@ def public_detail(public_id: str):
         extinguisher=extinguisher,
         latest_log=latest_log,
         latest_monthly_inspection=latest_monthly_inspection,
+        equipment_preset=get_equipment_preset(extinguisher.get("extinguisher_type")),
     )
 
 

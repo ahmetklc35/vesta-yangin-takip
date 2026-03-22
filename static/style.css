@@ -329,6 +329,23 @@ th {
   background: rgba(141, 44, 44, 0.08);
 }
 
+.equipment-card {
+  display: grid;
+  gap: 14px;
+}
+
+.equipment-card h2,
+.equipment-card p {
+  margin-bottom: 0;
+}
+
+.equipment-card img {
+  width: min(100%, 520px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: white;
+}
+
 .flash-stack {
   display: grid;
   gap: 10px;

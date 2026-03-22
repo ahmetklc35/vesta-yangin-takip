@@ -40,7 +40,7 @@
       </label>
       <label>
         Tup tipi
-        <select name="extinguisher_type">
+        <select name="extinguisher_type" id="extinguisher_type">
           <option value="">Seciniz</option>
           {% for option in equipment_options %}
             {% set selected_type = form.get('extinguisher_type', extinguisher.extinguisher_type) %}
@@ -63,6 +63,13 @@
           {% endfor %}
         </div>
       </section>
+      <section class="full equipment-card" id="equipment-preset-card" hidden>
+        <h2 id="equipment-title"></h2>
+        <p id="equipment-summary"></p>
+        <p id="equipment-features"></p>
+        <p id="equipment-technical"></p>
+        <img id="equipment-image" alt="Parca ve yedek parca listesi">
+      </section>
       <label class="full">
         Notlar
         <textarea name="notes" rows="3">{{ form.get('notes', extinguisher.notes or '') }}</textarea>
@@ -72,4 +79,31 @@
       </div>
     </form>
   </section>
+  <script>
+    const equipmentPresets = {{ equipment_presets|tojson }};
+    const equipmentSelect = document.getElementById('extinguisher_type');
+    const presetCard = document.getElementById('equipment-preset-card');
+    const titleEl = document.getElementById('equipment-title');
+    const summaryEl = document.getElementById('equipment-summary');
+    const featuresEl = document.getElementById('equipment-features');
+    const technicalEl = document.getElementById('equipment-technical');
+    const imageEl = document.getElementById('equipment-image');
+
+    function renderEquipmentPreset() {
+      const preset = equipmentPresets[equipmentSelect.value];
+      if (!preset) {
+        presetCard.hidden = true;
+        return;
+      }
+      titleEl.textContent = preset.title;
+      summaryEl.textContent = preset.summary;
+      featuresEl.textContent = preset.features;
+      technicalEl.textContent = preset.technical_details;
+      imageEl.src = "{{ url_for('static', filename='') }}" + preset.image;
+      presetCard.hidden = false;
+    }
+
+    equipmentSelect.addEventListener('change', renderEquipmentPreset);
+    renderEquipmentPreset();
+  </script>
 {% endblock %}
