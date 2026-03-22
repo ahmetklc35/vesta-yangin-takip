@@ -1,17 +1,17 @@
 :root {
-  --bg: #f4efe9;
-  --surface: rgba(255, 250, 244, 0.82);
-  --surface-strong: #fffdfa;
-  --ink: #1f1d1a;
-  --muted: #6d655f;
-  --accent: #c63d22;
-  --accent-dark: #861d10;
-  --accent-soft: #ffe6dd;
-  --line: rgba(161, 119, 87, 0.18);
+  --bg: #efe7db;
+  --surface: rgba(255, 249, 241, 0.84);
+  --surface-strong: #fffdf9;
+  --ink: #161512;
+  --muted: #6a6259;
+  --accent: #d4421f;
+  --accent-dark: #7b1308;
+  --accent-soft: #ffe3d8;
+  --line: rgba(123, 76, 48, 0.16);
   --success: #1f7a4c;
   --error: #9e2f2f;
-  --shadow: 0 22px 60px rgba(85, 49, 28, 0.11);
-  --soft-shadow: 0 12px 30px rgba(85, 49, 28, 0.08);
+  --shadow: 0 24px 64px rgba(67, 33, 16, 0.14);
+  --soft-shadow: 0 14px 32px rgba(67, 33, 16, 0.10);
 }
 
 * {
@@ -23,9 +23,9 @@ body {
   font-family: "Manrope", "Segoe UI", sans-serif;
   color: var(--ink);
   background:
-    radial-gradient(circle at top left, rgba(198, 61, 34, 0.14), transparent 32%),
-    radial-gradient(circle at bottom right, rgba(122, 49, 20, 0.10), transparent 26%),
-    linear-gradient(180deg, #f8f4ee 0%, #f2ece5 100%);
+    radial-gradient(circle at top left, rgba(212, 66, 31, 0.18), transparent 32%),
+    radial-gradient(circle at bottom right, rgba(110, 41, 18, 0.12), transparent 26%),
+    linear-gradient(180deg, #f7f1e8 0%, #efe7db 100%);
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
@@ -69,8 +69,8 @@ a {
   position: sticky;
   top: 0;
   z-index: 30;
-  border-bottom: 1px solid rgba(127, 38, 22, 0.08);
-  background: rgba(248, 243, 237, 0.72);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(90deg, rgba(28, 18, 14, 0.92), rgba(72, 23, 13, 0.90));
   backdrop-filter: blur(18px);
 }
 
@@ -95,7 +95,8 @@ a {
   align-items: center;
   justify-content: center;
   border-radius: 16px;
-  background: linear-gradient(145deg, var(--accent), #da6948);
+  background: linear-gradient(145deg, #ffffff, #ffe0d6);
+  color: var(--accent-dark);
   color: white;
   font-family: "Space Grotesk", sans-serif;
   font-size: 1.4rem;
@@ -112,10 +113,11 @@ a {
   font-family: "Space Grotesk", sans-serif;
   font-size: 1.05rem;
   letter-spacing: 0.01em;
+  color: white;
 }
 
 .brand-copy small {
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.72);
   font-size: 0.76rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -123,11 +125,11 @@ a {
 
 nav a {
   text-decoration: none;
-  color: var(--muted);
+  color: white;
   padding: 10px 16px;
   border-radius: 999px;
-  border: 1px solid rgba(127, 38, 22, 0.12);
-  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 main.shell {
@@ -151,8 +153,9 @@ main.shell {
   padding: 44px;
   margin-bottom: 28px;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(255, 244, 236, 0.88)),
-    radial-gradient(circle at top right, rgba(198, 61, 34, 0.12), transparent 30%);
+    linear-gradient(135deg, rgba(30, 19, 15, 0.96), rgba(91, 29, 18, 0.92)),
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.06), transparent 32%);
+  color: white;
 }
 
 .hero-copy {
@@ -174,7 +177,7 @@ main.shell {
   text-transform: uppercase;
   letter-spacing: 0.2em;
   font-size: 0.77rem;
-  color: var(--accent);
+  color: #ffb19c;
   font-weight: 800;
   margin: 0 0 12px;
 }
@@ -211,6 +214,7 @@ h2 {
   font-size: 1.04rem;
   line-height: 1.8;
   max-width: 62ch;
+  color: rgba(255, 255, 255, 0.78);
 }
 
 .hero-meta {
@@ -228,9 +232,9 @@ h2 {
   min-height: 36px;
   padding: 8px 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.62);
-  color: var(--accent-dark);
-  border: 1px solid rgba(198, 61, 34, 0.14);
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.10);
   font-weight: 700;
   font-size: 0.9rem;
 }
@@ -240,26 +244,27 @@ h2 {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: linear-gradient(135deg, var(--accent), #de6a47);
+  background: linear-gradient(135deg, #ffffff, #ffe4db);
+  color: var(--accent-dark);
   color: white;
   padding: 14px 22px;
   text-decoration: none;
   border: none;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 14px 28px rgba(198, 61, 34, 0.22);
+  box-shadow: 0 14px 28px rgba(15, 8, 5, 0.22);
   transition: transform 140ms ease, box-shadow 140ms ease;
 }
 
 .button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 18px 32px rgba(198, 61, 34, 0.26);
+  box-shadow: 0 18px 32px rgba(15, 8, 5, 0.26);
 }
 
 .button.secondary {
-  background: rgba(255, 255, 255, 0.78);
-  color: var(--accent-dark);
-  border: 1px solid rgba(198, 61, 34, 0.16);
+  background: rgba(255, 255, 255, 0.10);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: none;
 }
 
@@ -276,6 +281,50 @@ h2 {
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 24px;
+}
+
+.dashboard-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 26px;
+}
+
+.dashboard-stat {
+  background: linear-gradient(180deg, rgba(255, 253, 250, 0.82), rgba(255, 246, 239, 0.94));
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  border-radius: 24px;
+  padding: 22px 24px;
+  box-shadow: var(--soft-shadow);
+}
+
+.dashboard-stat span,
+.dashboard-stat small {
+  display: block;
+}
+
+.dashboard-stat span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-bottom: 10px;
+}
+
+.dashboard-stat strong {
+  display: block;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.65rem;
+  margin-bottom: 8px;
+}
+
+.dashboard-stat small {
+  color: var(--muted);
+}
+
+.data-card {
+  background:
+    linear-gradient(180deg, rgba(255, 251, 246, 0.82), rgba(255, 248, 242, 0.94));
 }
 
 .table-wrap {
@@ -301,6 +350,10 @@ th {
   background: rgba(255, 255, 255, 0.72);
   position: sticky;
   top: 0;
+}
+
+tbody tr:nth-child(odd) td {
+  background: rgba(255, 255, 255, 0.34);
 }
 
 .actions {
@@ -612,6 +665,10 @@ th {
   .hero-actions {
     width: 100%;
     align-items: stretch;
+  }
+
+  .dashboard-strip {
+    grid-template-columns: 1fr;
   }
 
   h1 {
