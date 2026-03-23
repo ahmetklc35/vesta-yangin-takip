@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import tempfile
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -22,7 +23,7 @@ from flask import (
     session,
     url_for,
 )
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 from PIL import Image, ImageDraw, ImageFont
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.utils import ImageReader, simpleSplit
@@ -57,6 +58,7 @@ BRAND_NAME = "Vesta Yangin"
 LOGO_PATH = BASE_DIR / "static" / "vesta qr.png"
 CONTROL_FORM_TEMPLATE_PATH = BASE_DIR / "assets" / "control-form-template.pdf"
 CONTROL_FORM_TEMPLATE_IMAGE_PATH = BASE_DIR / "assets" / "control-form-template.png"
+CONTROL_FORM_EXCEL_TEMPLATE_PATH = BASE_DIR / "assets" / "control-form-template.xlsx"
 EQUIPMENT_OPTIONS = [
     "Kuru Kimyevi Toz",
     "CO2",
@@ -940,6 +942,92 @@ def pdf_equipment_label(extinguisher_type: str | None) -> str:
     return mapping.get(extinguisher_type or "", extinguisher_type or "-")
 
 
+def build_control_form_excel_pdf(
+    company_name: str,
+    extinguishers_for_company: list[dict],
+    latest_inspections: dict[int, dict],
+) -> io.BytesIO | None:
+    if os.name != "nt" or not CONTROL_FORM_EXCEL_TEMPLATE_PATH.exists():
+        return None
+
+    try:
+        import pythoncom
+        import win32com.client  # type: ignore[import-not-found]
+    except ImportError:
+        return None
+
+    workbook = load_workbook(CONTROL_FORM_EXCEL_TEMPLATE_PATH)
+    worksheet = workbook["KONTROL FORMU"]
+    first = extinguishers_for_company[0] if extinguishers_for_company else {}
+
+    worksheet["C4"] = company_name
+    worksheet["N4"] = datetime.now().strftime("%d.%m.%Y")
+    worksheet["C5"] = first.get("company_address") or "-"
+    worksheet["N5"] = first.get("company_contact") or "-"
+
+    start_row = 10
+    max_rows = 14
+    for offset in range(max_rows):
+        row_no = start_row + offset
+        extinguisher = extinguishers_for_company[offset] if offset < len(extinguishers_for_company) else None
+        if extinguisher is None:
+            for column in "ABCDEFGHIJKLMNO":
+                worksheet[f"{column}{row_no}"] = None
+            continue
+
+        inspection = latest_inspections.get(extinguisher["id"], {})
+        worksheet[f"A{row_no}"] = offset + 1
+        worksheet[f"B{row_no}"] = pdf_equipment_label(extinguisher.get("extinguisher_type"))
+        worksheet[f"C{row_no}"] = extinguisher.get("fire_class") or "-"
+        worksheet[f"D{row_no}"] = extinguisher.get("serial_number") or "-"
+        worksheet[f"E{row_no}"] = extinguisher.get("manufacturer") or "-"
+        worksheet[f"F{row_no}"] = extinguisher.get("last_service_date") or "-"
+        worksheet[f"G{row_no}"] = extinguisher.get("hydrostatic_test_date") or "-"
+        worksheet[f"H{row_no}"] = extinguisher.get("location_detail") or "-"
+        for idx, column in enumerate("IJKLMNO"):
+            key = CONTROL_FORM_ITEMS[idx][0]
+            if inspection:
+                worksheet[f"{column}{row_no}"] = "✔" if inspection.get(key) else "X"
+            else:
+                worksheet[f"{column}{row_no}"] = "-"
+
+    temp_dir = Path(tempfile.mkdtemp(prefix="vesta-control-form-"))
+    xlsx_path = temp_dir / "control-form.xlsx"
+    pdf_path = temp_dir / "control-form.pdf"
+    workbook.save(xlsx_path)
+    workbook.close()
+
+    pythoncom.CoInitialize()
+    excel = None
+    excel_workbook = None
+    try:
+        excel = win32com.client.DispatchEx("Excel.Application")
+        excel.Visible = False
+        excel.DisplayAlerts = False
+        excel_workbook = excel.Workbooks.Open(str(xlsx_path))
+        worksheet_com = excel_workbook.Worksheets("KONTROL FORMU")
+        worksheet_com.ExportAsFixedFormat(0, str(pdf_path))
+        excel_workbook.Close(False)
+        excel.Quit()
+        pdf_bytes = pdf_path.read_bytes()
+    finally:
+        if excel_workbook is not None:
+            try:
+                excel_workbook.Close(False)
+            except Exception:
+                pass
+        if excel is not None:
+            try:
+                excel.Quit()
+            except Exception:
+                pass
+        pythoncom.CoUninitialize()
+
+    buffer = io.BytesIO(pdf_bytes)
+    buffer.seek(0)
+    return buffer
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -1395,7 +1483,9 @@ def control_form_pdf(public_id: str):
         for row in inspection_rows:
             latest_inspections.setdefault(row["extinguisher_id"], row)
 
-    pdf_buffer = build_control_form_pdf_exact(company_name, company_extinguishers, latest_inspections)
+    pdf_buffer = build_control_form_excel_pdf(company_name, company_extinguishers, latest_inspections)
+    if pdf_buffer is None:
+        pdf_buffer = build_control_form_pdf_exact(company_name, company_extinguishers, latest_inspections)
     filename = f"{build_company_filename(company_name)}-kontrol-formu.pdf"
     return send_file(
         pdf_buffer,
