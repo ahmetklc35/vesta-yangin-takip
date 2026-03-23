@@ -26,8 +26,12 @@ from flask import (
 )
 from openpyxl import Workbook, load_workbook
 from PIL import Image, ImageDraw, ImageFont
+from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader, simpleSplit
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table as PdfTable, TableStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
@@ -1000,6 +1004,170 @@ def build_control_form_document_data(public_id: str) -> dict:
     }
 
 
+def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
+    regular_font_path = resolve_system_font(
+        "C:/Windows/Fonts/arial.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+    )
+    bold_font_path = resolve_system_font(
+        "C:/Windows/Fonts/arialbd.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
+    )
+
+    if "VestaPDF" not in pdfmetrics.getRegisteredFontNames():
+        pdfmetrics.registerFont(TTFont("VestaPDF", regular_font_path))
+    if "VestaPDFBold" not in pdfmetrics.getRegisteredFontNames():
+        pdfmetrics.registerFont(TTFont("VestaPDFBold", bold_font_path))
+
+    styles = getSampleStyleSheet()
+    title_style = styles["Title"].clone("vesta_title")
+    title_style.fontName = "VestaPDFBold"
+    title_style.fontSize = 13
+    title_style.leading = 16
+    title_style.alignment = 1
+
+    body_style = styles["BodyText"].clone("vesta_body")
+    body_style.fontName = "VestaPDF"
+    body_style.fontSize = 8
+    body_style.leading = 10
+
+    small_style = styles["BodyText"].clone("vesta_small")
+    small_style.fontName = "VestaPDF"
+    small_style.fontSize = 7
+    small_style.leading = 8
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(A4),
+        leftMargin=8 * mm,
+        rightMargin=8 * mm,
+        topMargin=8 * mm,
+        bottomMargin=8 * mm,
+    )
+
+    story = [
+        Paragraph("Tasinabilir Yangin Sondurme Cihazi Kontrol Formu", title_style),
+        Spacer(1, 4 * mm),
+    ]
+
+    method_paragraph = Paragraph(document_data["method_text"], small_style)
+    info_table = PdfTable(
+        [
+            ["FIRMA ADI", document_data["company_name"], "KONTROL TARIHI", document_data["control_date"]],
+            ["MUAYENE ADRESI", document_data["company_address"], "FIRMA YETKILI KISI", document_data["company_contact"]],
+            ["PERIYODIK KONTROL METODU", method_paragraph, "KONTROL PERSONELI", document_data["inspector_name"]],
+        ],
+        colWidths=[34 * mm, 112 * mm, 42 * mm, 70 * mm],
+    )
+    info_table.setStyle(
+        TableStyle(
+            [
+                ("GRID", (0, 0), (-1, -1), 0.6, colors.black),
+                ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#f1f1f1")),
+                ("BACKGROUND", (2, 0), (2, -1), colors.HexColor("#f1f1f1")),
+                ("FONTNAME", (0, 0), (-1, -1), "VestaPDF"),
+                ("FONTNAME", (0, 0), (0, -1), "VestaPDFBold"),
+                ("FONTNAME", (2, 0), (2, -1), "VestaPDFBold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 8),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ]
+        )
+    )
+    story.extend([info_table, Spacer(1, 4 * mm)])
+
+    header_row_1 = [
+        Paragraph("<b>YSC BILGILERI</b>", body_style),
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        Paragraph("<b>TESPIT VE DEGERLENDIRME</b>", body_style),
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+    ]
+    header_row_2 = [
+        "CIHAZ NO",
+        "YSC CINSI",
+        "YSC SINIFI",
+        "SERI NO / KOD",
+        "YSC URETICI",
+        "DOLUM TARIHI",
+        "HIDROSTATIK TEST",
+        "BULUNDUGU YER",
+        "a)",
+        "b)",
+        "c)",
+        "d)",
+        "e)",
+        "f)",
+        "g)",
+    ]
+
+    data_rows = [header_row_1, header_row_2]
+    for row in document_data["rows"]:
+        data_rows.append(
+            [
+                row["device_no"],
+                row["extinguisher_type"],
+                row["fire_class"],
+                row["serial_number"],
+                row["manufacturer"],
+                row["service_date"],
+                row["hydrostatic_test_date"],
+                row["location_detail"],
+                *row["checks"],
+            ]
+        )
+
+    while len(data_rows) < 17:
+        data_rows.append([""] * 15)
+
+    main_table = PdfTable(
+        data_rows,
+        repeatRows=2,
+        colWidths=[15 * mm, 18 * mm, 22 * mm, 30 * mm, 26 * mm, 20 * mm, 24 * mm, 35 * mm, 9 * mm, 9 * mm, 9 * mm, 9 * mm, 9 * mm, 9 * mm, 9 * mm],
+    )
+    main_table.setStyle(
+        TableStyle(
+            [
+                ("SPAN", (0, 0), (7, 0)),
+                ("SPAN", (8, 0), (14, 0)),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+                ("BACKGROUND", (0, 0), (-1, 1), colors.HexColor("#f7f7f7")),
+                ("FONTNAME", (0, 0), (-1, 1), "VestaPDFBold"),
+                ("FONTNAME", (0, 2), (-1, -1), "VestaPDF"),
+                ("FONTSIZE", (0, 0), (-1, -1), 7),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ]
+        )
+    )
+    story.extend([main_table, Spacer(1, 4 * mm)])
+
+    notes = [
+        "NOT 1: YSC kontrolu a) ve b) maddelerinde eksiklik cikarsa acil duzeltici faaliyet yapilmalidir.",
+        "NOT 2: YSC kontrolu c), d), e), f) veya g) maddelerinde eksiklik cikarsa cihaz uygun bakim islemlerine tabi tutulmalidir.",
+        "NOT 3: Tozlu sondurucude kritik eksiklik varsa cihaz hizmetten kaldirilmalidir.",
+        "NOT 4: Bu rapor muayene tarihindeki isletme kosullari icin gecerlidir.",
+    ]
+    for note in notes:
+        story.append(Paragraph(note, small_style))
+
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
+
+
 def build_control_form_excel_pdf(
     company_name: str,
     extinguishers_for_company: list[dict],
@@ -1529,8 +1697,7 @@ def extinguisher_detail(public_id: str):
 @login_required
 def control_form_pdf(public_id: str):
     document_data = build_control_form_document_data(public_id)
-    html = render_template("control_form_pdf.html", **document_data)
-    pdf_buffer = build_pdf_from_html(html)
+    pdf_buffer = build_control_form_pdf_reportlab(document_data)
     filename = f"{build_company_filename(document_data['company_name'])}-kontrol-formu.pdf"
     return send_file(
         pdf_buffer,
