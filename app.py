@@ -448,6 +448,13 @@ def load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     return ImageFont.load_default()
 
 
+def resolve_system_font(*candidates: str) -> str:
+    for candidate in candidates:
+        if Path(candidate).exists():
+            return candidate
+    raise FileNotFoundError(f"Uygun font bulunamadi: {', '.join(candidates)}")
+
+
 def build_branded_qr(public_url: str) -> io.BytesIO:
     qr = qrcode.QRCode(
         version=None,
@@ -690,8 +697,16 @@ def build_control_form_pdf_from_template(
 
     regular_font = "vesta_regular"
     bold_font = "vesta_bold"
-    regular_font_path = "C:/Windows/Fonts/arial.ttf"
-    bold_font_path = "C:/Windows/Fonts/arialbd.ttf"
+    regular_font_path = resolve_system_font(
+        "C:/Windows/Fonts/arial.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+    )
+    bold_font_path = resolve_system_font(
+        "C:/Windows/Fonts/arialbd.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
+    )
     rows_per_page = 15
 
     def draw_box_text(page, rect, text_value, *, fontname=regular_font, fontsize=7, align=0):
@@ -792,8 +807,16 @@ def build_control_form_pdf_exact(
     rows_per_page = 15
     background = ImageReader(str(CONTROL_FORM_TEMPLATE_IMAGE_PATH))
 
-    regular_font_path = "C:/Windows/Fonts/arial.ttf"
-    bold_font_path = "C:/Windows/Fonts/arialbd.ttf"
+    regular_font_path = resolve_system_font(
+        "C:/Windows/Fonts/arial.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+    )
+    bold_font_path = resolve_system_font(
+        "C:/Windows/Fonts/arialbd.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
+    )
     if "VestaArial" not in pdfmetrics.getRegisteredFontNames():
         pdfmetrics.registerFont(TTFont("VestaArial", regular_font_path))
     if "VestaArialBold" not in pdfmetrics.getRegisteredFontNames():
