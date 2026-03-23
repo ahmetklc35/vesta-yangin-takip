@@ -6,246 +6,185 @@
     <style>
       @page {
         size: A4 landscape;
-        margin: 10mm;
-      }
-
-      * {
-        box-sizing: border-box;
+        margin: 8mm;
       }
 
       body {
         margin: 0;
-        font-family: Arial, Helvetica, sans-serif;
+        font-family: Helvetica, Arial, sans-serif;
+        font-size: 10px;
         color: #111;
-      }
-
-      .sheet {
-        width: 100%;
       }
 
       table {
         width: 100%;
         border-collapse: collapse;
+        table-layout: fixed;
       }
 
-      td, th {
+      th, td {
         border: 1px solid #222;
-        padding: 4px 6px;
+        padding: 3px 4px;
         vertical-align: middle;
-        font-size: 11px;
+        word-wrap: break-word;
       }
 
-      .center {
-        text-align: center;
-      }
-
-      .right {
-        text-align: right;
-      }
-
-      .bold {
-        font-weight: 700;
-      }
-
-      .tiny {
-        font-size: 9px;
-      }
-
-      .small {
-        font-size: 10px;
-      }
+      .center { text-align: center; }
+      .bold { font-weight: 700; }
+      .tiny { font-size: 8px; }
+      .small { font-size: 9px; }
 
       .header td {
-        height: 28px;
+        height: 26px;
       }
 
-      .logo-box {
-        width: 120px;
+      .section {
+        background: #f2f2f2;
+        font-weight: 700;
         text-align: center;
       }
 
-      .title-row td {
-        font-weight: 700;
-      }
-
-      .section-title {
-        text-align: center;
-        font-weight: 700;
-        background: #fafafa;
-      }
-
-      .main-table td,
-      .main-table th {
-        font-size: 10px;
-        padding: 3px 4px;
+      .main-table th, .main-table td {
+        font-size: 8px;
       }
 
       .main-table thead th {
+        text-align: center;
         font-weight: 700;
       }
 
-      .main-table .rot {
-        writing-mode: vertical-rl;
-        transform: rotate(180deg);
-        white-space: nowrap;
-        text-align: center;
-        padding: 8px 2px;
-        width: 34px;
-        min-width: 34px;
-      }
+      .device-col { width: 5%; }
+      .type-col { width: 8%; }
+      .class-col { width: 8%; }
+      .serial-col { width: 12%; }
+      .maker-col { width: 11%; }
+      .date-col { width: 9%; }
+      .place-col { width: 16%; }
+      .check-col { width: 4%; }
 
-      .main-table .narrow {
-        width: 34px;
-        text-align: center;
-      }
-
-      .main-table .device {
-        width: 42px;
-        text-align: center;
-      }
-
-      .main-table .type {
-        width: 70px;
-      }
-
-      .main-table .class {
-        width: 70px;
-      }
-
-      .main-table .serial {
-        width: 110px;
-      }
-
-      .main-table .maker {
-        width: 100px;
-      }
-
-      .main-table .date {
-        width: 82px;
-        text-align: center;
-      }
-
-      .main-table .place {
-        width: 150px;
+      .check-head {
+        line-height: 1.15;
       }
 
       .notes {
-        margin-top: 10px;
-        font-size: 9px;
-        line-height: 1.35;
+        margin-top: 8px;
       }
 
       .notes p {
         margin: 2px 0;
+        font-size: 8px;
+        line-height: 1.2;
       }
     </style>
   </head>
   <body>
-    <div class="sheet">
-      <table class="header">
-        <tr>
-          <td rowspan="2" class="logo-box bold">VESTA</td>
-          <td rowspan="2" class="bold">Onay: Şirket Müdürü<br>Mustafa KILIÇ</td>
-          <td class="bold center">Bölüm</td>
-          <td class="bold center">Revizyon No</td>
-          <td class="bold center">Revizyon Tarihi</td>
-          <td class="bold center">Sayfa</td>
-        </tr>
-        <tr>
-          <td class="center">F-06</td>
-          <td class="center">00</td>
-          <td class="center">01.03.2026</td>
-          <td class="center">1</td>
-        </tr>
-        <tr class="title-row">
-          <td class="center">FORM</td>
-          <td>Konu: Taşınabilir Yangın Söndürme Cihazı Kontrol Formu</td>
-          <td colspan="4">Hazırlayan: Kalite Temsilcisi</td>
-        </tr>
-      </table>
+    <table class="header">
+      <tr>
+        <td rowspan="2" class="center bold" style="width: 10%;">VESTA</td>
+        <td rowspan="2" class="bold" style="width: 18%;">Onay: Sirket Muduru<br>Mustafa KILIC</td>
+        <td class="center bold" style="width: 8%;">Bolum</td>
+        <td class="center bold" style="width: 10%;">Revizyon No</td>
+        <td class="center bold" style="width: 12%;">Revizyon Tarihi</td>
+        <td class="center bold" style="width: 6%;">Sayfa</td>
+      </tr>
+      <tr>
+        <td class="center">F-06</td>
+        <td class="center">00</td>
+        <td class="center">01.03.2026</td>
+        <td class="center">1</td>
+      </tr>
+      <tr>
+        <td class="center bold">FORM</td>
+        <td class="bold">Konu: Tasinabilir Yangin Sondurme Cihazi Kontrol Formu</td>
+        <td colspan="4" class="bold">Hazirlayan: Kalite Temsilcisi</td>
+      </tr>
+    </table>
 
-      <table>
-        <tr>
-          <td colspan="6" class="section-title">GENEL BİLGİLER</td>
-        </tr>
-        <tr>
-          <td class="bold">FİRMA ADI</td>
-          <td colspan="3">{{ company_name }}</td>
-          <td class="bold">KONTROL TARİHİ</td>
-          <td>{{ control_date }}</td>
-        </tr>
-        <tr>
-          <td class="bold">MUAYENE ADRESİ</td>
-          <td colspan="3">{{ company_address }}</td>
-          <td class="bold">FİRMA YETKİLİ KİŞİ</td>
-          <td>{{ company_contact }}</td>
-        </tr>
-        <tr>
-          <td class="bold">PERİYODİK KONTROL METODU</td>
-          <td colspan="5" class="small">{{ method_text }}</td>
-        </tr>
-      </table>
+    <table>
+      <tr>
+        <td colspan="6" class="section">GENEL BILGILER</td>
+      </tr>
+      <tr>
+        <td class="bold" style="width: 14%;">FIRMA ADI</td>
+        <td colspan="3" style="width: 54%;">{{ company_name }}</td>
+        <td class="bold" style="width: 16%;">KONTROL TARIHI</td>
+        <td style="width: 16%;">{{ control_date }}</td>
+      </tr>
+      <tr>
+        <td class="bold">MUAYENE ADRESI</td>
+        <td colspan="3">{{ company_address }}</td>
+        <td class="bold">FIRMA YETKILI KISI</td>
+        <td>{{ company_contact }}</td>
+      </tr>
+      <tr>
+        <td class="bold">PERIYODIK KONTROL METODU</td>
+        <td colspan="5" class="small">{{ method_text }}</td>
+      </tr>
+    </table>
 
-      <table class="main-table">
-        <thead>
+    <table class="main-table">
+      <thead>
+        <tr>
+          <th colspan="8" class="section">YANGIN SONDURME CIHAZI (YSC) BILGILERI</th>
+          <th colspan="7" class="section">TESPIT VE DEGERLENDIRME<br><span class="tiny">(V: UYGUN, X: UYGUN DEGIL, -: UYGULAMA YOK)</span></th>
+        </tr>
+        <tr>
+          <th class="device-col">CIHAZ<br>NO</th>
+          <th class="type-col">YSC<br>CINSI</th>
+          <th class="class-col">YSC<br>SINIFI</th>
+          <th class="serial-col">SERI NO / KOD</th>
+          <th class="maker-col">YSC URETICI</th>
+          <th class="date-col">DOLUM<br>TARIHI</th>
+          <th class="date-col">HIDROSTATIK<br>TEST TARIHI</th>
+          <th class="place-col">BULUNDUGU YER</th>
+          <th class="check-col check-head">a)<br>Yer</th>
+          <th class="check-col check-head">b)<br>Talimat<br>Gorunum</th>
+          <th class="check-col check-head">c)<br>Talimat<br>Okunur</th>
+          <th class="check-col check-head">d)<br>Muhur /<br>Basinc</th>
+          <th class="check-col check-head">e)<br>Doluluk</th>
+          <th class="check-col check-head">f)<br>Nozul</th>
+          <th class="check-col check-head">g)<br>Gosterge</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
           <tr>
-            <th colspan="8" class="section-title">YANGIN SÖNDÜRME CİHAZI (YSC) BİLGİLERİ</th>
-            <th colspan="7" class="section-title">TESPİT VE DEĞERLENDİRME<br><span class="tiny">(✔: UYGUN; X: U. DEĞİL; ─: UYGULAMA YOK)</span></th>
-          </tr>
-          <tr>
-            <th class="device">CİHAZ NO</th>
-            <th class="type">YSC CİNSİ</th>
-            <th class="class">YSC SINIFI</th>
-            <th class="serial">SERİ NO / KOD</th>
-            <th class="maker">YSC ÜRETİCİ</th>
-            <th class="date">DOLUM TARİHİ</th>
-            <th class="date">HİDROSTATİK TEST TARİHİ</th>
-            <th class="place">BULUNDUĞU YER</th>
-            {% for header in check_headers %}
-              <th class="rot">{{ header }}</th>
+            <td class="center">{{ row.device_no }}</td>
+            <td>{{ row.extinguisher_type }}</td>
+            <td>{{ row.fire_class }}</td>
+            <td>{{ row.serial_number }}</td>
+            <td>{{ row.manufacturer }}</td>
+            <td class="center">{{ row.service_date }}</td>
+            <td class="center">{{ row.hydrostatic_test_date }}</td>
+            <td>{{ row.location_detail }}</td>
+            {% for check in row.checks %}
+              <td class="center">{{ check }}</td>
             {% endfor %}
           </tr>
-        </thead>
-        <tbody>
-          {% for row in rows %}
-            <tr>
-              <td class="center">{{ row.device_no }}</td>
-              <td>{{ row.extinguisher_type }}</td>
-              <td>{{ row.fire_class }}</td>
-              <td>{{ row.serial_number }}</td>
-              <td>{{ row.manufacturer }}</td>
-              <td class="center">{{ row.service_date }}</td>
-              <td class="center">{{ row.hydrostatic_test_date }}</td>
-              <td>{{ row.location_detail }}</td>
-              {% for check in row.checks %}
-                <td class="narrow">{{ check }}</td>
-              {% endfor %}
-            </tr>
-          {% endfor %}
-          {% for _ in range(15 - rows|length) %}
-            <tr>
-              <td>&nbsp;</td>
+        {% endfor %}
+        {% for _ in range(15 - rows|length) %}
+          <tr>
+            <td>&nbsp;</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            {% for _ in range(7) %}
               <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td></td>
-              {% for _ in range(7) %}
-                <td></td>
-              {% endfor %}
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
 
-      <div class="notes">
-        <p>NOT 1: Yangın söndürücünün kontrolü Madde a) ve b) bendindeki gibi listelenmiş koşullarda, bir eksikliği ortaya çıkardığı zaman, acil düzeltici faaliyet yapılmalıdır.</p>
-        <p>NOT 2: Yangın söndürücünün kontrolü Madde c), d), e), f) veya g) bendindeki koşullarından herhangi birinde bir eksikliği ortaya çıkardığı zaman, söndürücü uygun bakım işlemlerine VESTA YANGIN tarafından tabi tutulmalıdır.</p>
-        <p>NOT 3: Madde c), d), e), f) veya g) bendindeki koşullarından herhangi birinde, doldurulmayan tozlu söndürücünün kontrolü bir eksikliği ortaya çıkardığı zaman, bu söndürücü hizmetten kaldırılmalıdır.</p>
-        <p>NOT 4: Bu muayene raporundaki bulgular muayene tarihindeki işletme koşulları için geçerlidir. Bu rapor 2 nüsha basılmıştır. Muayene raporu VESTA YANGIN onayı olmaksızın kopya edilemez.</p>
-      </div>
+    <div class="notes">
+      <p>NOT 1: YSC kontrolu a) ve b) maddelerinde eksiklik cikarsa acil duzeltici faaliyet yapilmalidir.</p>
+      <p>NOT 2: YSC kontrolu c), d), e), f) veya g) maddelerinde eksiklik cikarsa cihaz uygun bakim islemlerine tabi tutulmalidir.</p>
+      <p>NOT 3: Tozlu sondurucude kritik eksiklik varsa cihaz hizmetten kaldirilmalidir.</p>
+      <p>NOT 4: Bu rapor muayene tarihindeki isletme kosullari icin gecerlidir.</p>
     </div>
   </body>
 </html>
