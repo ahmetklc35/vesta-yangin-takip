@@ -26,7 +26,6 @@ from flask import (
 )
 from openpyxl import Workbook, load_workbook
 from PIL import Image, ImageDraw, ImageFont
-from playwright.sync_api import sync_playwright
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.utils import ImageReader, simpleSplit
 from reportlab.pdfbase import pdfmetrics
@@ -52,6 +51,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.middleware.proxy_fix import ProxyFix
+from xhtml2pdf import pisa
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -1087,26 +1087,10 @@ def build_control_form_excel_pdf(
 
 
 def build_pdf_from_html(html: str) -> io.BytesIO:
-    with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(
-            headless=True,
-            args=[
-                "--no-sandbox",
-                "--disable-setuid-sandbox",
-                "--disable-dev-shm-usage",
-                "--disable-gpu",
-            ],
-        )
-        page = browser.new_page()
-        page.set_content(html, wait_until="load")
-        pdf_bytes = page.pdf(
-            format="A4",
-            landscape=True,
-            print_background=True,
-            margin={"top": "10mm", "right": "10mm", "bottom": "10mm", "left": "10mm"},
-        )
-        browser.close()
-    buffer = io.BytesIO(pdf_bytes)
+    buffer = io.BytesIO()
+    result = pisa.CreatePDF(src=html, dest=buffer, encoding="utf-8")
+    if result.err:
+        raise RuntimeError("HTML PDF olusturma basarisiz oldu.")
     buffer.seek(0)
     return buffer
 

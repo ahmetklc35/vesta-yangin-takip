@@ -3,7 +3,7 @@ services:
     name: vesta-yangin-takip
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt && python -m playwright install chromium
+    buildCommand: pip install -r requirements.txt
     startCommand: gunicorn wsgi:app
     envVars:
       - key: SECRET_KEY
