@@ -280,10 +280,10 @@ h2 {
 }
 
 .button.secondary {
-  background: rgba(255, 255, 255, 0.18);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  box-shadow: none;
+  background: linear-gradient(135deg, #8e2413, #c54d2a);
+  color: #fff7f2;
+  border: 1px solid rgba(105, 28, 15, 0.32);
+  box-shadow: 0 12px 24px rgba(105, 28, 15, 0.16);
 }
 
 .button-row {
