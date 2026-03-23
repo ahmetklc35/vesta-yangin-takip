@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <style>
+    .control-preview {
+      display: grid;
+      gap: 20px;
+    }
+
+    .control-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .control-toolbar h1 {
+      margin: 0;
+      font-size: 2rem;
+      max-width: none;
+    }
+
+    .control-form-sheet {
+      background: #fff;
+      color: #111;
+      border: 1px solid #d8d0c7;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(35, 22, 15, 0.08);
+      padding: 24px;
+      overflow-x: auto;
+    }
+
+    .control-form-sheet table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .control-form-sheet th,
+    .control-form-sheet td {
+      border: 1px solid #222;
+      padding: 4px 5px;
+      vertical-align: middle;
+      word-break: break-word;
+      font-size: 11px;
+    }
+
+    .control-form-sheet .center { text-align: center; }
+    .control-form-sheet .bold { font-weight: 700; }
+    .control-form-sheet .tiny { font-size: 8px; }
+    .control-form-sheet .small { font-size: 9px; }
+    .control-form-sheet .section {
+      background: #f3f3f3;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .control-form-sheet .header td {
+      height: 30px;
+    }
+
+    .control-form-sheet .main-table th,
+    .control-form-sheet .main-table td {
+      font-size: 9px;
+    }
+
+    .control-form-sheet .device-col { width: 5%; }
+    .control-form-sheet .type-col { width: 8%; }
+    .control-form-sheet .class-col { width: 8%; }
+    .control-form-sheet .serial-col { width: 12%; }
+    .control-form-sheet .maker-col { width: 11%; }
+    .control-form-sheet .date-col { width: 9%; }
+    .control-form-sheet .place-col { width: 16%; }
+    .control-form-sheet .check-col { width: 4.4%; }
+    .control-form-sheet .check-head { line-height: 1.2; }
+
+    .control-notes {
+      margin-top: 10px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .control-notes p {
+      margin: 0;
+      font-size: 9px;
+      line-height: 1.3;
+    }
+  </style>
+
+  <section class="control-preview">
+    <div class="card control-toolbar">
+      <div>
+        <p class="eyebrow">Kontrol Formu</p>
+        <h1>{{ company_name }}</h1>
+        <p class="muted">Onizleme ekranı. Once görünümü burada oturtacağız.</p>
+      </div>
+      <div class="button-row">
+        <a class="button secondary" href="{{ url_for('extinguisher_detail', public_id=public_id) }}">Detaya Don</a>
+        <a class="button" href="{{ url_for('control_form_pdf', public_id=public_id) }}">PDF Indir</a>
+      </div>
+    </div>
+
+    <section class="control-form-sheet">
+      <table class="header">
+        <tr>
+          <td rowspan="2" class="center bold" style="width: 10%;">VESTA</td>
+          <td rowspan="2" class="bold" style="width: 18%;">Onay: Sirket Muduru<br>Mustafa KILIC</td>
+          <td class="center bold" style="width: 8%;">Bolum</td>
+          <td class="center bold" style="width: 10%;">Revizyon No</td>
+          <td class="center bold" style="width: 12%;">Revizyon Tarihi</td>
+          <td class="center bold" style="width: 6%;">Sayfa</td>
+        </tr>
+        <tr>
+          <td class="center">F-06</td>
+          <td class="center">00</td>
+          <td class="center">01.03.2026</td>
+          <td class="center">1</td>
+        </tr>
+        <tr>
+          <td class="center bold">FORM</td>
+          <td class="bold">Konu: Tasinabilir Yangin Sondurme Cihazi Kontrol Formu</td>
+          <td colspan="4" class="bold">Hazirlayan: Kalite Temsilcisi</td>
+        </tr>
+      </table>
+
+      <table>
+        <tr>
+          <td colspan="6" class="section">GENEL BILGILER</td>
+        </tr>
+        <tr>
+          <td class="bold" style="width: 14%;">FIRMA ADI</td>
+          <td colspan="3" style="width: 54%;">{{ company_name }}</td>
+          <td class="bold" style="width: 16%;">KONTROL TARIHI</td>
+          <td style="width: 16%;">{{ control_date }}</td>
+        </tr>
+        <tr>
+          <td class="bold">MUAYENE ADRESI</td>
+          <td colspan="3">{{ company_address }}</td>
+          <td class="bold">FIRMA YETKILI KISI</td>
+          <td>{{ company_contact }}</td>
+        </tr>
+        <tr>
+          <td class="bold">PERIYODIK KONTROL METODU</td>
+          <td colspan="5" class="small">{{ method_text }}</td>
+        </tr>
+      </table>
+
+      <table class="main-table">
+        <thead>
+          <tr>
+            <th colspan="8" class="section">YANGIN SONDURME CIHAZI (YSC) BILGILERI</th>
+            <th colspan="7" class="section">TESPIT VE DEGERLENDIRME<br><span class="tiny">(V: UYGUN, X: UYGUN DEGIL, -: UYGULAMA YOK)</span></th>
+          </tr>
+          <tr>
+            <th class="device-col">CIHAZ<br>NO</th>
+            <th class="type-col">YSC<br>CINSI</th>
+            <th class="class-col">YSC<br>SINIFI</th>
+            <th class="serial-col">SERI NO / KOD</th>
+            <th class="maker-col">YSC URETICI</th>
+            <th class="date-col">DOLUM<br>TARIHI</th>
+            <th class="date-col">HIDROSTATIK<br>TEST TARIHI</th>
+            <th class="place-col">BULUNDUGU YER</th>
+            <th class="check-col check-head">a)<br>Yer</th>
+            <th class="check-col check-head">b)<br>Talimat<br>Gorunum</th>
+            <th class="check-col check-head">c)<br>Talimat<br>Okunur</th>
+            <th class="check-col check-head">d)<br>Muhur /<br>Basinc</th>
+            <th class="check-col check-head">e)<br>Doluluk</th>
+            <th class="check-col check-head">f)<br>Nozul</th>
+            <th class="check-col check-head">g)<br>Gosterge</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <td class="center">{{ row.device_no }}</td>
+              <td>{{ row.extinguisher_type }}</td>
+              <td>{{ row.fire_class }}</td>
+              <td>{{ row.serial_number }}</td>
+              <td>{{ row.manufacturer }}</td>
+              <td class="center">{{ row.service_date }}</td>
+              <td class="center">{{ row.hydrostatic_test_date }}</td>
+              <td>{{ row.location_detail }}</td>
+              {% for check in row.checks %}
+                <td class="center">{{ check }}</td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+          {% for _ in range(15 - rows|length) %}
+            <tr>
+              <td>&nbsp;</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              {% for _ in range(7) %}
+                <td></td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div class="control-notes">
+        <p>NOT 1: YSC kontrolu a) ve b) maddelerinde eksiklik cikarsa acil duzeltici faaliyet yapilmalidir.</p>
+        <p>NOT 2: YSC kontrolu c), d), e), f) veya g) maddelerinde eksiklik cikarsa cihaz uygun bakim islemlerine tabi tutulmalidir.</p>
+        <p>NOT 3: Tozlu sondurucude kritik eksiklik varsa cihaz hizmetten kaldirilmalidir.</p>
+        <p>NOT 4: Bu rapor muayene tarihindeki isletme kosullari icin gecerlidir.</p>
+      </div>
+    </section>
+  </section>
+{% endblock %}

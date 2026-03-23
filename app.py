@@ -1711,7 +1711,7 @@ def control_form_pdf(public_id: str):
 @login_required
 def control_form_preview(public_id: str):
     document_data = build_control_form_document_data(public_id)
-    return render_template("control_form_pdf.html", **document_data)
+    return render_template("control_form_preview.html", **document_data)
 
 
 @app.route("/extinguishers/<public_id>/service", methods=["GET", "POST"])
