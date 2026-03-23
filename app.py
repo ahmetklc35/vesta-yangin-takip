@@ -1088,7 +1088,15 @@ def build_control_form_excel_pdf(
 
 def build_pdf_from_html(html: str) -> io.BytesIO:
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=True)
+        browser = playwright.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+            ],
+        )
         page = browser.new_page()
         page.set_content(html, wait_until="load")
         pdf_bytes = page.pdf(
