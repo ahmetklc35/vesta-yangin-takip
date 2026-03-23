@@ -825,6 +825,12 @@ def build_control_form_pdf_exact(
     buffer = io.BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=(page_width, page_height))
 
+    def fill_white_box(x0, y0, x1, y1):
+        pdf.saveState()
+        pdf.setFillColorRGB(1, 1, 1)
+        pdf.rect(x0, page_height - y1, x1 - x0, y1 - y0, stroke=0, fill=1)
+        pdf.restoreState()
+
     def draw_text_box(x0, y0, x1, y1, value, *, font="VestaArial", size=7, align="left"):
         text = str(value or "-").strip() or "-"
         box_width = x1 - x0
@@ -848,10 +854,15 @@ def build_control_form_pdf_exact(
         pdf.drawImage(background, 0, 0, width=page_width, height=page_height)
         first = chunk[0] if chunk else {}
 
-        draw_text_box(112, 156, 612, 171, company_name, font="VestaArialBold", size=7.2)
-        draw_text_box(704, 156, 760, 171, datetime.now().strftime("%d.%m.%Y"), size=5.5, align="center")
-        draw_text_box(112, 175, 612, 190, first.get("company_address") or "-", size=6.5)
-        draw_text_box(704, 175, 760, 190, first.get("company_contact") or "-", size=5.5, align="center")
+        fill_white_box(112, 129, 610, 144)
+        fill_white_box(748, 129, 812, 144)
+        fill_white_box(112, 147, 610, 162)
+        fill_white_box(748, 147, 812, 162)
+
+        draw_text_box(112, 129, 610, 144, company_name, font="VestaArialBold", size=7.0)
+        draw_text_box(748, 129, 812, 144, datetime.now().strftime("%d.%m.%Y"), size=5.5, align="center")
+        draw_text_box(112, 147, 610, 162, first.get("company_address") or "-", size=6.2)
+        draw_text_box(748, 147, 812, 162, first.get("company_contact") or "-", size=5.4, align="center")
 
         table_top = 264
         row_height = 18.55
@@ -880,7 +891,7 @@ def build_control_form_pdf_exact(
             bottom = top + row_height
             values = [
                 str((page_index * rows_per_page) + row_number),
-                extinguisher.get("extinguisher_type") or "-",
+                pdf_equipment_label(extinguisher.get("extinguisher_type")),
                 extinguisher.get("fire_class") or "-",
                 extinguisher.get("serial_number") or "-",
                 extinguisher.get("manufacturer") or "-",
@@ -892,7 +903,7 @@ def build_control_form_pdf_exact(
             for index, value in enumerate(values):
                 x0, x1 = column_edges[index]
                 align = "center" if index in {0, 5, 6} else "left"
-                size = 5.8 if index in {1, 2, 3, 4, 7} else 6.5
+                size = 5.4 if index in {1, 2, 3, 4, 7} else 6.3
                 draw_text_box(x0, top, x1, bottom, value, size=size, align=align)
 
             for check_index, (key, _label) in enumerate(CONTROL_FORM_ITEMS, start=8):
@@ -918,6 +929,15 @@ def build_control_form_pdf_exact(
 def build_company_filename(company_name: str) -> str:
     safe = "".join(char if char.isalnum() else "-" for char in company_name.lower()).strip("-")
     return safe or "kontrol-formu"
+
+
+def pdf_equipment_label(extinguisher_type: str | None) -> str:
+    mapping = {
+        "Kuru Kimyevi Toz": "KKT",
+        "CO2": "CO2",
+        "Kopuk": "Köpük",
+    }
+    return mapping.get(extinguisher_type or "", extinguisher_type or "-")
 
 
 @app.route("/login", methods=["GET", "POST"])
