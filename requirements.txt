@@ -6,3 +6,4 @@ SQLAlchemy==2.0.43
 psycopg[binary]==3.2.10
 gunicorn==23.0.0
 reportlab==4.4.4
+PyMuPDF==1.27.2.2

@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from functools import wraps
 
+import fitz
 import qrcode
 from qrcode.constants import ERROR_CORRECT_H
 from flask import (
@@ -23,11 +24,11 @@ from flask import (
 )
 from openpyxl import Workbook
 from PIL import Image, ImageDraw, ImageFont
-from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.lib.units import mm
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table as PdfTable, TableStyle
+from reportlab.lib.utils import ImageReader, simpleSplit
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
 from sqlalchemy import (
     Boolean,
     Column,
@@ -54,6 +55,8 @@ BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_SQLITE_URL = f"sqlite:///{(BASE_DIR / 'database.db').as_posix()}"
 BRAND_NAME = "Vesta Yangin"
 LOGO_PATH = BASE_DIR / "static" / "vesta qr.png"
+CONTROL_FORM_TEMPLATE_PATH = BASE_DIR / "assets" / "control-form-template.pdf"
+CONTROL_FORM_TEMPLATE_IMAGE_PATH = BASE_DIR / "assets" / "control-form-template.png"
 EQUIPMENT_OPTIONS = [
     "Kuru Kimyevi Toz",
     "CO2",
@@ -674,6 +677,221 @@ def build_control_form_pdf(company_name: str, extinguishers_for_company: list[di
     return buffer
 
 
+def build_control_form_pdf_from_template(
+    company_name: str,
+    extinguishers_for_company: list[dict],
+    latest_inspections: dict[int, dict],
+) -> io.BytesIO:
+    if not CONTROL_FORM_TEMPLATE_PATH.exists():
+        raise FileNotFoundError(f"Kontrol formu sablonu bulunamadi: {CONTROL_FORM_TEMPLATE_PATH}")
+
+    template = fitz.open(CONTROL_FORM_TEMPLATE_PATH)
+    output = fitz.open()
+
+    regular_font = "vesta_regular"
+    bold_font = "vesta_bold"
+    regular_font_path = "C:/Windows/Fonts/arial.ttf"
+    bold_font_path = "C:/Windows/Fonts/arialbd.ttf"
+    rows_per_page = 15
+
+    def draw_box_text(page, rect, text_value, *, fontname=regular_font, fontsize=7, align=0):
+        value = str(text_value or "-").strip() or "-"
+        page.insert_textbox(
+            fitz.Rect(*rect),
+            value,
+            fontname=fontname,
+            fontsize=fontsize,
+            color=(0, 0, 0),
+            align=align,
+        )
+
+    def draw_page(chunk: list[dict], page_index: int) -> None:
+        output.insert_pdf(template, from_page=0, to_page=0)
+        page = output[-1]
+        page.insert_font(fontname=regular_font, fontfile=regular_font_path)
+        page.insert_font(fontname=bold_font, fontfile=bold_font_path)
+
+        first = chunk[0] if chunk else {}
+        draw_box_text(page, (110, 78, 608, 92), company_name, fontname=bold_font, fontsize=8)
+        draw_box_text(page, (779, 78, 828, 92), datetime.now().strftime("%d.%m.%Y"), fontsize=7)
+        draw_box_text(page, (110, 95, 608, 109), first.get("company_address") or "-", fontsize=7)
+        draw_box_text(page, (765, 95, 828, 109), first.get("company_contact") or "-", fontsize=7)
+        draw_box_text(page, (165, 117, 450, 131), current_user_full_name() or "-", fontsize=7)
+
+        table_top = 375
+        row_height = 18.6
+        column_edges = [
+            (31, 52),
+            (52, 96),
+            (96, 133),
+            (133, 214),
+            (214, 278),
+            (278, 321),
+            (321, 383),
+            (383, 524),
+            (524, 559),
+            (559, 594),
+            (594, 628),
+            (628, 662),
+            (662, 697),
+            (697, 731),
+            (731, 765),
+            (765, 798),
+        ]
+
+        for row_number, extinguisher in enumerate(chunk, start=1):
+            inspection = latest_inspections.get(extinguisher["id"], {})
+            top = table_top + ((row_number - 1) * row_height)
+            bottom = top + row_height
+            base_values = [
+                str((page_index * rows_per_page) + row_number),
+                extinguisher.get("extinguisher_type") or "-",
+                extinguisher.get("fire_class") or "-",
+                extinguisher.get("serial_number") or "-",
+                extinguisher.get("manufacturer") or "-",
+                extinguisher.get("last_service_date") or "-",
+                extinguisher.get("hydrostatic_test_date") or "-",
+                extinguisher.get("location_detail") or "-",
+            ]
+
+            for index, value in enumerate(base_values):
+                x0, x1 = column_edges[index]
+                align = 1 if index in {0, 5, 6} else 0
+                fontsize = 6 if index in {1, 2, 3, 4, 7} else 7
+                draw_box_text(page, (x0 + 2, top + 1, x1 - 2, bottom - 1), value, fontsize=fontsize, align=align)
+
+            for check_index, (key, _label) in enumerate(CONTROL_FORM_ITEMS, start=8):
+                x0, x1 = column_edges[check_index]
+                symbol = ""
+                if inspection:
+                    symbol = "V" if inspection.get(key) else "X"
+                draw_box_text(page, (x0, top + 1, x1, bottom - 1), symbol, fontname=bold_font, fontsize=8, align=1)
+
+    for page_index, start in enumerate(range(0, len(extinguishers_for_company), rows_per_page)):
+        draw_page(extinguishers_for_company[start : start + rows_per_page], page_index)
+
+    if not extinguishers_for_company:
+        draw_page([], 0)
+
+    buffer = io.BytesIO(output.tobytes())
+    buffer.seek(0)
+    output.close()
+    template.close()
+    return buffer
+
+
+def build_control_form_pdf_exact(
+    company_name: str,
+    extinguishers_for_company: list[dict],
+    latest_inspections: dict[int, dict],
+) -> io.BytesIO:
+    if not CONTROL_FORM_TEMPLATE_IMAGE_PATH.exists():
+        raise FileNotFoundError(f"Kontrol formu sablon gorseli bulunamadi: {CONTROL_FORM_TEMPLATE_IMAGE_PATH}")
+
+    page_width, page_height = landscape(A4)
+    rows_per_page = 15
+    background = ImageReader(str(CONTROL_FORM_TEMPLATE_IMAGE_PATH))
+
+    regular_font_path = "C:/Windows/Fonts/arial.ttf"
+    bold_font_path = "C:/Windows/Fonts/arialbd.ttf"
+    if "VestaArial" not in pdfmetrics.getRegisteredFontNames():
+        pdfmetrics.registerFont(TTFont("VestaArial", regular_font_path))
+    if "VestaArialBold" not in pdfmetrics.getRegisteredFontNames():
+        pdfmetrics.registerFont(TTFont("VestaArialBold", bold_font_path))
+
+    buffer = io.BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=(page_width, page_height))
+
+    def draw_text_box(x0, y0, x1, y1, value, *, font="VestaArial", size=7, align="left"):
+        text = str(value or "-").strip() or "-"
+        box_width = x1 - x0
+        lines = simpleSplit(text, font, size, max(box_width - 4, 10))
+        max_lines = max(int((y1 - y0) / (size + 1)), 1)
+        lines = lines[:max_lines]
+        current_y = page_height - y0 - size - 1
+        for line in lines:
+            line_width = pdfmetrics.stringWidth(line, font, size)
+            if align == "center":
+                text_x = x0 + max((box_width - line_width) / 2, 0)
+            elif align == "right":
+                text_x = x1 - line_width - 2
+            else:
+                text_x = x0 + 2
+            pdf.setFont(font, size)
+            pdf.drawString(text_x, current_y, line)
+            current_y -= size + 1
+
+    def draw_page(chunk: list[dict], page_index: int) -> None:
+        pdf.drawImage(background, 0, 0, width=page_width, height=page_height)
+        first = chunk[0] if chunk else {}
+
+        draw_text_box(112, 156, 612, 171, company_name, font="VestaArialBold", size=7.2)
+        draw_text_box(704, 156, 760, 171, datetime.now().strftime("%d.%m.%Y"), size=5.5, align="center")
+        draw_text_box(112, 175, 612, 190, first.get("company_address") or "-", size=6.5)
+        draw_text_box(704, 175, 760, 190, first.get("company_contact") or "-", size=5.5, align="center")
+
+        table_top = 264
+        row_height = 18.55
+        column_edges = [
+            (32, 52),
+            (52, 96),
+            (96, 133),
+            (133, 214),
+            (214, 278),
+            (278, 321),
+            (321, 383),
+            (383, 524),
+            (524, 559),
+            (559, 594),
+            (594, 628),
+            (628, 662),
+            (662, 697),
+            (697, 731),
+            (731, 765),
+            (765, 798),
+        ]
+
+        for row_number, extinguisher in enumerate(chunk, start=1):
+            inspection = latest_inspections.get(extinguisher["id"], {})
+            top = table_top + ((row_number - 1) * row_height)
+            bottom = top + row_height
+            values = [
+                str((page_index * rows_per_page) + row_number),
+                extinguisher.get("extinguisher_type") or "-",
+                extinguisher.get("fire_class") or "-",
+                extinguisher.get("serial_number") or "-",
+                extinguisher.get("manufacturer") or "-",
+                extinguisher.get("last_service_date") or "-",
+                extinguisher.get("hydrostatic_test_date") or "-",
+                extinguisher.get("location_detail") or "-",
+            ]
+
+            for index, value in enumerate(values):
+                x0, x1 = column_edges[index]
+                align = "center" if index in {0, 5, 6} else "left"
+                size = 5.8 if index in {1, 2, 3, 4, 7} else 6.5
+                draw_text_box(x0, top, x1, bottom, value, size=size, align=align)
+
+            for check_index, (key, _label) in enumerate(CONTROL_FORM_ITEMS, start=8):
+                x0, x1 = column_edges[check_index]
+                symbol = ""
+                if inspection:
+                    symbol = "V" if inspection.get(key) else "X"
+                draw_text_box(x0, top, x1, bottom, symbol, font="VestaArialBold", size=8, align="center")
+
+        pdf.showPage()
+
+    for page_index, start in enumerate(range(0, len(extinguishers_for_company), rows_per_page)):
+        draw_page(extinguishers_for_company[start : start + rows_per_page], page_index)
+
+    if not extinguishers_for_company:
+        draw_page([], 0)
+
+    pdf.save()
+    buffer.seek(0)
+    return buffer
+
+
 def build_company_filename(company_name: str) -> str:
     safe = "".join(char if char.isalnum() else "-" for char in company_name.lower()).strip("-")
     return safe or "kontrol-formu"
@@ -1134,7 +1352,7 @@ def control_form_pdf(public_id: str):
         for row in inspection_rows:
             latest_inspections.setdefault(row["extinguisher_id"], row)
 
-    pdf_buffer = build_control_form_pdf(company_name, company_extinguishers, latest_inspections)
+    pdf_buffer = build_control_form_pdf_exact(company_name, company_extinguishers, latest_inspections)
     filename = f"{build_company_filename(company_name)}-kontrol-formu.pdf"
     return send_file(
         pdf_buffer,
