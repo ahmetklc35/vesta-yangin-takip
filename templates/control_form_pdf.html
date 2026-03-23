@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <title>Kontrol Formu</title>
+    <style>
+      @page {
+        size: A4 landscape;
+        margin: 10mm;
+      }
+
+      :root {
+        --line: #222;
+        --soft: #666;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #111;
+      }
+
+      .sheet {
+        width: 100%;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      td, th {
+        border: 1px solid var(--line);
+        padding: 4px 6px;
+        vertical-align: middle;
+        font-size: 11px;
+      }
+
+      .center {
+        text-align: center;
+      }
+
+      .right {
+        text-align: right;
+      }
+
+      .bold {
+        font-weight: 700;
+      }
+
+      .tiny {
+        font-size: 9px;
+      }
+
+      .small {
+        font-size: 10px;
+      }
+
+      .header td {
+        height: 28px;
+      }
+
+      .logo-box {
+        width: 120px;
+        text-align: center;
+      }
+
+      .title-row td {
+        font-weight: 700;
+      }
+
+      .section-title {
+        text-align: center;
+        font-weight: 700;
+        background: #fafafa;
+      }
+
+      .main-table td,
+      .main-table th {
+        font-size: 10px;
+        padding: 3px 4px;
+      }
+
+      .main-table thead th {
+        font-weight: 700;
+      }
+
+      .main-table .rot {
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        white-space: nowrap;
+        text-align: center;
+        padding: 8px 2px;
+        width: 34px;
+        min-width: 34px;
+      }
+
+      .main-table .narrow {
+        width: 34px;
+        text-align: center;
+      }
+
+      .main-table .device {
+        width: 42px;
+        text-align: center;
+      }
+
+      .main-table .type {
+        width: 70px;
+      }
+
+      .main-table .class {
+        width: 70px;
+      }
+
+      .main-table .serial {
+        width: 110px;
+      }
+
+      .main-table .maker {
+        width: 100px;
+      }
+
+      .main-table .date {
+        width: 82px;
+        text-align: center;
+      }
+
+      .main-table .place {
+        width: 150px;
+      }
+
+      .notes {
+        margin-top: 10px;
+        font-size: 9px;
+        line-height: 1.35;
+      }
+
+      .notes p {
+        margin: 2px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sheet">
+      <table class="header">
+        <tr>
+          <td rowspan="2" class="logo-box bold">VESTA</td>
+          <td rowspan="2" class="bold">Onay: Şirket Müdürü<br>Mustafa KILIÇ</td>
+          <td class="bold center">Bölüm</td>
+          <td class="bold center">Revizyon No</td>
+          <td class="bold center">Revizyon Tarihi</td>
+          <td class="bold center">Sayfa</td>
+        </tr>
+        <tr>
+          <td class="center">F-06</td>
+          <td class="center">00</td>
+          <td class="center">01.03.2026</td>
+          <td class="center">1</td>
+        </tr>
+        <tr class="title-row">
+          <td class="center">FORM</td>
+          <td>Konu: Taşınabilir Yangın Söndürme Cihazı Kontrol Formu</td>
+          <td colspan="4">Hazırlayan: Kalite Temsilcisi</td>
+        </tr>
+      </table>
+
+      <table>
+        <tr>
+          <td colspan="6" class="section-title">GENEL BİLGİLER</td>
+        </tr>
+        <tr>
+          <td class="bold">FİRMA ADI</td>
+          <td colspan="3">{{ company_name }}</td>
+          <td class="bold">KONTROL TARİHİ</td>
+          <td>{{ control_date }}</td>
+        </tr>
+        <tr>
+          <td class="bold">MUAYENE ADRESİ</td>
+          <td colspan="3">{{ company_address }}</td>
+          <td class="bold">FİRMA YETKİLİ KİŞİ</td>
+          <td>{{ company_contact }}</td>
+        </tr>
+        <tr>
+          <td class="bold">PERİYODİK KONTROL METODU</td>
+          <td colspan="5" class="small">{{ method_text }}</td>
+        </tr>
+      </table>
+
+      <table class="main-table">
+        <thead>
+          <tr>
+            <th colspan="8" class="section-title">YANGIN SÖNDÜRME CİHAZI (YSC) BİLGİLERİ</th>
+            <th colspan="7" class="section-title">TESPİT VE DEĞERLENDİRME<br><span class="tiny">(✔: UYGUN; X: U. DEĞİL; ─: UYGULAMA YOK)</span></th>
+          </tr>
+          <tr>
+            <th class="device">CİHAZ NO</th>
+            <th class="type">YSC CİNSİ</th>
+            <th class="class">YSC SINIFI</th>
+            <th class="serial">SERİ NO / KOD</th>
+            <th class="maker">YSC ÜRETİCİ</th>
+            <th class="date">DOLUM TARİHİ</th>
+            <th class="date">HİDROSTATİK TEST TARİHİ</th>
+            <th class="place">BULUNDUĞU YER</th>
+            {% for header in check_headers %}
+              <th class="rot">{{ header }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <td class="center">{{ row.device_no }}</td>
+              <td>{{ row.extinguisher_type }}</td>
+              <td>{{ row.fire_class }}</td>
+              <td>{{ row.serial_number }}</td>
+              <td>{{ row.manufacturer }}</td>
+              <td class="center">{{ row.service_date }}</td>
+              <td class="center">{{ row.hydrostatic_test_date }}</td>
+              <td>{{ row.location_detail }}</td>
+              {% for check in row.checks %}
+                <td class="narrow">{{ check }}</td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+          {% for _ in range(15 - rows|length) %}
+            <tr>
+              <td>&nbsp;</td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              <td></td>
+              {% for _ in range(7) %}
+                <td></td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div class="notes">
+        <p>NOT 1: Yangın söndürücünün kontrolü Madde a) ve b) bendindeki gibi listelenmiş koşullarda, bir eksikliği ortaya çıkardığı zaman, acil düzeltici faaliyet yapılmalıdır.</p>
+        <p>NOT 2: Yangın söndürücünün kontrolü Madde c), d), e), f) veya g) bendindeki koşullarından herhangi birinde bir eksikliği ortaya çıkardığı zaman, söndürücü uygun bakım işlemlerine VESTA YANGIN tarafından tabi tutulmalıdır.</p>
+        <p>NOT 3: Madde c), d), e), f) veya g) bendindeki koşullarından herhangi birinde, doldurulmayan tozlu söndürücünün kontrolü bir eksikliği ortaya çıkardığı zaman, bu söndürücü hizmetten kaldırılmalıdır.</p>
+        <p>NOT 4: Bu muayene raporundaki bulgular muayene tarihindeki işletme koşulları için geçerlidir. Bu rapor 2 nüsha basılmıştır. Muayene raporu VESTA YANGIN onayı olmaksızın kopya edilemez.</p>
+      </div>
+    </div>
+  </body>
+</html>

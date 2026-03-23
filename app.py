@@ -18,6 +18,7 @@ from flask import (
     flash,
     redirect,
     render_template,
+    render_template_string,
     request,
     send_file,
     session,
@@ -25,6 +26,7 @@ from flask import (
 )
 from openpyxl import Workbook, load_workbook
 from PIL import Image, ImageDraw, ImageFont
+from playwright.sync_api import sync_playwright
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.utils import ImageReader, simpleSplit
 from reportlab.pdfbase import pdfmetrics
@@ -942,6 +944,62 @@ def pdf_equipment_label(extinguisher_type: str | None) -> str:
     return mapping.get(extinguisher_type or "", extinguisher_type or "-")
 
 
+def build_control_form_document_data(public_id: str) -> dict:
+    extinguisher = get_extinguisher(public_id)
+    company_name = extinguisher["company_name"]
+    company_extinguishers = fetch_all(
+        select(extinguishers)
+        .where(extinguishers.c.company_name == company_name)
+        .order_by(extinguishers.c.location_detail, extinguishers.c.serial_number)
+    )
+    extinguisher_ids = [row["id"] for row in company_extinguishers]
+    latest_inspections: dict[int, dict] = {}
+    if extinguisher_ids:
+        inspection_rows = fetch_all(
+            select(monthly_inspections)
+            .where(monthly_inspections.c.extinguisher_id.in_(extinguisher_ids))
+            .order_by(
+                monthly_inspections.c.extinguisher_id,
+                desc(monthly_inspections.c.inspection_date),
+                desc(monthly_inspections.c.id),
+            )
+        )
+        for row in inspection_rows:
+            latest_inspections.setdefault(row["extinguisher_id"], row)
+
+    control_rows = []
+    for index, row in enumerate(company_extinguishers, start=1):
+        inspection = latest_inspections.get(row["id"], {})
+        control_rows.append(
+            {
+                "device_no": index,
+                "extinguisher_type": pdf_equipment_label(row.get("extinguisher_type")),
+                "fire_class": row.get("fire_class") or "-",
+                "serial_number": row.get("serial_number") or "-",
+                "manufacturer": row.get("manufacturer") or "-",
+                "service_date": row.get("last_service_date") or "-",
+                "hydrostatic_test_date": row.get("hydrostatic_test_date") or "-",
+                "location_detail": row.get("location_detail") or "-",
+                "checks": [
+                    "✔" if inspection.get(key) else "X" if inspection else "-"
+                    for key, _label in CONTROL_FORM_ITEMS
+                ],
+            }
+        )
+
+    return {
+        "company_name": company_name,
+        "company_address": extinguisher.get("company_address") or "-",
+        "company_contact": extinguisher.get("company_contact") or "-",
+        "control_date": datetime.now().strftime("%d.%m.%Y"),
+        "inspector_name": current_user_full_name() or "-",
+        "method_text": "İEKSGŞY, TS ISO 11602-2, TS 862-7 EN 3-7 + A1 ve TS EN 1866-1 standartlarına göre kontrol edilmiştir.",
+        "rows": control_rows,
+        "check_headers": [label for _key, label in CONTROL_FORM_ITEMS],
+        "public_id": public_id,
+    }
+
+
 def build_control_form_excel_pdf(
     company_name: str,
     extinguishers_for_company: list[dict],
@@ -1023,6 +1081,23 @@ def build_control_form_excel_pdf(
                 pass
         pythoncom.CoUninitialize()
 
+    buffer = io.BytesIO(pdf_bytes)
+    buffer.seek(0)
+    return buffer
+
+
+def build_pdf_from_html(html: str) -> io.BytesIO:
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.set_content(html, wait_until="load")
+        pdf_bytes = page.pdf(
+            format="A4",
+            landscape=True,
+            print_background=True,
+            margin={"top": "10mm", "right": "10mm", "bottom": "10mm", "left": "10mm"},
+        )
+        browser.close()
     buffer = io.BytesIO(pdf_bytes)
     buffer.seek(0)
     return buffer
@@ -1461,38 +1536,23 @@ def extinguisher_detail(public_id: str):
 @app.route("/extinguishers/<public_id>/control-form.pdf")
 @login_required
 def control_form_pdf(public_id: str):
-    extinguisher = get_extinguisher(public_id)
-    company_name = extinguisher["company_name"]
-    company_extinguishers = fetch_all(
-        select(extinguishers)
-        .where(extinguishers.c.company_name == company_name)
-        .order_by(extinguishers.c.location_detail, extinguishers.c.serial_number)
-    )
-    extinguisher_ids = [row["id"] for row in company_extinguishers]
-    latest_inspections: dict[int, dict] = {}
-    if extinguisher_ids:
-        inspection_rows = fetch_all(
-            select(monthly_inspections)
-            .where(monthly_inspections.c.extinguisher_id.in_(extinguisher_ids))
-            .order_by(
-                monthly_inspections.c.extinguisher_id,
-                desc(monthly_inspections.c.inspection_date),
-                desc(monthly_inspections.c.id),
-            )
-        )
-        for row in inspection_rows:
-            latest_inspections.setdefault(row["extinguisher_id"], row)
-
-    pdf_buffer = build_control_form_excel_pdf(company_name, company_extinguishers, latest_inspections)
-    if pdf_buffer is None:
-        pdf_buffer = build_control_form_pdf_exact(company_name, company_extinguishers, latest_inspections)
-    filename = f"{build_company_filename(company_name)}-kontrol-formu.pdf"
+    document_data = build_control_form_document_data(public_id)
+    html = render_template("control_form_pdf.html", **document_data)
+    pdf_buffer = build_pdf_from_html(html)
+    filename = f"{build_company_filename(document_data['company_name'])}-kontrol-formu.pdf"
     return send_file(
         pdf_buffer,
         mimetype="application/pdf",
         as_attachment=True,
         download_name=filename,
     )
+
+
+@app.route("/extinguishers/<public_id>/control-form")
+@login_required
+def control_form_preview(public_id: str):
+    document_data = build_control_form_document_data(public_id)
+    return render_template("control_form_pdf.html", **document_data)
 
 
 @app.route("/extinguishers/<public_id>/service", methods=["GET", "POST"])
