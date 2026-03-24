@@ -495,12 +495,12 @@ def resolve_system_font(*candidates: str) -> str:
     raise FileNotFoundError(f"Uygun font bulunamadi: {', '.join(candidates)}")
 
 
-def build_branded_qr(public_url: str) -> io.BytesIO:
+def build_branded_qr(public_url: str, *, label_mode: bool = False) -> io.BytesIO:
     qr = qrcode.QRCode(
         version=None,
         error_correction=ERROR_CORRECT_H,
         box_size=10,
-        border=4,
+        border=2 if label_mode else 4,
     )
     qr.add_data(public_url)
     qr.make(fit=True)
@@ -508,11 +508,18 @@ def build_branded_qr(public_url: str) -> io.BytesIO:
     qr_width, qr_height = qr_image.size
 
     if LOGO_PATH.exists():
-        logo = Image.open(LOGO_PATH).convert("RGBA")
-        max_logo_size = int(qr_width * 0.24)
+        logo_source = LOGO_PATH
+        if label_mode and VESTA_HEADER_LOGO_PATH.exists():
+            logo_source = VESTA_HEADER_LOGO_PATH
+        logo = Image.open(logo_source).convert("RGBA")
+        if label_mode:
+            # Improve thermal print contrast by flattening the logo to grayscale.
+            gray = logo.convert("L")
+            logo = Image.merge("RGBA", (gray, gray, gray, gray))
+        max_logo_size = int(qr_width * (0.16 if label_mode else 0.24))
         logo.thumbnail((max_logo_size, max_logo_size))
 
-        logo_bg_size = max(logo.width, logo.height) + 20
+        logo_bg_size = max(logo.width, logo.height) + (8 if label_mode else 20)
         logo_bg = Image.new("RGBA", (logo_bg_size, logo_bg_size), (255, 255, 255, 255))
         bg_x = (logo_bg_size - logo.width) // 2
         bg_y = (logo_bg_size - logo.height) // 2
@@ -522,16 +529,19 @@ def build_branded_qr(public_url: str) -> io.BytesIO:
         logo_y = (qr_height - logo_bg_size) // 2
         qr_image.alpha_composite(logo_bg, (logo_x, logo_y))
 
-    canvas = Image.new("RGBA", (qr_width, qr_height + 78), "white")
-    canvas.paste(qr_image, (0, 0))
+    if label_mode:
+        canvas = qr_image
+    else:
+        canvas = Image.new("RGBA", (qr_width, qr_height + 78), "white")
+        canvas.paste(qr_image, (0, 0))
 
-    draw = ImageDraw.Draw(canvas)
-    font = load_font(28)
-    text_bbox = draw.textbbox((0, 0), BRAND_NAME, font=font)
-    text_width = text_bbox[2] - text_bbox[0]
-    text_x = (qr_width - text_width) // 2
-    text_y = qr_height + 24
-    draw.text((text_x, text_y), BRAND_NAME, fill="black", font=font)
+        draw = ImageDraw.Draw(canvas)
+        font = load_font(28)
+        text_bbox = draw.textbbox((0, 0), BRAND_NAME, font=font)
+        text_width = text_bbox[2] - text_bbox[0]
+        text_x = (qr_width - text_width) // 2
+        text_y = qr_height + 24
+        draw.text((text_x, text_y), BRAND_NAME, fill="black", font=font)
 
     buffer = io.BytesIO()
     canvas.save(buffer, format="PNG")
@@ -2098,6 +2108,15 @@ def extinguisher_qr(public_id: str):
     public_url = url_for("public_detail", public_id=public_id, _external=True)
     buffer = build_branded_qr(public_url)
     return send_file(buffer, mimetype="image/png", download_name=f"{public_id}.png")
+
+
+@app.route("/extinguishers/<public_id>/label-qr")
+@login_required
+def extinguisher_label_qr(public_id: str):
+    get_extinguisher(public_id)
+    public_url = url_for("public_detail", public_id=public_id, _external=True)
+    buffer = build_branded_qr(public_url, label_mode=True)
+    return send_file(buffer, mimetype="image/png", download_name=f"{public_id}-label.png")
 
 
 @app.route("/extinguishers/<public_id>/label")
