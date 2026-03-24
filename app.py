@@ -1159,7 +1159,21 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
     )
     story.extend([header_table, Spacer(1, 1 * mm)])
 
-    method_paragraph = Paragraph(document_data["method_text"], small_style)
+    compact_small_style = styles["BodyText"].clone("vesta_compact_small")
+    compact_small_style.fontName = "VestaPDF"
+    compact_small_style.fontSize = 5
+    compact_small_style.leading = 6
+    compact_small_style.spaceBefore = 0
+    compact_small_style.spaceAfter = 0
+
+    compact_cell_style = styles["BodyText"].clone("vesta_compact_cell")
+    compact_cell_style.fontName = "VestaPDF"
+    compact_cell_style.fontSize = 4.6
+    compact_cell_style.leading = 5
+    compact_cell_style.spaceBefore = 0
+    compact_cell_style.spaceAfter = 0
+
+    method_paragraph = Paragraph(document_data["method_text"], compact_small_style)
     info_table = PdfTable(
         [
             [Paragraph("<b>GENEL BİLGİLER</b>", body_style), "", "", "", "", ""],
@@ -1167,8 +1181,9 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
             ["MUAYENE ADRESI", document_data["company_address"], "", "", "FIRMA YETKILI KISI", document_data["company_contact"]],
             ["PERIYODIK KONTROL METODU", method_paragraph, "", "", "", ""],
         ],
-        colWidths=[22 * mm, 69 * mm, 15 * mm, 15 * mm, 28 * mm, 55 * mm],
+        colWidths=[28 * mm, 63 * mm, 12 * mm, 12 * mm, 26 * mm, 66 * mm],
         hAlign="CENTER",
+        rowHeights=[7 * mm, 7 * mm, 7 * mm, 9 * mm],
     )
     info_table.setStyle(
         TableStyle(
@@ -1186,6 +1201,8 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
                 ("FONTSIZE", (0, 0), (-1, -1), 7),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+                ("TOPPADDING", (0, 0), (-1, -1), 1),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
             ]
         )
     )
@@ -1215,13 +1232,13 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
     rotated_height = 30 * mm
 
     header_row_2 = [
-        Paragraph("<b>CİHAZ NO</b>", tiny_bold_style),
+        Paragraph("<b>CİHAZ<br/>NO</b>", tiny_bold_style),
         Paragraph("<b>YSC CİNSİ</b>", tiny_bold_style),
         Paragraph("<b>YSC SINIFI</b>", tiny_bold_style),
         Paragraph("<b>SERİ NO / KOD</b>", tiny_bold_style),
         Paragraph("<b>YSC ÜRETİCİ</b>", tiny_bold_style),
         Paragraph("<b>DOLUM TARİHİ</b>", tiny_bold_style),
-        Paragraph("<b>HİDROSTATİK TEST TARİHİ</b>", tiny_bold_style),
+        Paragraph("<b>HİDROSTATİK<br/>TEST TARİHİ</b>", tiny_bold_style),
         Paragraph("<b>BULUNDUĞU YER</b>", tiny_bold_style),
         *[
             RotatedParagraph(f"<b>{label}</b>", tiny_style, rotated_width, rotated_height)
@@ -1234,13 +1251,13 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
         data_rows.append(
             [
                 row["device_no"],
-                row["extinguisher_type"],
-                row["fire_class"],
-                row["serial_number"],
-                row["manufacturer"],
-                row["service_date"],
-                row["hydrostatic_test_date"],
-                row["location_detail"],
+                Paragraph(str(row["extinguisher_type"]), compact_cell_style),
+                Paragraph(str(row["fire_class"]), compact_cell_style),
+                Paragraph(str(row["serial_number"]), compact_cell_style),
+                Paragraph(str(row["manufacturer"]), compact_cell_style),
+                Paragraph(str(row["service_date"]), compact_cell_style),
+                Paragraph(str(row["hydrostatic_test_date"]), compact_cell_style),
+                Paragraph(str(row["location_detail"]), compact_cell_style),
                 *row["checks"],
             ]
         )
