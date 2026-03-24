@@ -973,7 +973,7 @@ def build_company_filename(company_name: str) -> str:
 
 def pdf_equipment_label(extinguisher_type: str | None) -> str:
     mapping = {
-        "Kuru Kimyevi Toz": "KKT",
+        "Kuru Kimyevi Toz": "Kuru Kimyevi Toz",
         "CO2": "CO2",
         "Kopuk": "Köpük",
     }
@@ -1168,10 +1168,11 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
 
     compact_cell_style = styles["BodyText"].clone("vesta_compact_cell")
     compact_cell_style.fontName = "VestaPDF"
-    compact_cell_style.fontSize = 4.6
-    compact_cell_style.leading = 5
+    compact_cell_style.fontSize = 4.4
+    compact_cell_style.leading = 4.8
     compact_cell_style.spaceBefore = 0
     compact_cell_style.spaceAfter = 0
+    compact_cell_style.alignment = 1
 
     method_paragraph = Paragraph(document_data["method_text"], compact_small_style)
     info_table = PdfTable(
@@ -1181,7 +1182,7 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
             ["MUAYENE ADRESI", document_data["company_address"], "", "", "FIRMA YETKILI KISI", document_data["company_contact"]],
             ["PERIYODIK KONTROL METODU", method_paragraph, "", "", "", ""],
         ],
-        colWidths=[28 * mm, 63 * mm, 12 * mm, 12 * mm, 26 * mm, 66 * mm],
+        colWidths=[34 * mm, 57 * mm, 8 * mm, 8 * mm, 30 * mm, 58 * mm],
         hAlign="CENTER",
         rowHeights=[7 * mm, 7 * mm, 7 * mm, 9 * mm],
     )
@@ -1232,13 +1233,13 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
     rotated_height = 30 * mm
 
     header_row_2 = [
-        Paragraph("<b>CİHAZ<br/>NO</b>", tiny_bold_style),
+        Paragraph("<b>CİHAZ</b><br/><b>NO</b>", tiny_bold_style),
         Paragraph("<b>YSC CİNSİ</b>", tiny_bold_style),
         Paragraph("<b>YSC SINIFI</b>", tiny_bold_style),
         Paragraph("<b>SERİ NO / KOD</b>", tiny_bold_style),
         Paragraph("<b>YSC ÜRETİCİ</b>", tiny_bold_style),
         Paragraph("<b>DOLUM TARİHİ</b>", tiny_bold_style),
-        Paragraph("<b>HİDROSTATİK<br/>TEST TARİHİ</b>", tiny_bold_style),
+        Paragraph("<b>HİDROSTATİK</b><br/><b>TEST TARİHİ</b>", tiny_bold_style),
         Paragraph("<b>BULUNDUĞU YER</b>", tiny_bold_style),
         *[
             RotatedParagraph(f"<b>{label}</b>", tiny_style, rotated_width, rotated_height)
@@ -1248,10 +1249,11 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
 
     data_rows = [header_row_1, header_row_2]
     for row in document_data["rows"]:
+        extinguisher_type = str(row["extinguisher_type"]).replace("Kuru Kimyevi Toz", "Kuru<br/>Kimyevi<br/>Toz")
         data_rows.append(
             [
                 row["device_no"],
-                Paragraph(str(row["extinguisher_type"]), compact_cell_style),
+                Paragraph(extinguisher_type, compact_cell_style),
                 Paragraph(str(row["fire_class"]), compact_cell_style),
                 Paragraph(str(row["serial_number"]), compact_cell_style),
                 Paragraph(str(row["manufacturer"]), compact_cell_style),
