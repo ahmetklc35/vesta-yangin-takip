@@ -1175,14 +1175,21 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
     compact_cell_style.alignment = 1
 
     method_paragraph = Paragraph(document_data["method_text"], compact_small_style)
+    address_cell_style = styles["BodyText"].clone("vesta_address_cell")
+    address_cell_style.fontName = "VestaPDF"
+    address_cell_style.fontSize = 4.6
+    address_cell_style.leading = 5
+    address_cell_style.spaceBefore = 0
+    address_cell_style.spaceAfter = 0
+
     info_table = PdfTable(
         [
             [Paragraph("<b>GENEL BİLGİLER</b>", body_style), "", "", "", "", ""],
             ["FIRMA ADI", document_data["company_name"], "", "", "KONTROL TARIHI", document_data["control_date"]],
-            ["MUAYENE ADRESI", document_data["company_address"], "", "", "FIRMA YETKILI KISI", document_data["company_contact"]],
+            ["MUAYENE ADRESI", Paragraph(document_data["company_address"], address_cell_style), "", "", "FIRMA YETKILI KISI", document_data["company_contact"]],
             ["PERIYODIK KONTROL METODU", method_paragraph, "", "", "", ""],
         ],
-        colWidths=[56 * mm, 50 * mm, 2 * mm, 2 * mm, 28 * mm, 66 * mm],
+        colWidths=[56 * mm, 58 * mm, 2 * mm, 2 * mm, 26 * mm, 60 * mm],
         hAlign="CENTER",
         rowHeights=[7 * mm, 7 * mm, 7 * mm, 9 * mm],
     )
