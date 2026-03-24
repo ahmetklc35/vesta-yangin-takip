@@ -1252,7 +1252,7 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
 
     data_rows = [header_row_1, header_row_2]
     for row in document_data["rows"]:
-        extinguisher_type = str(row["extinguisher_type"]).replace("Kuru Kimyevi Toz", "Kuru<br/>Kimyevi<br/>Toz")
+        extinguisher_type = str(row["extinguisher_type"]).replace("Kuru Kimyevi Toz", "Kuru<br/>Kimyevi Toz")
         data_rows.append(
             [
                 row["device_no"],
