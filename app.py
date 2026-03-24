@@ -1182,7 +1182,7 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
             ["MUAYENE ADRESI", document_data["company_address"], "", "", "FIRMA YETKILI KISI", document_data["company_contact"]],
             ["PERIYODIK KONTROL METODU", method_paragraph, "", "", "", ""],
         ],
-        colWidths=[46 * mm, 50 * mm, 6 * mm, 6 * mm, 32 * mm, 64 * mm],
+        colWidths=[52 * mm, 44 * mm, 6 * mm, 6 * mm, 32 * mm, 64 * mm],
         hAlign="CENTER",
         rowHeights=[7 * mm, 7 * mm, 7 * mm, 9 * mm],
     )
@@ -1206,7 +1206,7 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 0.8),
                 ("LEFTPADDING", (0, 0), (-1, -1), 2),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 2),
-                ("LEFTPADDING", (1, 3), (1, 3), 5),
+                ("LEFTPADDING", (1, 3), (1, 3), 8),
             ]
         )
     )
