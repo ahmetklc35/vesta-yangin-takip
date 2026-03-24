@@ -748,7 +748,7 @@ tbody tr:nth-child(odd) td {
 
 .label-card {
   width: 18mm;
-  height: 18mm;
+  height: 24mm;
   background: white;
   border: 1px dashed rgba(98, 69, 49, 0.25);
   border-radius: 0;
@@ -760,7 +760,7 @@ tbody tr:nth-child(odd) td {
 
 .label-qr-only img {
   width: 16mm;
-  height: 16mm;
+  height: 22mm;
   display: block;
   object-fit: contain;
 }
@@ -771,7 +771,7 @@ tbody tr:nth-child(odd) td {
 
 @media print {
   @page {
-    size: 18mm 18mm;
+    size: 18mm 24mm;
     margin: 0;
   }
 
@@ -790,7 +790,7 @@ tbody tr:nth-child(odd) td {
 
   .label-card {
     width: 18mm;
-    height: 18mm;
+    height: 24mm;
     break-inside: avoid;
     border: 0;
     padding: 1mm;
@@ -799,7 +799,7 @@ tbody tr:nth-child(odd) td {
 
   .label-qr-only img {
     width: 16mm;
-    height: 16mm;
+    height: 22mm;
   }
 }
 

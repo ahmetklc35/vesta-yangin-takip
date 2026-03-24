@@ -507,19 +507,36 @@ def build_branded_qr(public_url: str, *, label_mode: bool = False) -> io.BytesIO
     qr_image = qr.make_image(fill_color="black", back_color="white").convert("RGBA")
     qr_width, qr_height = qr_image.size
 
-    if LOGO_PATH.exists():
+    if label_mode:
+        draw_qr = ImageDraw.Draw(qr_image)
+        center_font = load_font(max(28, qr_width // 8))
+        v_text = "V"
+        v_box = draw_qr.textbbox((0, 0), v_text, font=center_font)
+        v_width = v_box[2] - v_box[0]
+        v_height = v_box[3] - v_box[1]
+        v_pad = 10
+        v_bg_w = v_width + (v_pad * 2)
+        v_bg_h = v_height + (v_pad * 2)
+        v_x = (qr_width - v_bg_w) // 2
+        v_y = (qr_height - v_bg_h) // 2
+        draw_qr.rounded_rectangle(
+            (v_x, v_y, v_x + v_bg_w, v_y + v_bg_h),
+            radius=8,
+            fill="white",
+        )
+        draw_qr.text(
+            (v_x + v_pad, v_y + v_pad - 2),
+            v_text,
+            fill="black",
+            font=center_font,
+        )
+    elif LOGO_PATH.exists():
         logo_source = LOGO_PATH
-        if label_mode and VESTA_HEADER_LOGO_PATH.exists():
-            logo_source = VESTA_HEADER_LOGO_PATH
         logo = Image.open(logo_source).convert("RGBA")
-        if label_mode:
-            # Improve thermal print contrast by flattening the logo to grayscale.
-            gray = logo.convert("L")
-            logo = Image.merge("RGBA", (gray, gray, gray, gray))
-        max_logo_size = int(qr_width * (0.16 if label_mode else 0.24))
+        max_logo_size = int(qr_width * 0.24)
         logo.thumbnail((max_logo_size, max_logo_size))
 
-        logo_bg_size = max(logo.width, logo.height) + (8 if label_mode else 20)
+        logo_bg_size = max(logo.width, logo.height) + 20
         logo_bg = Image.new("RGBA", (logo_bg_size, logo_bg_size), (255, 255, 255, 255))
         bg_x = (logo_bg_size - logo.width) // 2
         bg_y = (logo_bg_size - logo.height) // 2
@@ -530,7 +547,17 @@ def build_branded_qr(public_url: str, *, label_mode: bool = False) -> io.BytesIO
         qr_image.alpha_composite(logo_bg, (logo_x, logo_y))
 
     if label_mode:
-        canvas = qr_image
+        footer_height = 34
+        canvas = Image.new("RGBA", (qr_width, qr_height + footer_height), "white")
+        canvas.paste(qr_image, (0, 0))
+        draw = ImageDraw.Draw(canvas)
+        font = load_font(18)
+        brand_text = "Vesta"
+        text_bbox = draw.textbbox((0, 0), brand_text, font=font)
+        text_width = text_bbox[2] - text_bbox[0]
+        text_x = (qr_width - text_width) // 2
+        text_y = qr_height + 8
+        draw.text((text_x, text_y), brand_text, fill="black", font=font)
     else:
         canvas = Image.new("RGBA", (qr_width, qr_height + 78), "white")
         canvas.paste(qr_image, (0, 0))
