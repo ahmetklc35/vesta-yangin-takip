@@ -1092,15 +1092,15 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
 
     logo_cells = []
     if TSE_HYB_LOGO_PATH.exists():
-        logo_cells.append(PdfImage(str(TSE_HYB_LOGO_PATH), width=18 * mm, height=18 * mm))
+        logo_cells.append(PdfImage(str(TSE_HYB_LOGO_PATH), width=17 * mm, height=17 * mm))
     else:
         logo_cells.append(Paragraph("<b>TSE-HYB</b>", body_style))
     if VESTA_HEADER_LOGO_PATH.exists():
-        logo_cells.append(PdfImage(str(VESTA_HEADER_LOGO_PATH), width=16 * mm, height=20 * mm))
+        logo_cells.append(PdfImage(str(VESTA_HEADER_LOGO_PATH), width=13 * mm, height=16 * mm))
     else:
         logo_cells.append(Paragraph("<b>VESTA</b>", body_style))
 
-    logo_table = PdfTable([logo_cells], colWidths=[22 * mm, 18 * mm], rowHeights=[18 * mm])
+    logo_table = PdfTable([logo_cells], colWidths=[20 * mm, 20 * mm], rowHeights=[18 * mm])
     logo_table.setStyle(
         TableStyle(
             [
@@ -1182,7 +1182,7 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
             ["MUAYENE ADRESI", document_data["company_address"], "", "", "FIRMA YETKILI KISI", document_data["company_contact"]],
             ["PERIYODIK KONTROL METODU", method_paragraph, "", "", "", ""],
         ],
-        colWidths=[34 * mm, 57 * mm, 8 * mm, 8 * mm, 30 * mm, 58 * mm],
+        colWidths=[40 * mm, 56 * mm, 6 * mm, 6 * mm, 32 * mm, 64 * mm],
         hAlign="CENTER",
         rowHeights=[7 * mm, 7 * mm, 7 * mm, 9 * mm],
     )
@@ -1202,8 +1202,10 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
                 ("FONTSIZE", (0, 0), (-1, -1), 7),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("ALIGN", (0, 0), (-1, 0), "CENTER"),
-                ("TOPPADDING", (0, 0), (-1, -1), 1),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
+                ("TOPPADDING", (0, 0), (-1, -1), 0.8),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0.8),
+                ("LEFTPADDING", (0, 0), (-1, -1), 2),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 2),
             ]
         )
     )
@@ -1249,7 +1251,7 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
 
     data_rows = [header_row_1, header_row_2]
     for row in document_data["rows"]:
-        extinguisher_type = str(row["extinguisher_type"]).replace("Kuru Kimyevi Toz", "Kuru<br/>Kimyevi<br/>Toz")
+        extinguisher_type = str(row["extinguisher_type"]).replace("Kuru Kimyevi Toz", "Kuru Kimyevi<br/>Toz")
         data_rows.append(
             [
                 row["device_no"],
