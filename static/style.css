@@ -633,6 +633,38 @@ tbody tr:nth-child(odd) td {
   padding: 40px 0;
 }
 
+.public-page .card {
+  position: relative;
+  overflow: hidden;
+}
+
+.public-brand {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  width: 92px;
+  display: grid;
+  justify-items: end;
+  z-index: 2;
+}
+
+.public-brand img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(76, 25, 10, 0.14));
+}
+
+@media (max-width: 720px) {
+  .public-brand {
+    position: static;
+    width: 88px;
+    margin-left: auto;
+    margin-bottom: 14px;
+  }
+}
+
 .label-page {
   background: #f3f0ec;
 }
