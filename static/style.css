@@ -747,18 +747,22 @@ tbody tr:nth-child(odd) td {
 }
 
 .label-card {
-  width: fit-content;
+  width: 18mm;
+  height: 18mm;
   background: white;
-  border: 0;
+  border: 1px dashed rgba(98, 69, 49, 0.25);
   border-radius: 0;
-  padding: 10px;
+  padding: 1mm;
   box-shadow: none;
+  display: grid;
+  place-items: center;
 }
 
 .label-qr-only img {
-  width: 220px;
-  height: auto;
+  width: 16mm;
+  height: 16mm;
   display: block;
+  object-fit: contain;
 }
 
 .label-actions {
@@ -767,8 +771,8 @@ tbody tr:nth-child(odd) td {
 
 @media print {
   @page {
-    size: auto;
-    margin: 8mm;
+    size: 18mm 18mm;
+    margin: 0;
   }
 
   body {
@@ -780,14 +784,22 @@ tbody tr:nth-child(odd) td {
   }
 
   .label-shell {
-    width: auto;
+    width: 18mm;
     margin: 0;
   }
 
   .label-card {
-    max-width: none;
+    width: 18mm;
+    height: 18mm;
     break-inside: avoid;
-    padding: 0;
+    border: 0;
+    padding: 1mm;
+    box-sizing: border-box;
+  }
+
+  .label-qr-only img {
+    width: 16mm;
+    height: 16mm;
   }
 }
 
