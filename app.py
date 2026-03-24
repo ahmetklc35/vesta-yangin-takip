@@ -1082,7 +1082,7 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
         leftMargin=6 * mm,
         rightMargin=6 * mm,
         topMargin=6 * mm,
-        bottomMargin=18 * mm,
+        bottomMargin=6 * mm,
     )
 
     story = []
@@ -1264,20 +1264,35 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
             ]
         )
     )
-    story.extend([main_table, Spacer(1, 2 * mm)])
+    story.extend([main_table, Spacer(1, 1 * mm)])
 
-    def draw_footer(canvas_obj, pdf_doc):
-        canvas_obj.saveState()
-        canvas_obj.setFont("VestaPDF", 5)
-        y = 7 * mm
-        for note in reversed(document_data["notes"]):
-            lines = simpleSplit(note, "VestaPDF", 5, pdf_doc.width)
-            for line in reversed(lines):
-                canvas_obj.drawString(pdf_doc.leftMargin, y, line)
-                y += 2.4 * mm
-        canvas_obj.restoreState()
+    note_style = styles["BodyText"].clone("vesta_note")
+    note_style.fontName = "VestaPDF"
+    note_style.fontSize = 5
+    note_style.leading = 6
+    note_style.leftIndent = 0
+    note_style.spaceBefore = 0
+    note_style.spaceAfter = 0
 
-    doc.build(story, onFirstPage=draw_footer, onLaterPages=draw_footer)
+    notes_table = PdfTable(
+        [[Paragraph(note, note_style)] for note in document_data["notes"]],
+        colWidths=[sum([10 * mm, 14 * mm, 14 * mm, 19 * mm, 16 * mm, 14 * mm, 16 * mm, 24 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm])],
+        hAlign="CENTER",
+    )
+    notes_table.setStyle(
+        TableStyle(
+            [
+                ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ]
+        )
+    )
+    story.append(notes_table)
+
+    doc.build(story)
     buffer.seek(0)
     return buffer
 
