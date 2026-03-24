@@ -1038,6 +1038,9 @@ def build_control_form_document_data(public_id: str) -> dict:
 
 
 def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
+    main_col_widths = [10 * mm, 14 * mm, 14 * mm, 19 * mm, 16 * mm, 14 * mm, 16 * mm, 24 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm]
+    form_total_width = sum(main_col_widths)
+
     regular_font_path = resolve_system_font(
         "C:/Windows/Fonts/arial.ttf",
         "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
@@ -1134,7 +1137,8 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
                 "",
             ],
         ],
-        colWidths=[42 * mm, 58 * mm, 16 * mm, 22 * mm, 28 * mm, 14 * mm],
+        colWidths=[40 * mm, 60 * mm, 16 * mm, 22 * mm, 32 * mm, 34 * mm],
+        hAlign="CENTER",
     )
     header_table.setStyle(
         TableStyle(
@@ -1163,7 +1167,8 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
             ["MUAYENE ADRESI", document_data["company_address"], "", "", "FIRMA YETKILI KISI", document_data["company_contact"]],
             ["PERIYODIK KONTROL METODU", method_paragraph, "", "", "", ""],
         ],
-        colWidths=[28 * mm, 66 * mm, 18 * mm, 18 * mm, 30 * mm, 72 * mm],
+        colWidths=[22 * mm, 69 * mm, 15 * mm, 15 * mm, 28 * mm, 55 * mm],
+        hAlign="CENTER",
     )
     info_table.setStyle(
         TableStyle(
@@ -1246,8 +1251,9 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
     main_table = PdfTable(
         data_rows,
         repeatRows=2,
-        colWidths=[10 * mm, 14 * mm, 14 * mm, 19 * mm, 16 * mm, 14 * mm, 16 * mm, 24 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm],
+        colWidths=main_col_widths,
         rowHeights=[6 * mm, 30 * mm] + [4.8 * mm] * (len(data_rows) - 2),
+        hAlign="CENTER",
     )
     main_table.setStyle(
         TableStyle(
@@ -1276,7 +1282,7 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
 
     notes_table = PdfTable(
         [[Paragraph(note, note_style)] for note in document_data["notes"]],
-        colWidths=[sum([10 * mm, 14 * mm, 14 * mm, 19 * mm, 16 * mm, 14 * mm, 16 * mm, 24 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm])],
+        colWidths=[form_total_width],
         hAlign="CENTER",
     )
     notes_table.setStyle(
