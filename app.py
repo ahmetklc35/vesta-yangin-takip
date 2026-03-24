@@ -1871,6 +1871,19 @@ def control_form_pdf(public_id: str):
     )
 
 
+@app.route("/public/<public_id>/control-form.pdf")
+def public_control_form_pdf(public_id: str):
+    document_data = build_control_form_document_data(public_id)
+    pdf_buffer = build_control_form_pdf_reportlab(document_data)
+    filename = f"{build_company_filename(document_data['company_name'])}-kontrol-formu.pdf"
+    return send_file(
+        pdf_buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=filename,
+    )
+
+
 @app.route("/extinguishers/<public_id>/control-form")
 @login_required
 def control_form_preview(public_id: str):
