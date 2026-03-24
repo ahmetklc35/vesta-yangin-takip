@@ -509,12 +509,12 @@ def build_branded_qr(public_url: str, *, label_mode: bool = False) -> io.BytesIO
 
     if label_mode:
         draw_qr = ImageDraw.Draw(qr_image)
-        center_font = load_font(max(28, qr_width // 8))
+        center_font = load_font(max(42, qr_width // 6))
         v_text = "V"
         v_box = draw_qr.textbbox((0, 0), v_text, font=center_font)
         v_width = v_box[2] - v_box[0]
         v_height = v_box[3] - v_box[1]
-        v_pad = 10
+        v_pad = 14
         v_bg_w = v_width + (v_pad * 2)
         v_bg_h = v_height + (v_pad * 2)
         v_x = (qr_width - v_bg_w) // 2
@@ -551,12 +551,12 @@ def build_branded_qr(public_url: str, *, label_mode: bool = False) -> io.BytesIO
         canvas = Image.new("RGBA", (qr_width, qr_height + footer_height), "white")
         canvas.paste(qr_image, (0, 0))
         draw = ImageDraw.Draw(canvas)
-        font = load_font(18)
+        font = load_font(24)
         brand_text = "Vesta"
         text_bbox = draw.textbbox((0, 0), brand_text, font=font)
         text_width = text_bbox[2] - text_bbox[0]
         text_x = (qr_width - text_width) // 2
-        text_y = qr_height + 8
+        text_y = qr_height + 4
         draw.text((text_x, text_y), brand_text, fill="black", font=font)
     else:
         canvas = Image.new("RGBA", (qr_width, qr_height + 78), "white")
