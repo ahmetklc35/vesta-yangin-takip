@@ -31,7 +31,7 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader, simpleSplit
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table as PdfTable, TableStyle
+from reportlab.platypus import Image as PdfImage, Paragraph, SimpleDocTemplate, Spacer, Table as PdfTable, TableStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
@@ -62,9 +62,18 @@ BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_SQLITE_URL = f"sqlite:///{(BASE_DIR / 'database.db').as_posix()}"
 BRAND_NAME = "Vesta Yangin"
 LOGO_PATH = BASE_DIR / "static" / "vesta qr.png"
+VESTA_HEADER_LOGO_PATH = BASE_DIR / "static" / "vesta-logo.png"
+TSE_HYB_LOGO_PATH = BASE_DIR / "static" / "tse-hyb-badge.png"
 CONTROL_FORM_TEMPLATE_PATH = BASE_DIR / "assets" / "control-form-template.pdf"
 CONTROL_FORM_TEMPLATE_IMAGE_PATH = BASE_DIR / "assets" / "control-form-template.png"
 CONTROL_FORM_EXCEL_TEMPLATE_PATH = BASE_DIR / "assets" / "control-form-template.xlsx"
+CONTROL_FORM_METHOD_TEXT = "İEKSGŞY, TS ISO 11602-2, TS 862-7 EN 3-7 + A1 ve TS EN 1866-1 standartlarına göre kontrol edilmiştir."
+CONTROL_FORM_NOTES = [
+    "NOT 1: Yangın söndürücünün kontrolü Madde a) ve b) bendindeki gibi listelenmiş koşullarda, bir eksikliği ortaya çıkardığı zaman, acil düzeltici faaliyet yapılmalıdır.",
+    "NOT 2: Yangın söndürücünün kontrolü Madde c), d), e), f) veya g) bendindeki koşullarından herhangi birinde bir eksikliği ortaya çıkardığı zaman, söndürücü uygun bakım işlemlerine VESTA YANGIN tarafından tabi tutulmalıdır.",
+    "NOT 3: Madde c), d), e), f) veya g) bendindeki koşullarından herhangi birinde, doldurulmayan tozlu söndürücünün kontrolü bir eksikliği ortaya çıkardığı zaman, bu söndürücü hizmetten kaldırılmalıdır.",
+    "NOT 4: Bu muayene raporundaki bulgular muayene tarihindeki işletme koşulları için geçerlidir. Bu rapor 2 nüsha basılmıştır. Muayene raporu VESTA YANGIN onayı olmaksızın kopya edilemez",
+]
 EQUIPMENT_OPTIONS = [
     "Kuru Kimyevi Toz",
     "CO2",
@@ -106,7 +115,7 @@ CONTROL_FORM_ITEMS = [
     ("check_b", "b) KULLANMA TALİMATLARI GÖRÜNÜMÜ"),
     ("check_c", "c) KULLANMA TALİMATI OKUNURLUĞU"),
     ("check_d", "d) MÜHÜR VE BASINÇ GÖSTERGESİ UYGUNLUĞU"),
-    ("check_e", "e) DOLULUK DURUMU"),
+    ("check_e", "e) DOLULUK DURUMU (TARTARAK VEYA ELLE)"),
     ("check_f", "f) NOZUL UYGUNLUĞU (PASLANMA VB.)"),
     ("check_g", "g) BASINÇ GÖSTERGESİ İŞLEVSELLİĞİ"),
 ]
@@ -985,7 +994,7 @@ def build_control_form_document_data(public_id: str) -> dict:
                 "hydrostatic_test_date": row.get("hydrostatic_test_date") or "-",
                 "location_detail": row.get("location_detail") or "-",
                 "checks": [
-                    "✔" if inspection.get(key) else "X" if inspection else "-"
+                    "V" if inspection.get(key) else "X" if inspection else "-"
                     for key, _label in CONTROL_FORM_ITEMS
                 ],
             }
@@ -997,9 +1006,10 @@ def build_control_form_document_data(public_id: str) -> dict:
         "company_contact": extinguisher.get("company_contact") or "-",
         "control_date": datetime.now().strftime("%d.%m.%Y"),
         "inspector_name": current_user_full_name() or "-",
-        "method_text": "İEKSGŞY, TS ISO 11602-2, TS 862-7 EN 3-7 + A1 ve TS EN 1866-1 standartlarına göre kontrol edilmiştir.",
+        "method_text": CONTROL_FORM_METHOD_TEXT,
         "rows": control_rows,
         "check_headers": [label for _key, label in CONTROL_FORM_ITEMS],
+        "notes": CONTROL_FORM_NOTES,
         "public_id": public_id,
     }
 
@@ -1022,12 +1032,6 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
         pdfmetrics.registerFont(TTFont("VestaPDFBold", bold_font_path))
 
     styles = getSampleStyleSheet()
-    title_style = styles["Title"].clone("vesta_title")
-    title_style.fontName = "VestaPDFBold"
-    title_style.fontSize = 13
-    title_style.leading = 16
-    title_style.alignment = 1
-
     body_style = styles["BodyText"].clone("vesta_body")
     body_style.fontName = "VestaPDF"
     body_style.fontSize = 8
@@ -1037,6 +1041,16 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
     small_style.fontName = "VestaPDF"
     small_style.fontSize = 7
     small_style.leading = 8
+
+    tiny_style = styles["BodyText"].clone("vesta_tiny")
+    tiny_style.fontName = "VestaPDF"
+    tiny_style.fontSize = 6
+    tiny_style.leading = 7
+
+    tiny_bold_style = styles["BodyText"].clone("vesta_tiny_bold")
+    tiny_bold_style.fontName = "VestaPDFBold"
+    tiny_bold_style.fontSize = 6
+    tiny_bold_style.leading = 7
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -1048,38 +1062,109 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
         bottomMargin=8 * mm,
     )
 
-    story = [
-        Paragraph("Tasinabilir Yangin Sondurme Cihazi Kontrol Formu", title_style),
-        Spacer(1, 4 * mm),
-    ]
+    story = []
+
+    logo_cells = []
+    if TSE_HYB_LOGO_PATH.exists():
+        logo_cells.append(PdfImage(str(TSE_HYB_LOGO_PATH), width=18 * mm, height=18 * mm))
+    else:
+        logo_cells.append(Paragraph("<b>TSE-HYB</b>", body_style))
+    if VESTA_HEADER_LOGO_PATH.exists():
+        logo_cells.append(PdfImage(str(VESTA_HEADER_LOGO_PATH), width=16 * mm, height=20 * mm))
+    else:
+        logo_cells.append(Paragraph("<b>VESTA</b>", body_style))
+
+    logo_table = PdfTable([logo_cells], colWidths=[24 * mm, 20 * mm], rowHeights=[22 * mm])
+    logo_table.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ]
+        )
+    )
+
+    header_table = PdfTable(
+        [
+            [
+                logo_table,
+                Paragraph("<b>Onay: Şirket Müdürü<br/>Mustafa KİLİÇ</b>", body_style),
+                Paragraph("<b>Bölüm</b>", body_style),
+                Paragraph("<b>Revizyon No</b>", body_style),
+                Paragraph("<b>Revizyon Tarihi</b>", body_style),
+                Paragraph("<b>Sayfa</b>", body_style),
+            ],
+            [
+                "",
+                "",
+                "F-06",
+                "00",
+                "01.03.2026",
+                "1",
+            ],
+            [
+                Paragraph("<b>FORM</b>", body_style),
+                Paragraph("<b>Konu: Taşınabilir Yangın Söndürme Cihazı Kontrol Formu</b>", body_style),
+                Paragraph("<b>Hazırlayan: Kalite Temsilcisi</b>", body_style),
+                "",
+                "",
+                "",
+            ],
+        ],
+        colWidths=[46 * mm, 62 * mm, 18 * mm, 24 * mm, 30 * mm, 16 * mm],
+    )
+    header_table.setStyle(
+        TableStyle(
+            [
+                ("GRID", (0, 0), (-1, -1), 0.6, colors.black),
+                ("SPAN", (0, 0), (0, 1)),
+                ("SPAN", (1, 0), (1, 1)),
+                ("SPAN", (1, 2), (2, 2)),
+                ("SPAN", (3, 2), (5, 2)),
+                ("FONTNAME", (0, 0), (-1, -1), "VestaPDF"),
+                ("FONTNAME", (0, 0), (-1, 0), "VestaPDFBold"),
+                ("FONTNAME", (0, 2), (-1, 2), "VestaPDFBold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 8),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ALIGN", (2, 0), (-1, 1), "CENTER"),
+            ]
+        )
+    )
+    story.extend([header_table, Spacer(1, 2 * mm)])
 
     method_paragraph = Paragraph(document_data["method_text"], small_style)
     info_table = PdfTable(
         [
-            ["FIRMA ADI", document_data["company_name"], "KONTROL TARIHI", document_data["control_date"]],
-            ["MUAYENE ADRESI", document_data["company_address"], "FIRMA YETKILI KISI", document_data["company_contact"]],
-            ["PERIYODIK KONTROL METODU", method_paragraph, "KONTROL PERSONELI", document_data["inspector_name"]],
+            [Paragraph("<b>GENEL BİLGİLER</b>", body_style), "", "", "", "", ""],
+            ["FIRMA ADI", document_data["company_name"], "", "", "KONTROL TARIHI", document_data["control_date"]],
+            ["MUAYENE ADRESI", document_data["company_address"], "", "", "FIRMA YETKILI KISI", document_data["company_contact"]],
+            ["PERIYODIK KONTROL METODU", method_paragraph, "", "", "", ""],
         ],
-        colWidths=[34 * mm, 112 * mm, 42 * mm, 70 * mm],
+        colWidths=[32 * mm, 70 * mm, 20 * mm, 20 * mm, 34 * mm, 76 * mm],
     )
     info_table.setStyle(
         TableStyle(
             [
                 ("GRID", (0, 0), (-1, -1), 0.6, colors.black),
-                ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#f1f1f1")),
-                ("BACKGROUND", (2, 0), (2, -1), colors.HexColor("#f1f1f1")),
+                ("SPAN", (0, 0), (-1, 0)),
+                ("SPAN", (1, 1), (3, 1)),
+                ("SPAN", (1, 2), (3, 2)),
+                ("SPAN", (1, 3), (-1, 3)),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f1f1f1")),
                 ("FONTNAME", (0, 0), (-1, -1), "VestaPDF"),
-                ("FONTNAME", (0, 0), (0, -1), "VestaPDFBold"),
-                ("FONTNAME", (2, 0), (2, -1), "VestaPDFBold"),
+                ("FONTNAME", (0, 0), (-1, 0), "VestaPDFBold"),
+                ("FONTNAME", (0, 1), (0, -1), "VestaPDFBold"),
+                ("FONTNAME", (4, 1), (4, 2), "VestaPDFBold"),
                 ("FONTSIZE", (0, 0), (-1, -1), 8),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ALIGN", (0, 0), (-1, 0), "CENTER"),
             ]
         )
     )
-    story.extend([info_table, Spacer(1, 4 * mm)])
+    story.extend([info_table, Spacer(1, 2 * mm)])
 
     header_row_1 = [
-        Paragraph("<b>YSC BILGILERI</b>", body_style),
+        Paragraph("<b>YANGIN SÖNDÜRME CİHAZI (YSC) BİLGİLERİ</b>", body_style),
         "",
         "",
         "",
@@ -1087,7 +1172,10 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
         "",
         "",
         "",
-        Paragraph("<b>TESPIT VE DEGERLENDIRME</b>", body_style),
+        Paragraph(
+            "<b>TESPİT VE DEĞERLENDİRME</b><br/><font size='6'>(V: UYGUN, X: UYGUN DEĞİL, -: UYGULAMA YOK)</font>",
+            tiny_bold_style,
+        ),
         "",
         "",
         "",
@@ -1096,21 +1184,15 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
         "",
     ]
     header_row_2 = [
-        "CIHAZ NO",
-        "YSC CINSI",
-        "YSC SINIFI",
-        "SERI NO / KOD",
-        "YSC URETICI",
-        "DOLUM TARIHI",
-        "HIDROSTATIK TEST",
-        "BULUNDUGU YER",
-        "a)",
-        "b)",
-        "c)",
-        "d)",
-        "e)",
-        "f)",
-        "g)",
+        Paragraph("<b>CİHAZ NO</b>", tiny_bold_style),
+        Paragraph("<b>YSC CİNSİ</b>", tiny_bold_style),
+        Paragraph("<b>YSC SINIFI</b>", tiny_bold_style),
+        Paragraph("<b>SERİ NO / KOD</b>", tiny_bold_style),
+        Paragraph("<b>YSC ÜRETİCİ</b>", tiny_bold_style),
+        Paragraph("<b>DOLUM TARİHİ</b>", tiny_bold_style),
+        Paragraph("<b>HİDROSTATİK TEST TARİHİ</b>", tiny_bold_style),
+        Paragraph("<b>BULUNDUĞU YER</b>", tiny_bold_style),
+        *[Paragraph(f"<b>{label}</b>", tiny_style) for label in document_data["check_headers"]],
     ]
 
     data_rows = [header_row_1, header_row_2]
@@ -1135,7 +1217,7 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
     main_table = PdfTable(
         data_rows,
         repeatRows=2,
-        colWidths=[15 * mm, 18 * mm, 22 * mm, 30 * mm, 26 * mm, 20 * mm, 24 * mm, 35 * mm, 9 * mm, 9 * mm, 9 * mm, 9 * mm, 9 * mm, 9 * mm, 9 * mm],
+        colWidths=[12 * mm, 16 * mm, 16 * mm, 22 * mm, 18 * mm, 16 * mm, 18 * mm, 28 * mm, 13 * mm, 13 * mm, 13 * mm, 13 * mm, 13 * mm, 13 * mm, 13 * mm],
     )
     main_table.setStyle(
         TableStyle(
@@ -1146,7 +1228,7 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
                 ("BACKGROUND", (0, 0), (-1, 1), colors.HexColor("#f7f7f7")),
                 ("FONTNAME", (0, 0), (-1, 1), "VestaPDFBold"),
                 ("FONTNAME", (0, 2), (-1, -1), "VestaPDF"),
-                ("FONTSIZE", (0, 0), (-1, -1), 7),
+                ("FONTSIZE", (0, 0), (-1, -1), 6),
                 ("ALIGN", (0, 0), (-1, -1), "CENTER"),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ]
@@ -1154,13 +1236,7 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
     )
     story.extend([main_table, Spacer(1, 4 * mm)])
 
-    notes = [
-        "NOT 1: YSC kontrolu a) ve b) maddelerinde eksiklik cikarsa acil duzeltici faaliyet yapilmalidir.",
-        "NOT 2: YSC kontrolu c), d), e), f) veya g) maddelerinde eksiklik cikarsa cihaz uygun bakim islemlerine tabi tutulmalidir.",
-        "NOT 3: Tozlu sondurucude kritik eksiklik varsa cihaz hizmetten kaldirilmalidir.",
-        "NOT 4: Bu rapor muayene tarihindeki isletme kosullari icin gecerlidir.",
-    ]
-    for note in notes:
+    for note in document_data["notes"]:
         story.append(Paragraph(note, small_style))
 
     doc.build(story)

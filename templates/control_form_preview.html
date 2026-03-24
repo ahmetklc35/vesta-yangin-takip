@@ -60,6 +60,32 @@
       height: 30px;
     }
 
+    .control-form-sheet .logo-cell {
+      padding: 8px;
+    }
+
+    .control-form-sheet .logo-stack {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .control-form-sheet .logo-stack img {
+      display: block;
+      object-fit: contain;
+    }
+
+    .control-form-sheet .tse-logo {
+      width: 54px;
+      height: 54px;
+    }
+
+    .control-form-sheet .vesta-logo {
+      width: 46px;
+      height: 60px;
+    }
+
     .control-form-sheet .main-table th,
     .control-form-sheet .main-table td {
       font-size: 9px;
@@ -73,7 +99,16 @@
     .control-form-sheet .date-col { width: 9%; }
     .control-form-sheet .place-col { width: 16%; }
     .control-form-sheet .check-col { width: 4.4%; }
-    .control-form-sheet .check-head { line-height: 1.2; }
+    .control-form-sheet .check-head {
+      line-height: 1.2;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      white-space: normal;
+      text-align: left;
+      padding: 8px 2px;
+      min-height: 150px;
+      font-size: 8px;
+    }
 
     .control-notes {
       margin-top: 10px;
@@ -104,7 +139,12 @@
     <section class="control-form-sheet">
       <table class="header">
         <tr>
-          <td rowspan="2" class="center bold" style="width: 10%;">VESTA</td>
+          <td rowspan="2" class="logo-cell" style="width: 16%;">
+            <div class="logo-stack">
+              <img class="tse-logo" src="{{ url_for('static', filename='tse-hyb-badge.png') }}" alt="TSE-HYB">
+              <img class="vesta-logo" src="{{ url_for('static', filename='vesta-logo.png') }}" alt="Vesta Yangin">
+            </div>
+          </td>
           <td rowspan="2" class="bold" style="width: 18%;">Onay: Sirket Muduru<br>Mustafa KILIC</td>
           <td class="center bold" style="width: 8%;">Bolum</td>
           <td class="center bold" style="width: 10%;">Revizyon No</td>
@@ -161,13 +201,9 @@
             <th class="date-col">DOLUM<br>TARIHI</th>
             <th class="date-col">HIDROSTATIK<br>TEST TARIHI</th>
             <th class="place-col">BULUNDUGU YER</th>
-            <th class="check-col check-head">a)<br>Yer</th>
-            <th class="check-col check-head">b)<br>Talimat<br>Gorunum</th>
-            <th class="check-col check-head">c)<br>Talimat<br>Okunur</th>
-            <th class="check-col check-head">d)<br>Muhur /<br>Basinc</th>
-            <th class="check-col check-head">e)<br>Doluluk</th>
-            <th class="check-col check-head">f)<br>Nozul</th>
-            <th class="check-col check-head">g)<br>Gosterge</th>
+            {% for header in check_headers %}
+              <th class="check-col check-head">{{ header }}</th>
+            {% endfor %}
           </tr>
         </thead>
         <tbody>
@@ -205,10 +241,9 @@
       </table>
 
       <div class="control-notes">
-        <p>NOT 1: YSC kontrolu a) ve b) maddelerinde eksiklik cikarsa acil duzeltici faaliyet yapilmalidir.</p>
-        <p>NOT 2: YSC kontrolu c), d), e), f) veya g) maddelerinde eksiklik cikarsa cihaz uygun bakim islemlerine tabi tutulmalidir.</p>
-        <p>NOT 3: Tozlu sondurucude kritik eksiklik varsa cihaz hizmetten kaldirilmalidir.</p>
-        <p>NOT 4: Bu rapor muayene tarihindeki isletme kosullari icin gecerlidir.</p>
+        {% for note in notes %}
+          <p>{{ note }}</p>
+        {% endfor %}
       </div>
     </section>
   </section>
