@@ -31,7 +31,7 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader, simpleSplit
-from reportlab.platypus import Image as PdfImage, Paragraph, SimpleDocTemplate, Spacer, Table as PdfTable, TableStyle
+from reportlab.platypus import Flowable, Image as PdfImage, Paragraph, SimpleDocTemplate, Spacer, Table as PdfTable, TableStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
@@ -262,6 +262,29 @@ DEFAULT_USERS = [
         "is_admin": False,
     },
 ]
+
+
+class RotatedParagraph(Flowable):
+    def __init__(self, text: str, style, width: float, height: float) -> None:
+        super().__init__()
+        self.text = text
+        self.style = style
+        self.width = width
+        self.height = height
+        self._paragraph = Paragraph(text, style)
+
+    def wrap(self, availWidth, availHeight):
+        return self.width, self.height
+
+    def draw(self):
+        self.canv.saveState()
+        self.canv.translate(self.width, 0)
+        self.canv.rotate(90)
+        paragraph_width = self.height - 4
+        paragraph_height = self.width - 4
+        self._paragraph.wrapOn(self.canv, paragraph_width, paragraph_height)
+        self._paragraph.drawOn(self.canv, 2, 2)
+        self.canv.restoreState()
 
 
 def seed_default_users() -> None:
@@ -1034,32 +1057,32 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
     styles = getSampleStyleSheet()
     body_style = styles["BodyText"].clone("vesta_body")
     body_style.fontName = "VestaPDF"
-    body_style.fontSize = 8
-    body_style.leading = 10
+    body_style.fontSize = 7
+    body_style.leading = 8
 
     small_style = styles["BodyText"].clone("vesta_small")
     small_style.fontName = "VestaPDF"
-    small_style.fontSize = 7
-    small_style.leading = 8
+    small_style.fontSize = 6
+    small_style.leading = 7
 
     tiny_style = styles["BodyText"].clone("vesta_tiny")
     tiny_style.fontName = "VestaPDF"
-    tiny_style.fontSize = 6
-    tiny_style.leading = 7
+    tiny_style.fontSize = 5
+    tiny_style.leading = 6
 
     tiny_bold_style = styles["BodyText"].clone("vesta_tiny_bold")
     tiny_bold_style.fontName = "VestaPDFBold"
-    tiny_bold_style.fontSize = 6
-    tiny_bold_style.leading = 7
+    tiny_bold_style.fontSize = 5
+    tiny_bold_style.leading = 6
 
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
         pagesize=landscape(A4),
-        leftMargin=8 * mm,
-        rightMargin=8 * mm,
-        topMargin=8 * mm,
-        bottomMargin=8 * mm,
+        leftMargin=6 * mm,
+        rightMargin=6 * mm,
+        topMargin=6 * mm,
+        bottomMargin=18 * mm,
     )
 
     story = []
@@ -1074,7 +1097,7 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
     else:
         logo_cells.append(Paragraph("<b>VESTA</b>", body_style))
 
-    logo_table = PdfTable([logo_cells], colWidths=[24 * mm, 20 * mm], rowHeights=[22 * mm])
+    logo_table = PdfTable([logo_cells], colWidths=[22 * mm, 18 * mm], rowHeights=[18 * mm])
     logo_table.setStyle(
         TableStyle(
             [
@@ -1111,7 +1134,7 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
                 "",
             ],
         ],
-        colWidths=[46 * mm, 62 * mm, 18 * mm, 24 * mm, 30 * mm, 16 * mm],
+        colWidths=[42 * mm, 58 * mm, 16 * mm, 22 * mm, 28 * mm, 14 * mm],
     )
     header_table.setStyle(
         TableStyle(
@@ -1124,13 +1147,13 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
                 ("FONTNAME", (0, 0), (-1, -1), "VestaPDF"),
                 ("FONTNAME", (0, 0), (-1, 0), "VestaPDFBold"),
                 ("FONTNAME", (0, 2), (-1, 2), "VestaPDFBold"),
-                ("FONTSIZE", (0, 0), (-1, -1), 8),
+                ("FONTSIZE", (0, 0), (-1, -1), 7),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("ALIGN", (2, 0), (-1, 1), "CENTER"),
             ]
         )
     )
-    story.extend([header_table, Spacer(1, 2 * mm)])
+    story.extend([header_table, Spacer(1, 1 * mm)])
 
     method_paragraph = Paragraph(document_data["method_text"], small_style)
     info_table = PdfTable(
@@ -1140,7 +1163,7 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
             ["MUAYENE ADRESI", document_data["company_address"], "", "", "FIRMA YETKILI KISI", document_data["company_contact"]],
             ["PERIYODIK KONTROL METODU", method_paragraph, "", "", "", ""],
         ],
-        colWidths=[32 * mm, 70 * mm, 20 * mm, 20 * mm, 34 * mm, 76 * mm],
+        colWidths=[28 * mm, 66 * mm, 18 * mm, 18 * mm, 30 * mm, 72 * mm],
     )
     info_table.setStyle(
         TableStyle(
@@ -1155,13 +1178,13 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
                 ("FONTNAME", (0, 0), (-1, 0), "VestaPDFBold"),
                 ("FONTNAME", (0, 1), (0, -1), "VestaPDFBold"),
                 ("FONTNAME", (4, 1), (4, 2), "VestaPDFBold"),
-                ("FONTSIZE", (0, 0), (-1, -1), 8),
+                ("FONTSIZE", (0, 0), (-1, -1), 7),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("ALIGN", (0, 0), (-1, 0), "CENTER"),
             ]
         )
     )
-    story.extend([info_table, Spacer(1, 2 * mm)])
+    story.extend([info_table, Spacer(1, 1 * mm)])
 
     header_row_1 = [
         Paragraph("<b>YANGIN SÖNDÜRME CİHAZI (YSC) BİLGİLERİ</b>", body_style),
@@ -1183,6 +1206,9 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
         "",
         "",
     ]
+    rotated_width = 11 * mm
+    rotated_height = 30 * mm
+
     header_row_2 = [
         Paragraph("<b>CİHAZ NO</b>", tiny_bold_style),
         Paragraph("<b>YSC CİNSİ</b>", tiny_bold_style),
@@ -1192,7 +1218,10 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
         Paragraph("<b>DOLUM TARİHİ</b>", tiny_bold_style),
         Paragraph("<b>HİDROSTATİK TEST TARİHİ</b>", tiny_bold_style),
         Paragraph("<b>BULUNDUĞU YER</b>", tiny_bold_style),
-        *[Paragraph(f"<b>{label}</b>", tiny_style) for label in document_data["check_headers"]],
+        *[
+            RotatedParagraph(f"<b>{label}</b>", tiny_style, rotated_width, rotated_height)
+            for label in document_data["check_headers"]
+        ],
     ]
 
     data_rows = [header_row_1, header_row_2]
@@ -1217,7 +1246,8 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
     main_table = PdfTable(
         data_rows,
         repeatRows=2,
-        colWidths=[12 * mm, 16 * mm, 16 * mm, 22 * mm, 18 * mm, 16 * mm, 18 * mm, 28 * mm, 13 * mm, 13 * mm, 13 * mm, 13 * mm, 13 * mm, 13 * mm, 13 * mm],
+        colWidths=[10 * mm, 14 * mm, 14 * mm, 19 * mm, 16 * mm, 14 * mm, 16 * mm, 24 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm],
+        rowHeights=[6 * mm, 30 * mm] + [4.8 * mm] * (len(data_rows) - 2),
     )
     main_table.setStyle(
         TableStyle(
@@ -1228,18 +1258,26 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
                 ("BACKGROUND", (0, 0), (-1, 1), colors.HexColor("#f7f7f7")),
                 ("FONTNAME", (0, 0), (-1, 1), "VestaPDFBold"),
                 ("FONTNAME", (0, 2), (-1, -1), "VestaPDF"),
-                ("FONTSIZE", (0, 0), (-1, -1), 6),
+                ("FONTSIZE", (0, 0), (-1, -1), 5),
                 ("ALIGN", (0, 0), (-1, -1), "CENTER"),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ]
         )
     )
-    story.extend([main_table, Spacer(1, 4 * mm)])
+    story.extend([main_table, Spacer(1, 2 * mm)])
 
-    for note in document_data["notes"]:
-        story.append(Paragraph(note, small_style))
+    def draw_footer(canvas_obj, pdf_doc):
+        canvas_obj.saveState()
+        canvas_obj.setFont("VestaPDF", 5)
+        y = 7 * mm
+        for note in reversed(document_data["notes"]):
+            lines = simpleSplit(note, "VestaPDF", 5, pdf_doc.width)
+            for line in reversed(lines):
+                canvas_obj.drawString(pdf_doc.leftMargin, y, line)
+                y += 2.4 * mm
+        canvas_obj.restoreState()
 
-    doc.build(story)
+    doc.build(story, onFirstPage=draw_footer, onLaterPages=draw_footer)
     buffer.seek(0)
     return buffer
 
