@@ -513,12 +513,12 @@ def build_branded_qr(public_url: str, *, label_mode: bool = False) -> io.BytesIO
 
     if label_mode:
         draw_qr = ImageDraw.Draw(qr_image)
-        center_font = load_font(max(180, qr_width // 2))
+        center_font = load_font(max(128, qr_width // 3))
         v_text = "V"
         v_box = draw_qr.textbbox((0, 0), v_text, font=center_font)
         v_width = v_box[2] - v_box[0]
         v_height = v_box[3] - v_box[1]
-        v_pad = 40
+        v_pad = 18
         v_bg_w = v_width + (v_pad * 2)
         v_bg_h = v_height + (v_pad * 2)
         v_x = (qr_width - v_bg_w) // 2
