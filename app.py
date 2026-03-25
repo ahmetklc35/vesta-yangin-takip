@@ -478,6 +478,10 @@ def load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
         Path("C:/Windows/Fonts/arialbd.ttf"),
         Path("C:/Windows/Fonts/segoeuib.ttf"),
         Path("C:/Windows/Fonts/arial.ttf"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+        Path("/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf"),
+        Path("/usr/share/fonts/dejavu/DejaVuSans.ttf"),
     ]
     for font_path in font_candidates:
         if font_path.exists():
