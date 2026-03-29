@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="card form-card">
+    <div class="section-head">
+      <div>
+        <h1>Cariler</h1>
+        <p class="muted">Firma, adres ve yetkili kisi kayitlarini bir kere gir. Sonra tup formunda sadece firma secelim.</p>
+      </div>
+    </div>
+
+    <form method="post" action="{{ url_for('create_company') }}" class="grid-form">
+      <label>
+        Firma adi
+        <input type="text" name="name" required>
+      </label>
+      <label>
+        Firma yetkili kisi
+        <input type="text" name="contact_name" required>
+      </label>
+      <label class="full">
+        Muayene adresi
+        <input type="text" name="address" required>
+      </label>
+      <div class="full form-actions">
+        <button type="submit" class="button">Cari Ekle</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card">
+    <div class="section-head">
+      <h2>Kayitli Cariler</h2>
+      <span>{{ companies|length }} adet</span>
+    </div>
+
+    <div class="stack-list">
+      {% for company in companies %}
+        <form method="post" action="{{ url_for('update_company', company_id=company.id) }}" class="grid-form company-edit-form">
+          <label>
+            Firma adi
+            <input type="text" name="name" value="{{ company.name }}" required>
+          </label>
+          <label>
+            Firma yetkili kisi
+            <input type="text" name="contact_name" value="{{ company.contact_name }}" required>
+          </label>
+          <label class="full">
+            Muayene adresi
+            <input type="text" name="address" value="{{ company.address }}" required>
+          </label>
+          <div class="full form-actions">
+            <button type="submit" class="button button-secondary">Guncelle</button>
+          </div>
+        </form>
+      {% else %}
+        <p class="muted">Henuz cari kaydi yok.</p>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

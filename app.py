@@ -168,12 +168,24 @@ users = Table(
     Column("updated_at", String(32), nullable=False),
 )
 
+companies = Table(
+    "companies",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("name", String(255), nullable=False, unique=True),
+    Column("address", String(255), nullable=False),
+    Column("contact_name", String(255), nullable=False),
+    Column("created_at", String(32), nullable=False),
+    Column("updated_at", String(32), nullable=False),
+)
+
 extinguishers = Table(
     "extinguishers",
     metadata,
     Column("id", Integer, primary_key=True),
     Column("public_id", String(32), nullable=False, unique=True),
     Column("serial_number", String(128), nullable=False, unique=True),
+    Column("company_id", Integer, ForeignKey("companies.id")),
     Column("company_name", String(255), nullable=False),
     Column("location_detail", String(255), nullable=False),
     Column("weight_kg", Float, nullable=False),
@@ -313,6 +325,27 @@ def seed_default_users() -> None:
 def run_schema_migrations() -> None:
     if DATABASE_URL.startswith("sqlite"):
         with engine.begin() as connection:
+            company_tables = {
+                row[0]
+                for row in connection.execute(
+                    text("SELECT name FROM sqlite_master WHERE type='table' AND name='companies'")
+                ).fetchall()
+            }
+            if "companies" not in company_tables:
+                connection.execute(
+                    text(
+                        """
+                        CREATE TABLE companies (
+                            id INTEGER PRIMARY KEY,
+                            name VARCHAR(255) NOT NULL UNIQUE,
+                            address VARCHAR(255) NOT NULL,
+                            contact_name VARCHAR(255) NOT NULL,
+                            created_at VARCHAR(32) NOT NULL,
+                            updated_at VARCHAR(32) NOT NULL
+                        )
+                        """
+                    )
+                )
             columns = {
                 row[1] for row in connection.execute(text("PRAGMA table_info(users)")).fetchall()
             }
@@ -322,6 +355,7 @@ def run_schema_migrations() -> None:
                 row[1] for row in connection.execute(text("PRAGMA table_info(extinguishers)")).fetchall()
             }
             for column_name, column_def in [
+                ("company_id", "INTEGER"),
                 ("fire_class", "TEXT"),
                 ("manufacturer", "TEXT"),
                 ("hydrostatic_test_date", "TEXT"),
@@ -341,6 +375,30 @@ def run_schema_migrations() -> None:
                     )
     else:
         with engine.begin() as connection:
+            table_exists = connection.execute(
+                text(
+                    """
+                    SELECT table_name
+                    FROM information_schema.tables
+                    WHERE table_name = 'companies'
+                    """
+                )
+            ).fetchone()
+            if table_exists is None:
+                connection.execute(
+                    text(
+                        """
+                        CREATE TABLE companies (
+                            id SERIAL PRIMARY KEY,
+                            name VARCHAR(255) NOT NULL UNIQUE,
+                            address VARCHAR(255) NOT NULL,
+                            contact_name VARCHAR(255) NOT NULL,
+                            created_at VARCHAR(32) NOT NULL,
+                            updated_at VARCHAR(32) NOT NULL
+                        )
+                        """
+                    )
+                )
             result = connection.execute(
                 text(
                     """
@@ -354,7 +412,7 @@ def run_schema_migrations() -> None:
                 connection.execute(
                     text("ALTER TABLE users ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE")
                 )
-            for column_name in ["fire_class", "manufacturer", "hydrostatic_test_date", "company_address", "company_contact"]:
+            for column_name in ["company_id", "fire_class", "manufacturer", "hydrostatic_test_date", "company_address", "company_contact"]:
                 result = connection.execute(
                     text(
                         f"""
@@ -365,7 +423,8 @@ def run_schema_migrations() -> None:
                     )
                 ).fetchone()
                 if result is None:
-                    connection.execute(text(f"ALTER TABLE extinguishers ADD COLUMN {column_name} TEXT"))
+                    column_type = "INTEGER" if column_name == "company_id" else "TEXT"
+                    connection.execute(text(f"ALTER TABLE extinguishers ADD COLUMN {column_name} {column_type}"))
             for column_name in ["check_a", "check_b", "check_c", "check_d", "check_e", "check_f", "check_g"]:
                 result = connection.execute(
                     text(
@@ -382,8 +441,50 @@ def run_schema_migrations() -> None:
                     )
 
 
+def seed_companies_from_extinguishers() -> None:
+    now = datetime.now().isoformat(timespec="seconds")
+    with engine.begin() as connection:
+        company_rows = {
+            row.name: row.id
+            for row in connection.execute(select(companies.c.id, companies.c.name)).all()
+        }
+        extinguisher_rows = connection.execute(
+            select(
+                extinguishers.c.id,
+                extinguishers.c.company_id,
+                extinguishers.c.company_name,
+                extinguishers.c.company_address,
+                extinguishers.c.company_contact,
+            )
+        ).mappings().all()
+        for row in extinguisher_rows:
+            company_name = (row["company_name"] or "").strip()
+            if not company_name:
+                continue
+            company_id = company_rows.get(company_name)
+            if company_id is None:
+                result = connection.execute(
+                    insert(companies).values(
+                        name=company_name,
+                        address=(row.get("company_address") or "-").strip() or "-",
+                        contact_name=(row.get("company_contact") or "-").strip() or "-",
+                        created_at=now,
+                        updated_at=now,
+                    )
+                )
+                company_id = result.inserted_primary_key[0]
+                company_rows[company_name] = company_id
+            if row.get("company_id") != company_id:
+                connection.execute(
+                    update(extinguishers)
+                    .where(extinguishers.c.id == row["id"])
+                    .values(company_id=company_id)
+                )
+
+
 run_schema_migrations()
 seed_default_users()
+seed_companies_from_extinguishers()
 
 
 def is_authenticated() -> bool:
@@ -460,6 +561,33 @@ def get_extinguisher(public_id: str) -> dict:
     if extinguisher is None:
         abort(404)
     return extinguisher
+
+
+def get_company(company_id: int) -> dict:
+    company = fetch_one(select(companies).where(companies.c.id == company_id))
+    if company is None:
+        abort(404)
+    return company
+
+
+def get_company_choices() -> list[dict]:
+    return fetch_all(select(companies).order_by(companies.c.name))
+
+
+def sync_company_payload_from_selection(form: dict[str, str]) -> tuple[dict[str, str], dict]:
+    company_id_raw = (form.get("company_id") or "").strip()
+    if not company_id_raw:
+        raise ValueError("Firma secilmeden kayit olusturulamaz.")
+    try:
+        company_id = int(company_id_raw)
+    except ValueError as exc:
+        raise ValueError("Firma secimi gecersiz.") from exc
+    company = get_company(company_id)
+    form["company_id"] = str(company["id"])
+    form["company_name"] = company["name"]
+    form["company_address"] = company["address"]
+    form["company_contact"] = company["contact_name"]
+    return form, company
 
 
 def autosize_worksheet(worksheet) -> None:
@@ -1634,6 +1762,85 @@ def toggle_user_active(user_id: int):
     return redirect(url_for("user_management"))
 
 
+@app.route("/companies", methods=["GET"])
+@admin_required
+def company_management():
+    company_rows = get_company_choices()
+    return render_template("company_management.html", companies=company_rows)
+
+
+@app.route("/companies/create", methods=["POST"])
+@admin_required
+def create_company():
+    name = request.form.get("name", "").strip()
+    address = request.form.get("address", "").strip()
+    contact_name = request.form.get("contact_name", "").strip()
+    if not name or not address or not contact_name:
+        flash("Firma adi, adres ve yetkili kisi gerekli.", "error")
+        return redirect(url_for("company_management"))
+
+    now = datetime.now().isoformat(timespec="seconds")
+    try:
+        with engine.begin() as connection:
+            connection.execute(
+                insert(companies).values(
+                    name=name,
+                    address=address,
+                    contact_name=contact_name,
+                    created_at=now,
+                    updated_at=now,
+                )
+            )
+    except IntegrityError:
+        flash("Bu firma zaten mevcut.", "error")
+        return redirect(url_for("company_management"))
+
+    flash("Cari kaydi olusturuldu.", "success")
+    return redirect(url_for("company_management"))
+
+
+@app.route("/companies/<int:company_id>/update", methods=["POST"])
+@admin_required
+def update_company(company_id: int):
+    company = get_company(company_id)
+    name = request.form.get("name", "").strip()
+    address = request.form.get("address", "").strip()
+    contact_name = request.form.get("contact_name", "").strip()
+    if not name or not address or not contact_name:
+        flash("Firma adi, adres ve yetkili kisi gerekli.", "error")
+        return redirect(url_for("company_management"))
+
+    now = datetime.now().isoformat(timespec="seconds")
+    try:
+        with engine.begin() as connection:
+            connection.execute(
+                update(companies)
+                .where(companies.c.id == company_id)
+                .values(
+                    name=name,
+                    address=address,
+                    contact_name=contact_name,
+                    updated_at=now,
+                )
+            )
+            connection.execute(
+                update(extinguishers)
+                .where(extinguishers.c.company_id == company_id)
+                .values(
+                    company_name=name,
+                    company_address=address,
+                    company_contact=contact_name,
+                    updated_at=now,
+                )
+            )
+    except IntegrityError:
+        flash("Bu firma adi baska bir caride kullaniliyor.", "error")
+        return redirect(url_for("company_management"))
+
+    flash(f"{company['name']} guncellendi.", "success")
+    return redirect(url_for("company_management"))
+
+
 @app.route("/")
 @login_required
 def index():
@@ -1755,14 +1962,25 @@ def export_service_logs():
 @app.route("/extinguishers/new", methods=["GET", "POST"])
 @login_required
 def create_extinguisher():
+    company_choices = get_company_choices()
     if request.method == "POST":
         form = parse_required_form(request.form)
         form["technician_name"] = form.get("technician_name") or current_user_full_name()
+        try:
+            form, selected_company = sync_company_payload_from_selection(form)
+        except ValueError as exc:
+            flash(str(exc), "error")
+            return render_template(
+                "create_extinguisher.html",
+                form=form,
+                monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                equipment_options=EQUIPMENT_OPTIONS,
+                equipment_presets=EQUIPMENT_PRESETS,
+                companies=company_choices,
+            )
         required_fields = {
             "serial_number": "Seri numarasi",
-            "company_name": "Firma adi",
-            "company_address": "Muayene adresi",
-            "company_contact": "Firma yetkili kisi",
+            "company_id": "Cari secimi",
             "location_detail": "Firma ici konum",
             "weight_kg": "Kg bilgisi",
             "extinguisher_type": "Tup tipi",
@@ -1783,6 +2001,7 @@ def create_extinguisher():
                 monthly_control_items=MONTHLY_CONTROL_ITEMS,
                 equipment_options=EQUIPMENT_OPTIONS,
                 equipment_presets=EQUIPMENT_PRESETS,
+                companies=company_choices,
             )
 
         try:
@@ -1795,6 +2014,7 @@ def create_extinguisher():
                 monthly_control_items=MONTHLY_CONTROL_ITEMS,
                 equipment_options=EQUIPMENT_OPTIONS,
                 equipment_presets=EQUIPMENT_PRESETS,
+                companies=company_choices,
             )
 
         now = datetime.now().isoformat(timespec="seconds")
@@ -1808,6 +2028,7 @@ def create_extinguisher():
                     insert(extinguishers).values(
                         public_id=public_id,
                         serial_number=form["serial_number"],
+                        company_id=selected_company["id"],
                         company_name=form["company_name"],
                         company_address=form["company_address"],
                         company_contact=form["company_contact"],
@@ -1855,6 +2076,7 @@ def create_extinguisher():
                 monthly_control_items=MONTHLY_CONTROL_ITEMS,
                 equipment_options=EQUIPMENT_OPTIONS,
                 equipment_presets=EQUIPMENT_PRESETS,
+                companies=company_choices,
             )
 
         flash("Tup kaydedildi ve QR olusturuldu.", "success")
@@ -1866,6 +2088,7 @@ def create_extinguisher():
         monthly_control_items=MONTHLY_CONTROL_ITEMS,
         equipment_options=EQUIPMENT_OPTIONS,
         equipment_presets=EQUIPMENT_PRESETS,
+        companies=company_choices,
     )
 
 
@@ -1936,16 +2159,28 @@ def control_form_preview(public_id: str):
 @login_required
 def add_service_log(public_id: str):
     extinguisher = get_extinguisher(public_id)
+    company_choices = get_company_choices()
     if request.method == "POST":
         form = parse_required_form(request.form)
         form["technician_name"] = form.get("technician_name") or current_user_full_name()
+        try:
+            form, selected_company = sync_company_payload_from_selection(form)
+        except ValueError as exc:
+            flash(str(exc), "error")
+            return render_template(
+                "service_log_form.html",
+                extinguisher=extinguisher,
+                form=form,
+                monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                equipment_options=EQUIPMENT_OPTIONS,
+                equipment_presets=EQUIPMENT_PRESETS,
+                companies=company_choices,
+            )
         required_fields = {
             "service_date": "Bakim tarihi",
             "next_service_date": "Sonraki bakim tarihi",
             "technician_name": "Teknisyen",
-            "company_name": "Firma adi",
-            "company_address": "Muayene adresi",
-            "company_contact": "Firma yetkili kisi",
+            "company_id": "Cari secimi",
             "location_detail": "Firma ici konum",
             "extinguisher_type": "Tup tipi",
             "fire_class": "YSC sinifi",
@@ -1963,6 +2198,7 @@ def add_service_log(public_id: str):
                 monthly_control_items=MONTHLY_CONTROL_ITEMS,
                 equipment_options=EQUIPMENT_OPTIONS,
                 equipment_presets=EQUIPMENT_PRESETS,
+                companies=company_choices,
             )
 
         try:
@@ -1979,6 +2215,7 @@ def add_service_log(public_id: str):
                 monthly_control_items=MONTHLY_CONTROL_ITEMS,
                 equipment_options=EQUIPMENT_OPTIONS,
                 equipment_presets=EQUIPMENT_PRESETS,
+                companies=company_choices,
             )
 
         now = datetime.now().isoformat(timespec="seconds")
@@ -2000,6 +2237,7 @@ def add_service_log(public_id: str):
                 update(extinguishers)
                 .where(extinguishers.c.id == extinguisher["id"])
                 .values(
+                    company_id=selected_company["id"],
                     company_name=form.get("company_name") or extinguisher["company_name"],
                     company_address=form.get("company_address") or extinguisher.get("company_address"),
                     company_contact=form.get("company_contact") or extinguisher.get("company_contact"),
@@ -2035,10 +2273,17 @@ def add_service_log(public_id: str):
     return render_template(
         "service_log_form.html",
         extinguisher=extinguisher,
-        form={"technician_name": current_user_full_name()},
+        form={
+            "technician_name": current_user_full_name(),
+            "company_id": str(extinguisher.get("company_id") or ""),
+            "company_name": extinguisher.get("company_name") or "",
+            "company_address": extinguisher.get("company_address") or "",
+            "company_contact": extinguisher.get("company_contact") or "",
+        },
         monthly_control_items=MONTHLY_CONTROL_ITEMS,
         equipment_options=EQUIPMENT_OPTIONS,
         equipment_presets=EQUIPMENT_PRESETS,
+        companies=company_choices,
     )
 
 

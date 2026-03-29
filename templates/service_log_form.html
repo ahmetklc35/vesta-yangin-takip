@@ -27,12 +27,24 @@
         <input type="text" name="pressure_status" value="{{ form.get('pressure_status', extinguisher.pressure_status or '') }}">
       </label>
       <label>
-        Firma adi
-        <input type="text" name="company_name" value="{{ form.get('company_name', extinguisher.company_name) }}">
+        Cari / Firma
+        <select name="company_id" id="company_id" required>
+          <option value="">Seciniz</option>
+          {% set selected_company_id = form.get('company_id') or (extinguisher.company_id|string if extinguisher.company_id else '') %}
+          {% for company in companies %}
+            <option value="{{ company.id }}"
+                    data-company-name="{{ company.name }}"
+                    data-company-address="{{ company.address }}"
+                    data-company-contact="{{ company.contact_name }}"
+                    {% if selected_company_id == (company.id|string) %}selected{% endif %}>
+              {{ company.name }}
+            </option>
+          {% endfor %}
+        </select>
       </label>
       <label>
         Muayene adresi
-        <input type="text" name="company_address" value="{{ form.get('company_address', extinguisher.company_address or '') }}">
+        <input type="text" name="company_address" id="company_address" value="{{ form.get('company_address', extinguisher.company_address or '') }}" readonly>
       </label>
       <label>
         Firma ici konum
@@ -40,7 +52,7 @@
       </label>
       <label>
         Firma yetkili kisi
-        <input type="text" name="company_contact" value="{{ form.get('company_contact', extinguisher.company_contact or '') }}">
+        <input type="text" name="company_contact" id="company_contact" value="{{ form.get('company_contact', extinguisher.company_contact or '') }}" readonly>
       </label>
       <label>
         Kg
@@ -114,6 +126,9 @@
   <script>
     const equipmentPresets = {{ equipment_presets|tojson }};
     const equipmentSelect = document.getElementById('extinguisher_type');
+    const companySelect = document.getElementById('company_id');
+    const companyAddressInput = document.getElementById('company_address');
+    const companyContactInput = document.getElementById('company_contact');
     const presetCard = document.getElementById('equipment-preset-card');
     const titleEl = document.getElementById('equipment-title');
     const summaryEl = document.getElementById('equipment-summary');
@@ -135,7 +150,15 @@
       presetCard.hidden = false;
     }
 
+    function syncCompanyFields() {
+      const selected = companySelect.options[companySelect.selectedIndex];
+      companyAddressInput.value = selected?.dataset.companyAddress || '';
+      companyContactInput.value = selected?.dataset.companyContact || '';
+    }
+
     equipmentSelect.addEventListener('change', renderEquipmentPreset);
+    companySelect.addEventListener('change', syncCompanyFields);
+    syncCompanyFields();
     renderEquipmentPreset();
   </script>
 {% endblock %}
