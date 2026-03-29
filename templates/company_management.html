@@ -14,6 +14,10 @@
         Firma adi
         <input type="text" name="name" required>
       </label>
+      <label>
+        Link sonu
+        <input type="text" name="slug" placeholder="ornek-firma">
+      </label>
       <label class="full">
         Muayene adresi
         <input type="text" name="address" required>
@@ -36,6 +40,10 @@
           <label>
             Firma adi
             <input type="text" name="name" value="{{ company.name }}" required>
+          </label>
+          <label>
+            Link sonu
+            <input type="text" name="slug" value="{{ company.slug }}" required>
           </label>
           <label class="full">
             Muayene adresi

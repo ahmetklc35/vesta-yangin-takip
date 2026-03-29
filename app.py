@@ -728,6 +728,11 @@ def build_unique_company_slug(connection, name: str, exclude_id: int | None = No
         index += 1
 
 
+def resolve_company_slug(connection, raw_slug: str, fallback_name: str, *, exclude_id: int | None = None) -> str:
+    source = (raw_slug or "").strip() or fallback_name
+    return build_unique_company_slug(connection, source, exclude_id=exclude_id)
+
+
 run_schema_migrations()
 seed_default_users()
 seed_companies_from_extinguishers()
@@ -1966,6 +1971,7 @@ def company_management():
 def create_company():
     name = request.form.get("name", "").strip()
     address = request.form.get("address", "").strip()
+    raw_slug = request.form.get("slug", "").strip()
     if not name or not address:
         flash("Firma adi ve adres gerekli.", "error")
         return redirect(url_for("company_management"))
@@ -1976,7 +1982,7 @@ def create_company():
             connection.execute(
                 insert(companies).values(
                     public_id=uuid.uuid4().hex[:12],
-                    slug=build_unique_company_slug(connection, name),
+                    slug=resolve_company_slug(connection, raw_slug, name),
                     name=name,
                     address=address,
                     contact_name="-",
@@ -1998,6 +2004,7 @@ def update_company(company_id: int):
     company = get_company(company_id)
     name = request.form.get("name", "").strip()
     address = request.form.get("address", "").strip()
+    raw_slug = request.form.get("slug", "").strip()
     if not name or not address:
         flash("Firma adi ve adres gerekli.", "error")
         return redirect(url_for("company_management"))
@@ -2005,7 +2012,7 @@ def update_company(company_id: int):
     now = datetime.now().isoformat(timespec="seconds")
     try:
         with engine.begin() as connection:
-            slug = build_unique_company_slug(connection, name, exclude_id=company_id)
+            slug = resolve_company_slug(connection, raw_slug, name, exclude_id=company_id)
             connection.execute(
                 update(companies)
                 .where(companies.c.id == company_id)
