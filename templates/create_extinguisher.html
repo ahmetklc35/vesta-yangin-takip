@@ -27,6 +27,14 @@
         </select>
       </label>
       <label>
+        Urun grubu
+        <select name="asset_category" required>
+          {% for category in asset_categories %}
+            <option value="{{ category.label }}" {% if form.get('asset_category') == category.label %}selected{% endif %}>{{ category.label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
         Muayene adresi
         <input type="text" name="company_address" id="company_address" value="{{ form.get('company_address', '') }}" readonly required>
       </label>

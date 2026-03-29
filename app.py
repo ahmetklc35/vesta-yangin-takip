@@ -79,6 +79,36 @@ EQUIPMENT_OPTIONS = [
     "CO2",
     "Kopuk",
 ]
+ASSET_CATEGORIES = [
+    {
+        "slug": "yangin-sondurme-cihazi",
+        "label": "Yangin Sondurme Cihazi",
+        "description": "Yangin tup ve sondurme cihazlarinin tamamini goruntule.",
+    },
+    {
+        "slug": "periyodik-kontrol-ekipmani",
+        "label": "Periyodik Kontrol Ekipmani",
+        "description": "Periyodik kontrol gerektiren ekipmanlari listele.",
+    },
+    {
+        "slug": "yangin-elbisesi",
+        "label": "Yangin Elbisesi",
+        "description": "Yangin elbisesi ve koruyucu kiyafetleri goruntule.",
+    },
+    {
+        "slug": "yangin-dolabi",
+        "label": "Yangin Dolabi",
+        "description": "Yangin dolabi ve bagli ekipman kayitlarini goruntule.",
+    },
+    {
+        "slug": "diger-ekipman",
+        "label": "Diger Ekipman",
+        "description": "Diger guvenlik ve saha ekipmanlarini goruntule.",
+    },
+]
+DEFAULT_ASSET_CATEGORY = ASSET_CATEGORIES[0]["label"]
+ASSET_CATEGORY_BY_SLUG = {item["slug"]: item for item in ASSET_CATEGORIES}
+ASSET_CATEGORY_BY_LABEL = {item["label"]: item for item in ASSET_CATEGORIES}
 EQUIPMENT_PRESETS = {
     "Kopuk": {
         "title": "Taşınılabilir Yangın Söndürücü, 9 Litre Köpük",
@@ -172,6 +202,7 @@ companies = Table(
     "companies",
     metadata,
     Column("id", Integer, primary_key=True),
+    Column("public_id", String(32), nullable=False, unique=True),
     Column("name", String(255), nullable=False, unique=True),
     Column("address", String(255), nullable=False),
     Column("contact_name", String(255), nullable=False),
@@ -189,6 +220,7 @@ extinguishers = Table(
     Column("company_name", String(255), nullable=False),
     Column("location_detail", String(255), nullable=False),
     Column("weight_kg", Float, nullable=False),
+    Column("asset_category", String(128), nullable=False, default=DEFAULT_ASSET_CATEGORY),
     Column("extinguisher_type", String(255), nullable=False),
     Column("fire_class", String(255)),
     Column("manufacturer", String(255)),
@@ -337,6 +369,7 @@ def run_schema_migrations() -> None:
                         """
                         CREATE TABLE companies (
                             id INTEGER PRIMARY KEY,
+                            public_id VARCHAR(32) NOT NULL UNIQUE,
                             name VARCHAR(255) NOT NULL UNIQUE,
                             address VARCHAR(255) NOT NULL,
                             contact_name VARCHAR(255) NOT NULL,
@@ -361,9 +394,15 @@ def run_schema_migrations() -> None:
                 ("hydrostatic_test_date", "TEXT"),
                 ("company_address", "TEXT"),
                 ("company_contact", "TEXT"),
+                ("asset_category", "TEXT"),
             ]:
                 if column_name not in extinguisher_columns:
                     connection.execute(text(f"ALTER TABLE extinguishers ADD COLUMN {column_name} {column_def}"))
+            company_columns = {
+                row[1] for row in connection.execute(text("PRAGMA table_info(companies)")).fetchall()
+            }
+            if "public_id" not in company_columns:
+                connection.execute(text("ALTER TABLE companies ADD COLUMN public_id TEXT"))
 
             inspection_columns = {
                 row[1] for row in connection.execute(text("PRAGMA table_info(monthly_inspections)")).fetchall()
@@ -390,6 +429,7 @@ def run_schema_migrations() -> None:
                         """
                         CREATE TABLE companies (
                             id SERIAL PRIMARY KEY,
+                            public_id VARCHAR(32) NOT NULL UNIQUE,
                             name VARCHAR(255) NOT NULL UNIQUE,
                             address VARCHAR(255) NOT NULL,
                             contact_name VARCHAR(255) NOT NULL,
@@ -412,7 +452,7 @@ def run_schema_migrations() -> None:
                 connection.execute(
                     text("ALTER TABLE users ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE")
                 )
-            for column_name in ["company_id", "fire_class", "manufacturer", "hydrostatic_test_date", "company_address", "company_contact"]:
+            for column_name in ["company_id", "fire_class", "manufacturer", "hydrostatic_test_date", "company_address", "company_contact", "asset_category"]:
                 result = connection.execute(
                     text(
                         f"""
@@ -425,6 +465,17 @@ def run_schema_migrations() -> None:
                 if result is None:
                     column_type = "INTEGER" if column_name == "company_id" else "TEXT"
                     connection.execute(text(f"ALTER TABLE extinguishers ADD COLUMN {column_name} {column_type}"))
+            result = connection.execute(
+                text(
+                    """
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = 'companies' AND column_name = 'public_id'
+                    """
+                )
+            ).fetchone()
+            if result is None:
+                connection.execute(text("ALTER TABLE companies ADD COLUMN public_id TEXT"))
             for column_name in ["check_a", "check_b", "check_c", "check_d", "check_e", "check_f", "check_g"]:
                 result = connection.execute(
                     text(
@@ -445,8 +496,8 @@ def seed_companies_from_extinguishers() -> None:
     now = datetime.now().isoformat(timespec="seconds")
     with engine.begin() as connection:
         company_rows = {
-            row.name: row.id
-            for row in connection.execute(select(companies.c.id, companies.c.name)).all()
+            row.name: {"id": row.id, "public_id": row.public_id}
+            for row in connection.execute(select(companies.c.id, companies.c.name, companies.c.public_id)).all()
         }
         extinguisher_rows = connection.execute(
             select(
@@ -461,10 +512,11 @@ def seed_companies_from_extinguishers() -> None:
             company_name = (row["company_name"] or "").strip()
             if not company_name:
                 continue
-            company_id = company_rows.get(company_name)
-            if company_id is None:
+            company_info = company_rows.get(company_name)
+            if company_info is None:
                 result = connection.execute(
                     insert(companies).values(
+                        public_id=uuid.uuid4().hex[:12],
                         name=company_name,
                         address=(row.get("company_address") or "-").strip() or "-",
                         contact_name=(row.get("company_contact") or "-").strip() or "-",
@@ -473,18 +525,48 @@ def seed_companies_from_extinguishers() -> None:
                     )
                 )
                 company_id = result.inserted_primary_key[0]
-                company_rows[company_name] = company_id
+                company_rows[company_name] = {"id": company_id, "public_id": None}
+            else:
+                company_id = company_info["id"]
             if row.get("company_id") != company_id:
                 connection.execute(
                     update(extinguishers)
                     .where(extinguishers.c.id == row["id"])
                     .values(company_id=company_id)
                 )
+        existing_companies = connection.execute(
+            select(companies.c.id, companies.c.public_id)
+        ).mappings().all()
+        for company in existing_companies:
+            if company.get("public_id"):
+                continue
+            connection.execute(
+                update(companies)
+                .where(companies.c.id == company["id"])
+                .values(public_id=uuid.uuid4().hex[:12], updated_at=now)
+            )
+
+
+def seed_asset_categories() -> None:
+    now = datetime.now().isoformat(timespec="seconds")
+    with engine.begin() as connection:
+        rows = connection.execute(
+            select(extinguishers.c.id, extinguishers.c.asset_category)
+        ).mappings().all()
+        for row in rows:
+            if row.get("asset_category"):
+                continue
+            connection.execute(
+                update(extinguishers)
+                .where(extinguishers.c.id == row["id"])
+                .values(asset_category=DEFAULT_ASSET_CATEGORY, updated_at=now)
+            )
 
 
 run_schema_migrations()
 seed_default_users()
 seed_companies_from_extinguishers()
+seed_asset_categories()
 
 
 def is_authenticated() -> bool:
@@ -523,7 +605,16 @@ def admin_required(view_func):
 
 @app.before_request
 def protect_private_routes():
-    allowed_endpoints = {"login", "logout", "public_detail", "health", "static"}
+    allowed_endpoints = {
+        "login",
+        "logout",
+        "public_detail",
+        "public_control_form_pdf",
+        "public_company_portal",
+        "public_company_assets",
+        "health",
+        "static",
+    }
     if request.endpoint in allowed_endpoints or request.endpoint is None:
         return None
     if not is_authenticated():
@@ -570,8 +661,60 @@ def get_company(company_id: int) -> dict:
     return company
 
 
+def get_company_by_public_id(public_id: str) -> dict:
+    company = fetch_one(select(companies).where(companies.c.public_id == public_id))
+    if company is None:
+        abort(404)
+    return company
+
+
 def get_company_choices() -> list[dict]:
     return fetch_all(select(companies).order_by(companies.c.name))
+
+
+def get_asset_category_choices() -> list[dict]:
+    return ASSET_CATEGORIES
+
+
+def get_asset_category(slug: str | None = None, *, label: str | None = None) -> dict | None:
+    if slug:
+        return ASSET_CATEGORY_BY_SLUG.get(slug)
+    if label:
+        return ASSET_CATEGORY_BY_LABEL.get(label)
+    return None
+
+
+def build_company_portal_sections(company_id: int) -> list[dict]:
+    assets = fetch_all(
+        select(
+            extinguishers.c.public_id,
+            extinguishers.c.asset_category,
+            extinguishers.c.serial_number,
+            extinguishers.c.location_detail,
+            extinguishers.c.extinguisher_type,
+            extinguishers.c.last_service_date,
+            extinguishers.c.next_service_date,
+            extinguishers.c.pressure_status,
+        )
+        .where(extinguishers.c.company_id == company_id)
+        .order_by(extinguishers.c.asset_category, extinguishers.c.location_detail, extinguishers.c.serial_number)
+    )
+    grouped: dict[str, list[dict]] = {}
+    for asset in assets:
+        label = asset.get("asset_category") or DEFAULT_ASSET_CATEGORY
+        grouped.setdefault(label, []).append(asset)
+
+    sections = []
+    for category in ASSET_CATEGORIES:
+        items = grouped.get(category["label"], [])
+        sections.append(
+            {
+                **category,
+                "count": len(items),
+                "items": items,
+            }
+        )
+    return sections
 
 
 def sync_company_payload_from_selection(form: dict[str, str]) -> tuple[dict[str, str], dict]:
@@ -1782,6 +1925,7 @@ def create_company():
         with engine.begin() as connection:
             connection.execute(
                 insert(companies).values(
+                    public_id=uuid.uuid4().hex[:12],
                     name=name,
                     address=address,
                     contact_name="-",
@@ -1814,6 +1958,7 @@ def update_company(company_id: int):
                 update(companies)
                 .where(companies.c.id == company_id)
                 .values(
+                    public_id=company.get("public_id") or uuid.uuid4().hex[:12],
                     name=name,
                     address=address,
                     contact_name=company.get("contact_name") or "-",
@@ -1959,6 +2104,7 @@ def export_service_logs():
 @login_required
 def create_extinguisher():
     company_choices = get_company_choices()
+    asset_categories = get_asset_category_choices()
     if request.method == "POST":
         form = parse_required_form(request.form)
         form["technician_name"] = form.get("technician_name") or current_user_full_name()
@@ -1973,10 +2119,12 @@ def create_extinguisher():
                 equipment_options=EQUIPMENT_OPTIONS,
                 equipment_presets=EQUIPMENT_PRESETS,
                 companies=company_choices,
+                asset_categories=asset_categories,
             )
         required_fields = {
             "serial_number": "Seri numarasi",
             "company_id": "Cari secimi",
+            "asset_category": "Urun grubu",
             "location_detail": "Firma ici konum",
             "weight_kg": "Kg bilgisi",
             "extinguisher_type": "Tup tipi",
@@ -1998,6 +2146,7 @@ def create_extinguisher():
                 equipment_options=EQUIPMENT_OPTIONS,
                 equipment_presets=EQUIPMENT_PRESETS,
                 companies=company_choices,
+                asset_categories=asset_categories,
             )
 
         try:
@@ -2011,6 +2160,7 @@ def create_extinguisher():
                 equipment_options=EQUIPMENT_OPTIONS,
                 equipment_presets=EQUIPMENT_PRESETS,
                 companies=company_choices,
+                asset_categories=asset_categories,
             )
 
         now = datetime.now().isoformat(timespec="seconds")
@@ -2028,6 +2178,7 @@ def create_extinguisher():
                         company_name=form["company_name"],
                         company_address=form["company_address"],
                         company_contact=form["company_contact"],
+                        asset_category=form["asset_category"],
                         location_detail=form["location_detail"],
                         weight_kg=weight_kg,
                         extinguisher_type=form["extinguisher_type"],
@@ -2073,6 +2224,7 @@ def create_extinguisher():
                 equipment_options=EQUIPMENT_OPTIONS,
                 equipment_presets=EQUIPMENT_PRESETS,
                 companies=company_choices,
+                asset_categories=asset_categories,
             )
 
         flash("Tup kaydedildi ve QR olusturuldu.", "success")
@@ -2080,11 +2232,15 @@ def create_extinguisher():
 
     return render_template(
         "create_extinguisher.html",
-        form={"technician_name": current_user_full_name()},
+        form={
+            "technician_name": current_user_full_name(),
+            "asset_category": DEFAULT_ASSET_CATEGORY,
+        },
         monthly_control_items=MONTHLY_CONTROL_ITEMS,
         equipment_options=EQUIPMENT_OPTIONS,
         equipment_presets=EQUIPMENT_PRESETS,
         companies=company_choices,
+        asset_categories=asset_categories,
     )
 
 
@@ -2092,6 +2248,14 @@ def create_extinguisher():
 @login_required
 def extinguisher_detail(public_id: str):
     extinguisher = get_extinguisher(public_id)
+    company_portal_url = None
+    if extinguisher.get("company_id"):
+        company = get_company(extinguisher["company_id"])
+        company_portal_url = url_for(
+            "public_company_portal",
+            company_public_id=company["public_id"],
+            _external=True,
+        )
     service_history = fetch_all(
         select(service_logs)
         .where(service_logs.c.extinguisher_id == extinguisher["id"])
@@ -2114,6 +2278,7 @@ def extinguisher_detail(public_id: str):
         monthly_inspections=monthly_history,
         monthly_control_items=MONTHLY_CONTROL_ITEMS,
         equipment_preset=get_equipment_preset(extinguisher.get("extinguisher_type")),
+        company_portal_url=company_portal_url,
     )
 
 
@@ -2144,6 +2309,39 @@ def public_control_form_pdf(public_id: str):
     )
 
 
+@app.route("/firma/<company_public_id>")
+def public_company_portal(company_public_id: str):
+    company = get_company_by_public_id(company_public_id)
+    sections = build_company_portal_sections(company["id"])
+    return render_template(
+        "public_company_portal.html",
+        company=company,
+        sections=sections,
+        selected_category=None,
+        selected_assets=[],
+    )
+
+
+@app.route("/firma/<company_public_id>/<category_slug>")
+def public_company_assets(company_public_id: str, category_slug: str):
+    company = get_company_by_public_id(company_public_id)
+    selected_category = get_asset_category(slug=category_slug)
+    if selected_category is None:
+        abort(404)
+    sections = build_company_portal_sections(company["id"])
+    selected_section = next(
+        (section for section in sections if section["slug"] == category_slug),
+        None,
+    )
+    return render_template(
+        "public_company_portal.html",
+        company=company,
+        sections=sections,
+        selected_category=selected_category,
+        selected_assets=selected_section["items"] if selected_section else [],
+    )
+
+
 @app.route("/extinguishers/<public_id>/control-form")
 @login_required
 def control_form_preview(public_id: str):
@@ -2156,6 +2354,7 @@ def control_form_preview(public_id: str):
 def add_service_log(public_id: str):
     extinguisher = get_extinguisher(public_id)
     company_choices = get_company_choices()
+    asset_categories = get_asset_category_choices()
     if request.method == "POST":
         form = parse_required_form(request.form)
         form["technician_name"] = form.get("technician_name") or current_user_full_name()
@@ -2171,12 +2370,14 @@ def add_service_log(public_id: str):
                 equipment_options=EQUIPMENT_OPTIONS,
                 equipment_presets=EQUIPMENT_PRESETS,
                 companies=company_choices,
+                asset_categories=asset_categories,
             )
         required_fields = {
             "service_date": "Bakim tarihi",
             "next_service_date": "Sonraki bakim tarihi",
             "technician_name": "Teknisyen",
             "company_id": "Cari secimi",
+            "asset_category": "Urun grubu",
             "location_detail": "Firma ici konum",
             "extinguisher_type": "Tup tipi",
             "fire_class": "YSC sinifi",
@@ -2195,6 +2396,7 @@ def add_service_log(public_id: str):
                 equipment_options=EQUIPMENT_OPTIONS,
                 equipment_presets=EQUIPMENT_PRESETS,
                 companies=company_choices,
+                asset_categories=asset_categories,
             )
 
         try:
@@ -2212,6 +2414,7 @@ def add_service_log(public_id: str):
                 equipment_options=EQUIPMENT_OPTIONS,
                 equipment_presets=EQUIPMENT_PRESETS,
                 companies=company_choices,
+                asset_categories=asset_categories,
             )
 
         now = datetime.now().isoformat(timespec="seconds")
@@ -2237,6 +2440,7 @@ def add_service_log(public_id: str):
                     company_name=form.get("company_name") or extinguisher["company_name"],
                     company_address=form.get("company_address") or extinguisher.get("company_address"),
                     company_contact=form.get("company_contact") or extinguisher.get("company_contact"),
+                    asset_category=form.get("asset_category") or extinguisher.get("asset_category") or DEFAULT_ASSET_CATEGORY,
                     location_detail=form.get("location_detail")
                     or extinguisher["location_detail"],
                     weight_kg=weight_kg,
@@ -2275,17 +2479,25 @@ def add_service_log(public_id: str):
             "company_name": extinguisher.get("company_name") or "",
             "company_address": extinguisher.get("company_address") or "",
             "company_contact": extinguisher.get("company_contact") or "",
+            "asset_category": extinguisher.get("asset_category") or DEFAULT_ASSET_CATEGORY,
         },
         monthly_control_items=MONTHLY_CONTROL_ITEMS,
         equipment_options=EQUIPMENT_OPTIONS,
         equipment_presets=EQUIPMENT_PRESETS,
         companies=company_choices,
+        asset_categories=asset_categories,
     )
 
 
 @app.route("/public/<public_id>")
 def public_detail(public_id: str):
     extinguisher = get_extinguisher(public_id)
+    company_portal_url = None
+    if extinguisher.get("company_id"):
+        company_portal_url = url_for(
+            "public_company_portal",
+            company_public_id=get_company(extinguisher["company_id"])["public_id"],
+        )
     latest_log = fetch_one(
         select(service_logs)
         .where(service_logs.c.extinguisher_id == extinguisher["id"])
@@ -2321,6 +2533,7 @@ def public_detail(public_id: str):
         latest_monthly_inspection=latest_monthly_inspection,
         equipment_preset=get_equipment_preset(extinguisher.get("extinguisher_type")),
         monthly_table=build_monthly_table(monthly_history_raw),
+        company_portal_url=company_portal_url,
     )
 
 

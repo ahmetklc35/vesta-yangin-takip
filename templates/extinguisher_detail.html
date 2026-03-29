@@ -17,6 +17,7 @@
 
       <div class="stats">
         <div><strong>Seri No</strong><span>{{ extinguisher.serial_number }}</span></div>
+        <div><strong>Urun Grubu</strong><span>{{ extinguisher.asset_category or "Yangin Sondurme Cihazi" }}</span></div>
         <div><strong>Kg</strong><span>{{ extinguisher.weight_kg }}</span></div>
         <div><strong>Tip</strong><span>{{ extinguisher.extinguisher_type }}</span></div>
         <div><strong>YSC Sinifi</strong><span>{{ extinguisher.fire_class or "-" }}</span></div>
@@ -37,6 +38,10 @@
           <a href="{{ url_for('public_detail', public_id=extinguisher.public_id) }}" target="_blank">
             {{ url_for('public_detail', public_id=extinguisher.public_id, _external=True) }}
           </a>
+          {% if company_portal_url %}
+            <p><strong>Firma portali:</strong></p>
+            <a href="{{ company_portal_url }}" target="_blank">{{ company_portal_url }}</a>
+          {% endif %}
           <p><a href="{{ url_for('extinguisher_label', public_id=extinguisher.public_id) }}" target="_blank">Yazdirilabilir etiket ac</a></p>
         </div>
       </div>

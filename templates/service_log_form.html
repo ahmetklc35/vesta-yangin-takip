@@ -42,6 +42,15 @@
         </select>
       </label>
       <label>
+        Urun grubu
+        <select name="asset_category" required>
+          {% set selected_asset_category = form.get('asset_category', extinguisher.asset_category or 'Yangin Sondurme Cihazi') %}
+          {% for category in asset_categories %}
+            <option value="{{ category.label }}" {% if selected_asset_category == category.label %}selected{% endif %}>{{ category.label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
         Muayene adresi
         <input type="text" name="company_address" id="company_address" value="{{ form.get('company_address', extinguisher.company_address or '') }}" readonly>
       </label>

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ company.name }} Portal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body class="public-page">
+    <main class="shell public-shell">
+      <section class="card">
+        <div class="public-brand">
+          <img src="{{ url_for('static', filename='vesta-form-amblem.png') }}" alt="Vesta Yangin">
+        </div>
+        <p class="eyebrow">Firma Portali</p>
+        <h1>{{ company.name }}</h1>
+        <p class="lede public-subtle">{{ company.address }}</p>
+
+        <section class="portal-categories">
+          {% for section in sections %}
+            <a
+              class="portal-category-card {% if selected_category and selected_category.slug == section.slug %}is-active{% endif %}"
+              href="{{ url_for('public_company_assets', company_public_id=company.public_id, category_slug=section.slug) }}"
+            >
+              <strong>{{ section.label }}</strong>
+              <span>{{ section.count }} kayit</span>
+              <small>{{ section.description }}</small>
+            </a>
+          {% endfor %}
+        </section>
+
+        {% if selected_category %}
+          <section class="note-box">
+            <h2>{{ selected_category.label }}</h2>
+            <p>Bu kategoriye ait {{ selected_assets|length }} kayit listeleniyor.</p>
+          </section>
+
+          <section class="portal-asset-list">
+            {% for asset in selected_assets %}
+              <article class="portal-asset-card">
+                <div class="portal-asset-head">
+                  <div>
+                    <strong>{{ asset.serial_number }}</strong>
+                    <span>{{ asset.location_detail }}</span>
+                  </div>
+                  <a class="button secondary" href="{{ url_for('public_detail', public_id=asset.public_id) }}">Detay</a>
+                </div>
+                <div class="stats compact">
+                  <div><strong>Tip</strong><span>{{ asset.extinguisher_type }}</span></div>
+                  <div><strong>Son Bakim</strong><span>{{ asset.last_service_date or '-' }}</span></div>
+                  <div><strong>Sonraki Bakim</strong><span>{{ asset.next_service_date or '-' }}</span></div>
+                  <div><strong>Basinç</strong><span>{{ asset.pressure_status or '-' }}</span></div>
+                </div>
+              </article>
+            {% else %}
+              <article class="note-box">
+                <h2>Kayit Yok</h2>
+                <p>Bu kategori icin henuz kayit bulunmuyor.</p>
+              </article>
+            {% endfor %}
+          </section>
+        {% else %}
+          <section class="note-box">
+            <h2>Kategori Secin</h2>
+            <p>Yukarıdaki butonlardan birine basınca bu firmaya ait ilgili ürünler açılır.</p>
+          </section>
+        {% endif %}
+      </section>
+    </main>
+  </body>
+</html>
