@@ -5,7 +5,7 @@
     <div class="section-head">
       <div>
         <h1>Cariler</h1>
-        <p class="muted">Firma, adres ve yetkili kisi kayitlarini bir kere gir. Sonra tup formunda sadece firma secelim.</p>
+        <p class="muted">Firma ve adres kaydini bir kere gir. Sonra tup formunda sadece firma secelim.</p>
       </div>
     </div>
 
@@ -13,10 +13,6 @@
       <label>
         Firma adi
         <input type="text" name="name" required>
-      </label>
-      <label>
-        Firma yetkili kisi
-        <input type="text" name="contact_name" required>
       </label>
       <label class="full">
         Muayene adresi
@@ -40,10 +36,6 @@
           <label>
             Firma adi
             <input type="text" name="name" value="{{ company.name }}" required>
-          </label>
-          <label>
-            Firma yetkili kisi
-            <input type="text" name="contact_name" value="{{ company.contact_name }}" required>
           </label>
           <label class="full">
             Muayene adresi

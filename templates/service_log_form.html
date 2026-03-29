@@ -35,7 +35,6 @@
             <option value="{{ company.id }}"
                     data-company-name="{{ company.name }}"
                     data-company-address="{{ company.address }}"
-                    data-company-contact="{{ company.contact_name }}"
                     {% if selected_company_id == (company.id|string) %}selected{% endif %}>
               {{ company.name }}
             </option>
@@ -52,7 +51,7 @@
       </label>
       <label>
         Firma yetkili kisi
-        <input type="text" name="company_contact" id="company_contact" value="{{ form.get('company_contact', extinguisher.company_contact or '') }}" readonly>
+        <input type="text" name="company_contact" id="company_contact" value="{{ form.get('company_contact', extinguisher.company_contact or '') }}">
       </label>
       <label>
         Kg
@@ -128,7 +127,6 @@
     const equipmentSelect = document.getElementById('extinguisher_type');
     const companySelect = document.getElementById('company_id');
     const companyAddressInput = document.getElementById('company_address');
-    const companyContactInput = document.getElementById('company_contact');
     const presetCard = document.getElementById('equipment-preset-card');
     const titleEl = document.getElementById('equipment-title');
     const summaryEl = document.getElementById('equipment-summary');
@@ -153,7 +151,6 @@
     function syncCompanyFields() {
       const selected = companySelect.options[companySelect.selectedIndex];
       companyAddressInput.value = selected?.dataset.companyAddress || '';
-      companyContactInput.value = selected?.dataset.companyContact || '';
     }
 
     equipmentSelect.addEventListener('change', renderEquipmentPreset);

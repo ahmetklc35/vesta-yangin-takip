@@ -586,7 +586,6 @@ def sync_company_payload_from_selection(form: dict[str, str]) -> tuple[dict[str,
     form["company_id"] = str(company["id"])
     form["company_name"] = company["name"]
     form["company_address"] = company["address"]
-    form["company_contact"] = company["contact_name"]
     return form, company
 
 
@@ -1774,9 +1773,8 @@ def company_management():
 def create_company():
     name = request.form.get("name", "").strip()
     address = request.form.get("address", "").strip()
-    contact_name = request.form.get("contact_name", "").strip()
-    if not name or not address or not contact_name:
-        flash("Firma adi, adres ve yetkili kisi gerekli.", "error")
+    if not name or not address:
+        flash("Firma adi ve adres gerekli.", "error")
         return redirect(url_for("company_management"))
 
     now = datetime.now().isoformat(timespec="seconds")
@@ -1786,7 +1784,7 @@ def create_company():
                 insert(companies).values(
                     name=name,
                     address=address,
-                    contact_name=contact_name,
+                    contact_name="-",
                     created_at=now,
                     updated_at=now,
                 )
@@ -1805,9 +1803,8 @@ def update_company(company_id: int):
     company = get_company(company_id)
     name = request.form.get("name", "").strip()
     address = request.form.get("address", "").strip()
-    contact_name = request.form.get("contact_name", "").strip()
-    if not name or not address or not contact_name:
-        flash("Firma adi, adres ve yetkili kisi gerekli.", "error")
+    if not name or not address:
+        flash("Firma adi ve adres gerekli.", "error")
         return redirect(url_for("company_management"))
 
     now = datetime.now().isoformat(timespec="seconds")
@@ -1819,7 +1816,7 @@ def update_company(company_id: int):
                 .values(
                     name=name,
                     address=address,
-                    contact_name=contact_name,
+                    contact_name=company.get("contact_name") or "-",
                     updated_at=now,
                 )
             )
@@ -1829,7 +1826,6 @@ def update_company(company_id: int):
                 .values(
                     company_name=name,
                     company_address=address,
-                    company_contact=contact_name,
                     updated_at=now,
                 )
             )
