@@ -88,24 +88,49 @@ ASSET_CATEGORIES = [
         "description": "Yangin tup ve sondurme cihazlarinin tamamini goruntule.",
     },
     {
-        "slug": "periyodik-kontrol-ekipmani",
-        "label": "Periyodik Kontrol Ekipmani",
-        "description": "Periyodik kontrol gerektiren ekipmanlari listele.",
-    },
-    {
         "slug": "yangin-elbisesi",
         "label": "Yangin Elbisesi",
-        "description": "Yangin elbisesi ve koruyucu kiyafetleri goruntule.",
+        "description": "Yangin elbisesi kontrollerini ve kayitlarini listele.",
     },
     {
-        "slug": "yangin-dolabi",
-        "label": "Yangin Dolabi",
-        "description": "Yangin dolabi ve bagli ekipman kayitlarini goruntule.",
+        "slug": "yangin-bareti",
+        "label": "Yangin Bareti",
+        "description": "Yangin baretlerine ait kontrolleri ve kayitlari goruntule.",
     },
     {
-        "slug": "diger-ekipman",
-        "label": "Diger Ekipman",
-        "description": "Diger guvenlik ve saha ekipmanlarini goruntule.",
+        "slug": "yangin-baltasi",
+        "label": "Yangin Baltasi",
+        "description": "Yangin baltasi ekipmanlarini listele.",
+    },
+    {
+        "slug": "scba",
+        "label": "SCBA",
+        "description": "Bagimsiz solunum cihazi kayitlarini goruntule.",
+    },
+    {
+        "slug": "eebd",
+        "label": "EEBD",
+        "description": "Acil kacis solunum setlerini goruntule.",
+    },
+    {
+        "slug": "hava-tupu",
+        "label": "Hava Tupu",
+        "description": "Basincli hava solunum tupu kayitlarini goruntule.",
+    },
+    {
+        "slug": "yangin-sondurme-dolabi",
+        "label": "Yangin Sondurme Dolabi",
+        "description": "Yangin dolabi periyodik kontrol kayitlarini listele.",
+    },
+    {
+        "slug": "kopuklu-yangin-sondurme-dolabi",
+        "label": "Kopuklu Yangin Sondurme Dolabi",
+        "description": "Kopuklu dolap kontrol kayitlarini listele.",
+    },
+    {
+        "slug": "yangin-hidranti",
+        "label": "Yangin Hidranti",
+        "description": "Yangin hidrant periyodik kontrol kayitlarini goruntule.",
     },
 ]
 DEFAULT_ASSET_CATEGORY = ASSET_CATEGORIES[0]["label"]
@@ -127,44 +152,50 @@ REGISTRATION_GROUPS = [
     {
         "slug": "yangin-bareti",
         "label": "Yangin Bareti",
-        "description": "Baret kontrol formuna uygun kayit yapisi hazirlaniyor.",
-        "status": "planned",
+        "description": "Yangin bareti kontrol formuna uygun kayit akisi.",
+        "status": "active",
     },
     {
         "slug": "yangin-baltasi",
         "label": "Yangin Baltasi",
-        "description": "Balta kontrol formuna uygun kayit yapisi hazirlaniyor.",
-        "status": "planned",
+        "description": "Yangin baltasi kontrol formuna uygun kayit akisi.",
+        "status": "active",
     },
     {
         "slug": "scba",
         "label": "SCBA",
-        "description": "Bagimsiz solunum cihazi kayit akisi hazirlaniyor.",
-        "status": "planned",
+        "description": "Bagimsiz solunum cihazi kontrol formuna uygun kayit akisi.",
+        "status": "active",
     },
     {
         "slug": "eebd",
         "label": "EEBD",
-        "description": "Acil kacis seti icin ayri kayit akisi hazirlaniyor.",
-        "status": "planned",
+        "description": "Acil kacis seti kontrol formuna uygun kayit akisi.",
+        "status": "active",
     },
     {
         "slug": "hava-tupu",
         "label": "Hava Tupu",
-        "description": "Basincli hava solunum tupu formu ayri baglanacak.",
-        "status": "planned",
+        "description": "Basincli hava solunum tupu kontrol formuna uygun kayit akisi.",
+        "status": "active",
     },
     {
         "slug": "yangin-sondurme-dolabi",
         "label": "Yangin Sondurme Dolabi",
-        "description": "Dolap kontrol formu farkli tablo yapisiyla baglanacak.",
-        "status": "planned",
+        "description": "Yangin sondurme dolabi periyodik kontrol kayit akisi.",
+        "status": "active",
     },
     {
         "slug": "kopuklu-yangin-sondurme-dolabi",
         "label": "Kopuklu Yangin Sondurme Dolabi",
-        "description": "Kopuklu dolap icin ayri kontrol akisi baglanacak.",
-        "status": "planned",
+        "description": "Kopuklu yangin sondurme dolabi kontrol kayit akisi.",
+        "status": "active",
+    },
+    {
+        "slug": "yangin-hidranti",
+        "label": "Yangin Hidranti",
+        "description": "Yangin hidranti periyodik kontrol kayit akisi.",
+        "status": "active",
     },
 ]
 REGISTRATION_GROUP_BY_SLUG = {item["slug"]: item for item in REGISTRATION_GROUPS}
@@ -216,6 +247,66 @@ FIRE_SUIT_CONTROL_ITEMS = [
     ("item_5", "17. Y .1001.A.5 Ic Astarin Durumu, Yalitim Ozelligi ve Dikisler Kontrol Edildi"),
     ("item_6", "17. Y .1001.A.6 Servis Etiketi Ekipmana Yapistirildi"),
 ]
+HELMET_CONTROL_ITEMS = [
+    ("item_1", "17.B.1001.A.1 Dis kisimda gorsel kontrol yapildi"),
+    ("item_2", "17.B.1001.A.2 Ic kisimda gorsel kontrol yapildi"),
+    ("item_3", "17.B.1001.A.3 Ayar mekanizmasinda kontrol yapildi"),
+    ("item_4", "17.B.1001.A.4 Vizor ve goz korumasinda kontrol yapildi"),
+    ("item_5", "17.B.1001.A.5 Boyun koruyucu kontrolu yapildi"),
+    ("item_6", "17.B.1001.A.6 Servis etiketi ekipmana yapistirildi"),
+]
+AXE_CONTROL_ITEMS = [
+    ("item_1", "17.YB.1001.A.1 Baltanin ahsap veya yalitkan sapi kontrol edildi"),
+    ("item_2", "17.YB.1001.A.2 Metal kismi kontrol edildi"),
+    ("item_3", "17.YB.1001.A.3 Agiz kismi kontrol edildi"),
+    ("item_4", "17.YB.1001.A.4 Bulundugu yerde ulasilabilir durumda mi"),
+    ("item_5", "17.YB.1001.A.5 Servis etiketi ekipmana yapistirildi"),
+]
+SCBA_CONTROL_ITEMS = [
+    ("item_1", "17.S.1001.A.1 Yuz maskesi kontrol edildi"),
+    ("item_2", "17.S.1001.A.2 Solunum valfi kontrol edildi"),
+    ("item_3", "17.S.1001.A.3 Regulator unitesi kontrol edildi"),
+    ("item_4", "17.S.1001.A.4 Kemer kontrol edildi"),
+    ("item_5", "17.S.1001.A.5 Silindir kontrol edildi"),
+    ("item_6", "17.S.1001.A.6 Servis etiketi ekipmana yapistirildi"),
+]
+EEBD_CONTROL_ITEMS = [
+    ("item_1", "17.E.1001.A.1 Yuz maskesi kontrol edildi"),
+    ("item_2", "17.E.1001.A.2 Solunum valfi kontrol edildi"),
+    ("item_3", "17.E.1001.A.3 Regulator unitesi kontrol edildi"),
+    ("item_4", "17.E.1001.A.4 Kemer kontrol edildi"),
+    ("item_5", "17.E.1001.A.5 Silindir kontrol edildi"),
+    ("item_6", "17.E.1001.A.6 Servis etiketi ekipmana yapistirildi"),
+]
+AIR_CYLINDER_CONTROL_ITEMS = [
+    ("item_1", "17.C.1001.A.1 Valfi kontrol edildi"),
+    ("item_2", "17.C.1001.A.2 Silindir kontrol edildi"),
+    ("item_3", "17.C.1001.A.3 Servis etiketi ekipmana yapistirildi"),
+]
+CABINET_CONTROL_ITEMS = [
+    ("item_1", "17.YD.1001.A.1 Erisebilirlik kontrol edildi"),
+    ("item_2", "17.YD.1001.A.2 Levhalar kontrol edildi"),
+    ("item_3", "17.YD.1001.A.3 Kapak ve kilit kontrolu yapildi"),
+    ("item_4", "17.YD.1001.A.4 Dolap dis yuzey kontrol edildi"),
+    ("item_5", "17.YD.1001.A.5 Makara kontrol edildi"),
+    ("item_6", "17.YD.1001.A.6 Hortum kontrol edildi"),
+]
+FOAM_CABINET_CONTROL_ITEMS = [
+    ("item_1", "17.KYD.1001.A.1 Erisebilirlik kontrol edildi"),
+    ("item_2", "17.KYD.1001.A.2 Levhalar kontrol edildi"),
+    ("item_3", "17.KYD.1001.A.3 Kapak ve kilit kontrolu yapildi"),
+    ("item_4", "17.KYD.1001.A.4 Dolap dis yuzey kontrol edildi"),
+    ("item_5", "17.KYD.1001.A.5 Makara kontrol edildi"),
+    ("item_6", "17.KYD.1001.A.6 Hortum kontrol edildi"),
+]
+HYDRANT_CONTROL_ITEMS = [
+    ("item_1", "17.H.1001.A.1 Erisebilirlik kontrol edildi"),
+    ("item_2", "17.H.1001.A.2 Gorunurlugu kontrol edildi"),
+    ("item_3", "17.H.1001.A.3 Kapak kontrolu yapildi"),
+    ("item_4", "17.H.1001.A.4 Genel dis yuzey kontrol yapildi"),
+    ("item_5", "17.H.1001.A.5 Makara kontrol edildi"),
+    ("item_6", "17.H.1001.A.6 Acma kapama mili kontrol edildi"),
+]
 ASSET_PROFILES = {
     "Yangin Sondurme Cihazi": {
         "label": "Yangin Sondurme Cihazi",
@@ -225,9 +316,13 @@ ASSET_PROFILES = {
         "owner_label": "Firma Yetkilisi",
         "last_service_label": "Son Bakim",
         "next_service_label": "Sonraki Bakim",
+        "service_input_label": "Son bakim tarihi",
+        "next_service_input_label": "Sonraki bakim tarihi",
+        "show_weight": True,
         "show_pressure": True,
         "show_hydrostatic": True,
         "control_form_enabled": True,
+        "fixed_type": None,
         "monthly_control_items": MONTHLY_CONTROL_ITEMS,
         "control_form_items": CONTROL_FORM_ITEMS,
     },
@@ -239,10 +334,158 @@ ASSET_PROFILES = {
         "owner_label": "Ekipman Yetkilisi",
         "last_service_label": "Son Kontrol",
         "next_service_label": "Sonraki Kontrol",
+        "service_input_label": "Kontrol tarihi",
+        "next_service_input_label": "Sonraki kontrol tarihi",
+        "show_weight": True,
         "show_pressure": False,
         "show_hydrostatic": False,
         "control_form_enabled": False,
+        "fixed_type": "Yangin Elbisesi",
         "monthly_control_items": FIRE_SUIT_CONTROL_ITEMS,
+        "control_form_items": [],
+    },
+    "Yangin Bareti": {
+        "label": "Yangin Bareti",
+        "type_label": "Ekipman Tipi",
+        "class_label": "Kategori / Cinsi",
+        "brand_label": "Marka",
+        "owner_label": "Ekipman Yetkilisi",
+        "last_service_label": "Son Kontrol",
+        "next_service_label": "Sonraki Kontrol",
+        "service_input_label": "Kontrol tarihi",
+        "next_service_input_label": "Sonraki kontrol tarihi",
+        "show_weight": True,
+        "show_pressure": False,
+        "show_hydrostatic": False,
+        "control_form_enabled": False,
+        "fixed_type": "Yangin Bareti",
+        "monthly_control_items": HELMET_CONTROL_ITEMS,
+        "control_form_items": [],
+    },
+    "Yangin Baltasi": {
+        "label": "Yangin Baltasi",
+        "type_label": "Ekipman Tipi",
+        "class_label": "Kategori / Cinsi",
+        "brand_label": "Marka",
+        "owner_label": "Ekipman Yetkilisi",
+        "last_service_label": "Son Kontrol",
+        "next_service_label": "Sonraki Kontrol",
+        "service_input_label": "Kontrol tarihi",
+        "next_service_input_label": "Sonraki kontrol tarihi",
+        "show_weight": False,
+        "show_pressure": False,
+        "show_hydrostatic": False,
+        "control_form_enabled": False,
+        "fixed_type": "Yangin Baltasi",
+        "monthly_control_items": AXE_CONTROL_ITEMS,
+        "control_form_items": [],
+    },
+    "SCBA": {
+        "label": "SCBA",
+        "type_label": "Ekipman Tipi",
+        "class_label": "Kategori / Cinsi",
+        "brand_label": "Marka",
+        "owner_label": "Ekipman Yetkilisi",
+        "last_service_label": "Dolum Tarihi",
+        "next_service_label": "Sonraki Kontrol",
+        "service_input_label": "Dolum tarihi",
+        "next_service_input_label": "Sonraki kontrol tarihi",
+        "show_weight": True,
+        "show_pressure": False,
+        "show_hydrostatic": True,
+        "control_form_enabled": False,
+        "fixed_type": "SCBA",
+        "monthly_control_items": SCBA_CONTROL_ITEMS,
+        "control_form_items": [],
+    },
+    "EEBD": {
+        "label": "EEBD",
+        "type_label": "Ekipman Tipi",
+        "class_label": "Kategori / Cinsi",
+        "brand_label": "Marka",
+        "owner_label": "Ekipman Yetkilisi",
+        "last_service_label": "Dolum Tarihi",
+        "next_service_label": "Sonraki Kontrol",
+        "service_input_label": "Dolum tarihi",
+        "next_service_input_label": "Sonraki kontrol tarihi",
+        "show_weight": True,
+        "show_pressure": False,
+        "show_hydrostatic": True,
+        "control_form_enabled": False,
+        "fixed_type": "EEBD",
+        "monthly_control_items": EEBD_CONTROL_ITEMS,
+        "control_form_items": [],
+    },
+    "Hava Tupu": {
+        "label": "Hava Tupu",
+        "type_label": "Ekipman Tipi",
+        "class_label": "Kategori / Cinsi",
+        "brand_label": "Marka",
+        "owner_label": "Ekipman Yetkilisi",
+        "last_service_label": "Dolum Tarihi",
+        "next_service_label": "Sonraki Kontrol",
+        "service_input_label": "Dolum tarihi",
+        "next_service_input_label": "Sonraki kontrol tarihi",
+        "show_weight": True,
+        "show_pressure": False,
+        "show_hydrostatic": True,
+        "control_form_enabled": False,
+        "fixed_type": "Hava Tupu",
+        "monthly_control_items": AIR_CYLINDER_CONTROL_ITEMS,
+        "control_form_items": [],
+    },
+    "Yangin Sondurme Dolabi": {
+        "label": "Yangin Sondurme Dolabi",
+        "type_label": "Ekipman Tipi",
+        "class_label": "Kategori / Cinsi",
+        "brand_label": "Marka",
+        "owner_label": "Ekipman Yetkilisi",
+        "last_service_label": "Son Kontrol",
+        "next_service_label": "Sonraki Kontrol",
+        "service_input_label": "Kontrol tarihi",
+        "next_service_input_label": "Sonraki kontrol tarihi",
+        "show_weight": False,
+        "show_pressure": False,
+        "show_hydrostatic": False,
+        "control_form_enabled": False,
+        "fixed_type": "Yangin Sondurme Dolabi",
+        "monthly_control_items": CABINET_CONTROL_ITEMS,
+        "control_form_items": [],
+    },
+    "Kopuklu Yangin Sondurme Dolabi": {
+        "label": "Kopuklu Yangin Sondurme Dolabi",
+        "type_label": "Ekipman Tipi",
+        "class_label": "Kategori / Cinsi",
+        "brand_label": "Marka",
+        "owner_label": "Ekipman Yetkilisi",
+        "last_service_label": "Son Kontrol",
+        "next_service_label": "Sonraki Kontrol",
+        "service_input_label": "Kontrol tarihi",
+        "next_service_input_label": "Sonraki kontrol tarihi",
+        "show_weight": False,
+        "show_pressure": False,
+        "show_hydrostatic": False,
+        "control_form_enabled": False,
+        "fixed_type": "Kopuklu Yangin Sondurme Dolabi",
+        "monthly_control_items": FOAM_CABINET_CONTROL_ITEMS,
+        "control_form_items": [],
+    },
+    "Yangin Hidranti": {
+        "label": "Yangin Hidranti",
+        "type_label": "Ekipman Tipi",
+        "class_label": "Kategori / Cinsi",
+        "brand_label": "Marka",
+        "owner_label": "Ekipman Yetkilisi",
+        "last_service_label": "Son Kontrol",
+        "next_service_label": "Sonraki Kontrol",
+        "service_input_label": "Kontrol tarihi",
+        "next_service_input_label": "Sonraki kontrol tarihi",
+        "show_weight": False,
+        "show_pressure": False,
+        "show_hydrostatic": False,
+        "control_form_enabled": False,
+        "fixed_type": "Yangin Hidranti",
+        "monthly_control_items": HYDRANT_CONTROL_ITEMS,
         "control_form_items": [],
     },
 }
@@ -871,8 +1114,158 @@ def get_registration_groups() -> list[dict]:
     return REGISTRATION_GROUPS
 
 
+def get_registration_group(group_slug: str) -> dict:
+    group = REGISTRATION_GROUP_BY_SLUG.get(group_slug)
+    if group is None:
+        abort(404)
+    return group
+
+
 def get_asset_profile(asset_category: str | None) -> dict:
     return ASSET_PROFILES.get(asset_category or "", ASSET_PROFILES["Yangin Sondurme Cihazi"])
+
+
+def render_profile_record_form(group_slug: str):
+    group = get_registration_group(group_slug)
+    if group_slug == "yangin-sondurme-cihazi":
+        return redirect(url_for("create_extinguisher"))
+
+    company_choices = get_company_choices()
+    asset_profile = get_asset_profile(group["label"])
+
+    if request.method == "POST":
+        form = parse_required_form(request.form)
+        form["technician_name"] = form.get("technician_name") or current_user_full_name()
+        form["asset_category"] = group["label"]
+        form["extinguisher_type"] = asset_profile.get("fixed_type") or group["label"]
+        try:
+            form, selected_company = sync_company_payload_from_selection(form)
+        except ValueError as exc:
+            flash(str(exc), "error")
+            return render_template(
+                "create_asset_profile.html",
+                form=form,
+                companies=company_choices,
+                asset_profile=asset_profile,
+                group=group,
+            )
+
+        required_fields = {
+            "serial_number": "Seri numarasi",
+            "company_id": "Cari secimi",
+            "company_contact": asset_profile["owner_label"],
+            "location_detail": "Bulundugu yer",
+            "fire_class": asset_profile["class_label"],
+            "manufacturer": asset_profile["brand_label"],
+            "last_service_date": asset_profile["service_input_label"],
+            "next_service_date": asset_profile["next_service_input_label"],
+            "technician_name": "Teknisyen",
+            "operation_summary": "Yapilan islem",
+        }
+        if asset_profile["show_weight"]:
+            required_fields["weight_kg"] = "Kg"
+        if asset_profile["show_hydrostatic"]:
+            required_fields["hydrostatic_test_date"] = "Hidrostatik test tarihi"
+
+        missing = [label for key, label in required_fields.items() if not form.get(key)]
+        if missing:
+            flash(f"Eksik alanlar: {', '.join(missing)}", "error")
+            return render_template(
+                "create_asset_profile.html",
+                form=form,
+                companies=company_choices,
+                asset_profile=asset_profile,
+                group=group,
+            )
+
+        try:
+            weight_kg = parse_float(form["weight_kg"], "Kg") if asset_profile["show_weight"] else 0.0
+        except ValueError as exc:
+            flash(str(exc), "error")
+            return render_template(
+                "create_asset_profile.html",
+                form=form,
+                companies=company_choices,
+                asset_profile=asset_profile,
+                group=group,
+            )
+
+        now = datetime.now().isoformat(timespec="seconds")
+        public_id = uuid.uuid4().hex[:12]
+        inspection_values = build_monthly_inspection_values(request.form, asset_profile["monthly_control_items"])
+        control_values = build_control_form_values({})
+
+        try:
+            with engine.begin() as connection:
+                result = connection.execute(
+                    insert(extinguishers).values(
+                        public_id=public_id,
+                        serial_number=form["serial_number"],
+                        company_id=selected_company["id"],
+                        company_name=form["company_name"],
+                        company_address=form["company_address"],
+                        company_contact=form["company_contact"],
+                        asset_category=group["label"],
+                        location_detail=form["location_detail"],
+                        weight_kg=weight_kg,
+                        extinguisher_type=form["extinguisher_type"],
+                        fire_class=form["fire_class"],
+                        manufacturer=form["manufacturer"],
+                        hydrostatic_test_date=form.get("hydrostatic_test_date") if asset_profile["show_hydrostatic"] else None,
+                        pressure_status=None,
+                        notes=form.get("notes"),
+                        last_service_date=form["last_service_date"],
+                        next_service_date=form["next_service_date"],
+                        created_at=now,
+                        updated_at=now,
+                    )
+                )
+                extinguisher_id = result.inserted_primary_key[0]
+                connection.execute(
+                    insert(service_logs).values(
+                        extinguisher_id=extinguisher_id,
+                        service_date=form["last_service_date"],
+                        technician_name=form["technician_name"],
+                        operation_summary=form["operation_summary"],
+                        pressure_status=None,
+                        notes=form.get("notes"),
+                        created_at=now,
+                    )
+                )
+                save_monthly_inspection(
+                    connection=connection,
+                    extinguisher_id=extinguisher_id,
+                    inspection_date=form["last_service_date"],
+                    inspector_name=form["technician_name"],
+                    notes=form.get("notes"),
+                    inspection_values=inspection_values,
+                    control_values=control_values,
+                    created_at=now,
+                )
+        except IntegrityError:
+            flash("Bu seri numarasi zaten kayitli.", "error")
+            return render_template(
+                "create_asset_profile.html",
+                form=form,
+                companies=company_choices,
+                asset_profile=asset_profile,
+                group=group,
+            )
+
+        flash(f"{group['label']} kaydedildi.", "success")
+        return redirect(url_for("extinguisher_detail", public_id=public_id))
+
+    return render_template(
+        "create_asset_profile.html",
+        form={
+            "technician_name": current_user_full_name(),
+            "asset_category": group["label"],
+            "extinguisher_type": asset_profile.get("fixed_type") or group["label"],
+        },
+        companies=company_choices,
+        asset_profile=asset_profile,
+        group=group,
+    )
 
 
 def sync_company_payload_from_selection(form: dict[str, str]) -> tuple[dict[str, str], dict]:
@@ -2413,128 +2806,7 @@ def create_extinguisher():
 @app.route("/records/new/yangin-elbisesi", methods=["GET", "POST"])
 @login_required
 def create_fire_suit():
-    company_choices = get_company_choices()
-    asset_profile = get_asset_profile("Yangin Elbisesi")
-    if request.method == "POST":
-        form = parse_required_form(request.form)
-        form["technician_name"] = form.get("technician_name") or current_user_full_name()
-        try:
-            form, selected_company = sync_company_payload_from_selection(form)
-        except ValueError as exc:
-            flash(str(exc), "error")
-            return render_template(
-                "create_fire_suit.html",
-                form=form,
-                companies=company_choices,
-                asset_profile=asset_profile,
-            )
-
-        required_fields = {
-            "serial_number": "Seri numarasi",
-            "company_id": "Cari secimi",
-            "company_contact": "Ekipman yetkilisi",
-            "location_detail": "Bulundugu yer",
-            "weight_kg": "Kg",
-            "fire_class": "Kategori / Cinsi",
-            "manufacturer": "Marka",
-            "last_service_date": "Kontrol tarihi",
-            "next_service_date": "Sonraki kontrol tarihi",
-            "technician_name": "Teknisyen",
-            "operation_summary": "Yapilan islem",
-        }
-        missing = [label for key, label in required_fields.items() if not form.get(key)]
-        if missing:
-            flash(f"Eksik alanlar: {', '.join(missing)}", "error")
-            return render_template(
-                "create_fire_suit.html",
-                form=form,
-                companies=company_choices,
-                asset_profile=asset_profile,
-            )
-
-        try:
-            weight_kg = parse_float(form["weight_kg"], "Kg")
-        except ValueError as exc:
-            flash(str(exc), "error")
-            return render_template(
-                "create_fire_suit.html",
-                form=form,
-                companies=company_choices,
-                asset_profile=asset_profile,
-            )
-
-        now = datetime.now().isoformat(timespec="seconds")
-        public_id = uuid.uuid4().hex[:12]
-        inspection_values = build_monthly_inspection_values(request.form, asset_profile["monthly_control_items"])
-        control_values = build_control_form_values({})
-
-        try:
-            with engine.begin() as connection:
-                result = connection.execute(
-                    insert(extinguishers).values(
-                        public_id=public_id,
-                        serial_number=form["serial_number"],
-                        company_id=selected_company["id"],
-                        company_name=form["company_name"],
-                        company_address=form["company_address"],
-                        company_contact=form["company_contact"],
-                        asset_category="Yangin Elbisesi",
-                        location_detail=form["location_detail"],
-                        weight_kg=weight_kg,
-                        extinguisher_type="Yangin Elbisesi",
-                        fire_class=form["fire_class"],
-                        manufacturer=form["manufacturer"],
-                        hydrostatic_test_date=None,
-                        pressure_status=None,
-                        notes=form.get("notes"),
-                        last_service_date=form["last_service_date"],
-                        next_service_date=form["next_service_date"],
-                        created_at=now,
-                        updated_at=now,
-                    )
-                )
-                extinguisher_id = result.inserted_primary_key[0]
-                connection.execute(
-                    insert(service_logs).values(
-                        extinguisher_id=extinguisher_id,
-                        service_date=form["last_service_date"],
-                        technician_name=form["technician_name"],
-                        operation_summary=form["operation_summary"],
-                        pressure_status=None,
-                        notes=form.get("notes"),
-                        created_at=now,
-                    )
-                )
-                save_monthly_inspection(
-                    connection=connection,
-                    extinguisher_id=extinguisher_id,
-                    inspection_date=form["last_service_date"],
-                    inspector_name=form["technician_name"],
-                    notes=form.get("notes"),
-                    inspection_values=inspection_values,
-                    control_values=control_values,
-                    created_at=now,
-                )
-        except IntegrityError:
-            flash("Bu seri numarasi zaten kayitli.", "error")
-            return render_template(
-                "create_fire_suit.html",
-                form=form,
-                companies=company_choices,
-                asset_profile=asset_profile,
-            )
-
-        flash("Yangin elbisesi kaydedildi.", "success")
-        return redirect(url_for("extinguisher_detail", public_id=public_id))
-
-    return render_template(
-        "create_fire_suit.html",
-        form={
-            "technician_name": current_user_full_name(),
-        },
-        companies=company_choices,
-        asset_profile=asset_profile,
-    )
+    return render_profile_record_form("yangin-elbisesi")
 
 
 @app.route("/records/new")
@@ -2546,16 +2818,12 @@ def record_group_picker():
     )
 
 
-@app.route("/records/new/<group_slug>")
+@app.route("/records/new/<group_slug>", methods=["GET", "POST"])
 @login_required
 def record_group_entry(group_slug: str):
-    group = REGISTRATION_GROUP_BY_SLUG.get(group_slug)
-    if group is None:
-        abort(404)
-    if group_slug == "yangin-sondurme-cihazi":
-        return redirect(url_for("create_extinguisher"))
-    if group_slug == "yangin-elbisesi":
-        return redirect(url_for("create_fire_suit"))
+    group = get_registration_group(group_slug)
+    if group["status"] == "active":
+        return render_profile_record_form(group_slug)
     return render_template(
         "record_group_placeholder.html",
         group=group,
@@ -2701,14 +2969,17 @@ def add_service_log(public_id: str):
             "technician_name": "Teknisyen",
             "company_id": "Cari secimi",
             "asset_category": "Urun grubu",
-            "location_detail": "Bulundugu yer" if asset_profile["label"] == "Yangin Elbisesi" else "Firma ici konum",
+            "location_detail": "Bulundugu yer" if asset_profile["label"] != "Yangin Sondurme Cihazi" else "Firma ici konum",
             "fire_class": asset_profile["class_label"],
             "manufacturer": asset_profile["brand_label"],
             "operation_summary": "Yapilan islem",
             "company_contact": asset_profile["owner_label"],
         }
+        if asset_profile["show_weight"]:
+            required_fields["weight_kg"] = "Kg"
         if asset_profile["label"] == "Yangin Sondurme Cihazi":
             required_fields["extinguisher_type"] = "Tup tipi"
+        if asset_profile["show_hydrostatic"]:
             required_fields["hydrostatic_test_date"] = "Hidrostatik test tarihi"
         missing = [label for key, label in required_fields.items() if not form.get(key)]
         if missing:
@@ -2725,24 +2996,27 @@ def add_service_log(public_id: str):
                 asset_profile=asset_profile,
             )
 
-        try:
-            weight_kg = parse_float(
-                form.get("weight_kg") or str(extinguisher["weight_kg"]),
-                "Kg",
-            )
-        except ValueError as exc:
-            flash(str(exc), "error")
-            return render_template(
-                "service_log_form.html",
-                extinguisher=extinguisher,
-                form=form,
-                monthly_control_items=MONTHLY_CONTROL_ITEMS,
-                equipment_options=EQUIPMENT_OPTIONS,
-                equipment_presets=EQUIPMENT_PRESETS,
-                companies=company_choices,
-                asset_categories=asset_categories,
-                asset_profile=asset_profile,
-            )
+        if asset_profile["show_weight"]:
+            try:
+                weight_kg = parse_float(
+                    form.get("weight_kg") or str(extinguisher["weight_kg"]),
+                    "Kg",
+                )
+            except ValueError as exc:
+                flash(str(exc), "error")
+                return render_template(
+                    "service_log_form.html",
+                    extinguisher=extinguisher,
+                    form=form,
+                    monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                    equipment_options=EQUIPMENT_OPTIONS,
+                    equipment_presets=EQUIPMENT_PRESETS,
+                    companies=company_choices,
+                    asset_categories=asset_categories,
+                    asset_profile=asset_profile,
+                )
+        else:
+            weight_kg = extinguisher.get("weight_kg") or 0.0
 
         now = datetime.now().isoformat(timespec="seconds")
         inspection_values = build_monthly_inspection_values(request.form, asset_profile["monthly_control_items"])

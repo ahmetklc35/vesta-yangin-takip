@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="card form-card">
+    <div class="section-head">
+      <div>
+        <h1>Yeni {{ group.label }} Kaydi</h1>
+        <p class="muted">{{ group.description }}</p>
+      </div>
+    </div>
+
+    <form method="post" class="grid-form">
+      <label>
+        Seri numarasi
+        <input type="text" name="serial_number" value="{{ form.get('serial_number', '') }}" required>
+      </label>
+      <label>
+        Cari / Firma
+        <select name="company_id" id="company_id" required>
+          <option value="">Seciniz</option>
+          {% for company in companies %}
+            <option value="{{ company.id }}"
+                    data-company-address="{{ company.address }}"
+                    {% if form.get('company_id') == (company.id|string) %}selected{% endif %}>
+              {{ company.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        Muayene adresi
+        <input type="text" name="company_address" id="company_address" value="{{ form.get('company_address', '') }}" readonly required>
+      </label>
+      <label>
+        {{ asset_profile.owner_label }}
+        <input type="text" name="company_contact" value="{{ form.get('company_contact', '') }}" required>
+      </label>
+      <label>
+        {{ asset_profile.class_label }}
+        <input type="text" name="fire_class" value="{{ form.get('fire_class', '') }}" required>
+      </label>
+      <label>
+        {{ asset_profile.brand_label }}
+        <input type="text" name="manufacturer" value="{{ form.get('manufacturer', '') }}" required>
+      </label>
+      <label>
+        Bulundugu yer
+        <input type="text" name="location_detail" value="{{ form.get('location_detail', '') }}" required>
+      </label>
+      {% if asset_profile.show_weight %}
+        <label>
+          Kg
+          <input type="text" name="weight_kg" value="{{ form.get('weight_kg', '') }}" required>
+        </label>
+      {% endif %}
+      <label>
+        {{ asset_profile.service_input_label }}
+        <input type="date" name="last_service_date" value="{{ form.get('last_service_date', '') }}" required>
+      </label>
+      {% if asset_profile.show_hydrostatic %}
+        <label>
+          Hidrostatik test tarihi
+          <input type="date" name="hydrostatic_test_date" value="{{ form.get('hydrostatic_test_date', '') }}" required>
+        </label>
+      {% endif %}
+      <label>
+        {{ asset_profile.next_service_input_label }}
+        <input type="date" name="next_service_date" value="{{ form.get('next_service_date', '') }}" required>
+      </label>
+      <label>
+        Teknisyen
+        <input type="text" name="technician_name" value="{{ form.get('technician_name', '') }}" readonly required>
+      </label>
+      <label>
+        {{ asset_profile.type_label }}
+        <input type="text" name="extinguisher_type" value="{{ form.get('extinguisher_type', '') }}" readonly required>
+      </label>
+
+      <label class="full">
+        Yapilan islem
+        <textarea name="operation_summary" rows="3" required>{{ form.get('operation_summary', '') }}</textarea>
+      </label>
+
+      <section class="full checklist-card">
+        <h2>Kontrol Maddeleri</h2>
+        <div class="checklist-grid">
+          {% for key, label in asset_profile.monthly_control_items %}
+            <label class="check-item">
+              <input type="checkbox" name="{{ key }}" {% if form.get(key) %}checked{% endif %}>
+              <span>{{ label }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </section>
+
+      <label class="full">
+        Aciklama
+        <textarea name="notes" rows="3">{{ form.get('notes', '') }}</textarea>
+      </label>
+
+      <div class="full form-actions">
+        <button type="submit" class="button">Kaydet</button>
+      </div>
+    </form>
+  </section>
+
+  <script>
+    const companySelect = document.getElementById('company_id');
+    const companyAddressInput = document.getElementById('company_address');
+
+    function syncCompanyFields() {
+      const selected = companySelect.options[companySelect.selectedIndex];
+      companyAddressInput.value = selected?.dataset.companyAddress || '';
+    }
+
+    companySelect.addEventListener('change', syncCompanyFields);
+    syncCompanyFields();
+  </script>
+{% endblock %}

@@ -54,10 +54,12 @@
         Bulundugu yer
         <input type="text" name="location_detail" value="{{ form.get('location_detail', extinguisher.location_detail) }}" required>
       </label>
-      <label>
-        Kg
-        <input type="text" name="weight_kg" value="{{ form.get('weight_kg', extinguisher.weight_kg) }}" required>
-      </label>
+      {% if asset_profile.show_weight %}
+        <label>
+          Kg
+          <input type="text" name="weight_kg" value="{{ form.get('weight_kg', extinguisher.weight_kg) }}" required>
+        </label>
+      {% endif %}
       <label>
         Urun grubu
         <select name="asset_category" required>

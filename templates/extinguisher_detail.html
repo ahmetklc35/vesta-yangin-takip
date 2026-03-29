@@ -20,7 +20,9 @@
       <div class="stats">
         <div><strong>Seri No</strong><span>{{ extinguisher.serial_number }}</span></div>
         <div><strong>Urun Grubu</strong><span>{{ extinguisher.asset_category or "Yangin Sondurme Cihazi" }}</span></div>
-        <div><strong>Kg</strong><span>{{ extinguisher.weight_kg }}</span></div>
+        {% if asset_profile.show_weight %}
+          <div><strong>Kg</strong><span>{{ extinguisher.weight_kg }}</span></div>
+        {% endif %}
         <div><strong>{{ asset_profile.type_label }}</strong><span>{{ extinguisher.extinguisher_type }}</span></div>
         <div><strong>{{ asset_profile.class_label }}</strong><span>{{ extinguisher.fire_class or "-" }}</span></div>
         <div><strong>{{ asset_profile.brand_label }}</strong><span>{{ extinguisher.manufacturer or "-" }}</span></div>
