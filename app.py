@@ -121,8 +121,8 @@ REGISTRATION_GROUPS = [
     {
         "slug": "yangin-elbisesi",
         "label": "Yangin Elbisesi",
-        "description": "Elbise kontrol formuna uygun kayit yapisi hazirlaniyor.",
-        "status": "planned",
+        "description": "Yangin elbisesi kontrol formuna uygun yeni kayit akisi.",
+        "status": "active",
     },
     {
         "slug": "yangin-bareti",
@@ -208,6 +208,44 @@ CONTROL_FORM_ITEMS = [
     ("check_f", "f) NOZUL UYGUNLUĞU (PASLANMA VB.)"),
     ("check_g", "g) BASINÇ GÖSTERGESİ İŞLEVSELLİĞİ"),
 ]
+FIRE_SUIT_CONTROL_ITEMS = [
+    ("item_1", "17. Y .1001.A.1 Gorsel Kumas Kontrol yapildi"),
+    ("item_2", "17. Y .1001.A.2 Fonksiyonel Fermuar, Cirt cirtlar ve Dugmeler kontrol edildi"),
+    ("item_3", "17. Y .1001.A.3 Yansitici Bantlar Kontrol Edildi"),
+    ("item_4", "17. Y .1001.A.4 Elbiselerin Temizligi Kontrol Edildi"),
+    ("item_5", "17. Y .1001.A.5 Ic Astarin Durumu, Yalitim Ozelligi ve Dikisler Kontrol Edildi"),
+    ("item_6", "17. Y .1001.A.6 Servis Etiketi Ekipmana Yapistirildi"),
+]
+ASSET_PROFILES = {
+    "Yangin Sondurme Cihazi": {
+        "label": "Yangin Sondurme Cihazi",
+        "type_label": "Tip",
+        "class_label": "YSC Sinifi",
+        "brand_label": "YSC Uretici",
+        "owner_label": "Firma Yetkilisi",
+        "last_service_label": "Son Bakim",
+        "next_service_label": "Sonraki Bakim",
+        "show_pressure": True,
+        "show_hydrostatic": True,
+        "control_form_enabled": True,
+        "monthly_control_items": MONTHLY_CONTROL_ITEMS,
+        "control_form_items": CONTROL_FORM_ITEMS,
+    },
+    "Yangin Elbisesi": {
+        "label": "Yangin Elbisesi",
+        "type_label": "Ekipman Tipi",
+        "class_label": "Kategori / Cinsi",
+        "brand_label": "Marka",
+        "owner_label": "Ekipman Yetkilisi",
+        "last_service_label": "Son Kontrol",
+        "next_service_label": "Sonraki Kontrol",
+        "show_pressure": False,
+        "show_hydrostatic": False,
+        "control_form_enabled": False,
+        "monthly_control_items": FIRE_SUIT_CONTROL_ITEMS,
+        "control_form_items": [],
+    },
+}
 MONTH_LABELS = [
     (1, "OCAK"),
     (2, "ŞUBAT"),
@@ -833,6 +871,10 @@ def get_registration_groups() -> list[dict]:
     return REGISTRATION_GROUPS
 
 
+def get_asset_profile(asset_category: str | None) -> dict:
+    return ASSET_PROFILES.get(asset_category or "", ASSET_PROFILES["Yangin Sondurme Cihazi"])
+
+
 def sync_company_payload_from_selection(form: dict[str, str]) -> tuple[dict[str, str], dict]:
     company_id_raw = (form.get("company_id") or "").strip()
     if not company_id_raw:
@@ -966,8 +1008,9 @@ def build_branded_qr(public_url: str, *, label_mode: bool = False) -> io.BytesIO
     return buffer
 
 
-def build_monthly_inspection_values(form_data) -> dict[str, bool]:
-    return {key: form_data.get(key) == "on" for key, _label in MONTHLY_CONTROL_ITEMS}
+def build_monthly_inspection_values(form_data, items: list[tuple[str, str]] | None = None) -> dict[str, bool]:
+    source_items = items or MONTHLY_CONTROL_ITEMS
+    return {key: form_data.get(key) == "on" for key, _label in source_items}
 
 
 def build_control_form_values(form_data) -> dict[str, bool]:
@@ -997,12 +1040,13 @@ def save_monthly_inspection(
     )
 
 
-def with_monthly_control_labels(rows: list[dict]) -> list[dict]:
+def with_monthly_control_labels(rows: list[dict], items: list[tuple[str, str]] | None = None) -> list[dict]:
+    source_items = items or MONTHLY_CONTROL_ITEMS
     enriched_rows: list[dict] = []
     for row in rows:
         checks = []
         passed_count = 0
-        for key, label in MONTHLY_CONTROL_ITEMS:
+        for key, label in source_items:
             passed = bool(row.get(key))
             if passed:
                 passed_count += 1
@@ -1010,7 +1054,7 @@ def with_monthly_control_labels(rows: list[dict]) -> list[dict]:
         copied = dict(row)
         copied["checks"] = checks
         copied["passed_count"] = passed_count
-        copied["total_count"] = len(MONTHLY_CONTROL_ITEMS)
+        copied["total_count"] = len(source_items)
         enriched_rows.append(copied)
     return enriched_rows
 
@@ -1021,7 +1065,8 @@ def get_equipment_preset(extinguisher_type: str | None) -> dict | None:
     return EQUIPMENT_PRESETS.get(extinguisher_type)
 
 
-def build_monthly_table(rows: list[dict]) -> dict:
+def build_monthly_table(rows: list[dict], items: list[tuple[str, str]] | None = None) -> dict:
+    source_items = items or MONTHLY_CONTROL_ITEMS
     if rows:
         sorted_rows = sorted(rows, key=lambda row: row["inspection_date"], reverse=True)
         target_year = datetime.strptime(sorted_rows[0]["inspection_date"], "%Y-%m-%d").year
@@ -1040,7 +1085,7 @@ def build_monthly_table(rows: list[dict]) -> dict:
     for month_number, month_label in MONTH_LABELS:
         source = latest_by_month.get(month_number)
         cells = []
-        for key, label in MONTHLY_CONTROL_ITEMS:
+        for key, label in source_items:
             code = label.split(" ", 1)[0]
             value = None if source is None else bool(source.get(key))
             cells.append({"code": code, "value": value})
@@ -1056,7 +1101,7 @@ def build_monthly_table(rows: list[dict]) -> dict:
         "year": target_year,
         "headers": [
             {"key": key, "code": label.split(" ", 1)[0]}
-            for key, label in MONTHLY_CONTROL_ITEMS
+            for key, label in source_items
         ],
         "rows": month_rows,
     }
@@ -2365,6 +2410,133 @@ def create_extinguisher():
     )
 
 
+@app.route("/records/new/yangin-elbisesi", methods=["GET", "POST"])
+@login_required
+def create_fire_suit():
+    company_choices = get_company_choices()
+    asset_profile = get_asset_profile("Yangin Elbisesi")
+    if request.method == "POST":
+        form = parse_required_form(request.form)
+        form["technician_name"] = form.get("technician_name") or current_user_full_name()
+        try:
+            form, selected_company = sync_company_payload_from_selection(form)
+        except ValueError as exc:
+            flash(str(exc), "error")
+            return render_template(
+                "create_fire_suit.html",
+                form=form,
+                companies=company_choices,
+                asset_profile=asset_profile,
+            )
+
+        required_fields = {
+            "serial_number": "Seri numarasi",
+            "company_id": "Cari secimi",
+            "company_contact": "Ekipman yetkilisi",
+            "location_detail": "Bulundugu yer",
+            "weight_kg": "Kg",
+            "fire_class": "Kategori / Cinsi",
+            "manufacturer": "Marka",
+            "last_service_date": "Kontrol tarihi",
+            "next_service_date": "Sonraki kontrol tarihi",
+            "technician_name": "Teknisyen",
+            "operation_summary": "Yapilan islem",
+        }
+        missing = [label for key, label in required_fields.items() if not form.get(key)]
+        if missing:
+            flash(f"Eksik alanlar: {', '.join(missing)}", "error")
+            return render_template(
+                "create_fire_suit.html",
+                form=form,
+                companies=company_choices,
+                asset_profile=asset_profile,
+            )
+
+        try:
+            weight_kg = parse_float(form["weight_kg"], "Kg")
+        except ValueError as exc:
+            flash(str(exc), "error")
+            return render_template(
+                "create_fire_suit.html",
+                form=form,
+                companies=company_choices,
+                asset_profile=asset_profile,
+            )
+
+        now = datetime.now().isoformat(timespec="seconds")
+        public_id = uuid.uuid4().hex[:12]
+        inspection_values = build_monthly_inspection_values(request.form, asset_profile["monthly_control_items"])
+        control_values = build_control_form_values({})
+
+        try:
+            with engine.begin() as connection:
+                result = connection.execute(
+                    insert(extinguishers).values(
+                        public_id=public_id,
+                        serial_number=form["serial_number"],
+                        company_id=selected_company["id"],
+                        company_name=form["company_name"],
+                        company_address=form["company_address"],
+                        company_contact=form["company_contact"],
+                        asset_category="Yangin Elbisesi",
+                        location_detail=form["location_detail"],
+                        weight_kg=weight_kg,
+                        extinguisher_type="Yangin Elbisesi",
+                        fire_class=form["fire_class"],
+                        manufacturer=form["manufacturer"],
+                        hydrostatic_test_date=None,
+                        pressure_status=None,
+                        notes=form.get("notes"),
+                        last_service_date=form["last_service_date"],
+                        next_service_date=form["next_service_date"],
+                        created_at=now,
+                        updated_at=now,
+                    )
+                )
+                extinguisher_id = result.inserted_primary_key[0]
+                connection.execute(
+                    insert(service_logs).values(
+                        extinguisher_id=extinguisher_id,
+                        service_date=form["last_service_date"],
+                        technician_name=form["technician_name"],
+                        operation_summary=form["operation_summary"],
+                        pressure_status=None,
+                        notes=form.get("notes"),
+                        created_at=now,
+                    )
+                )
+                save_monthly_inspection(
+                    connection=connection,
+                    extinguisher_id=extinguisher_id,
+                    inspection_date=form["last_service_date"],
+                    inspector_name=form["technician_name"],
+                    notes=form.get("notes"),
+                    inspection_values=inspection_values,
+                    control_values=control_values,
+                    created_at=now,
+                )
+        except IntegrityError:
+            flash("Bu seri numarasi zaten kayitli.", "error")
+            return render_template(
+                "create_fire_suit.html",
+                form=form,
+                companies=company_choices,
+                asset_profile=asset_profile,
+            )
+
+        flash("Yangin elbisesi kaydedildi.", "success")
+        return redirect(url_for("extinguisher_detail", public_id=public_id))
+
+    return render_template(
+        "create_fire_suit.html",
+        form={
+            "technician_name": current_user_full_name(),
+        },
+        companies=company_choices,
+        asset_profile=asset_profile,
+    )
+
+
 @app.route("/records/new")
 @login_required
 def record_group_picker():
@@ -2382,6 +2554,8 @@ def record_group_entry(group_slug: str):
         abort(404)
     if group_slug == "yangin-sondurme-cihazi":
         return redirect(url_for("create_extinguisher"))
+    if group_slug == "yangin-elbisesi":
+        return redirect(url_for("create_fire_suit"))
     return render_template(
         "record_group_placeholder.html",
         group=group,
@@ -2392,6 +2566,7 @@ def record_group_entry(group_slug: str):
 @login_required
 def extinguisher_detail(public_id: str):
     extinguisher = get_extinguisher(public_id)
+    asset_profile = get_asset_profile(extinguisher.get("asset_category"))
     company_portal_url = None
     if extinguisher.get("company_id"):
         company = get_company(extinguisher["company_id"])
@@ -2413,16 +2588,18 @@ def extinguisher_detail(public_id: str):
                 desc(monthly_inspections.c.inspection_date),
                 desc(monthly_inspections.c.id),
             )
-        )
+        ),
+        asset_profile["monthly_control_items"],
     )
     return render_template(
         "extinguisher_detail.html",
         extinguisher=extinguisher,
         service_logs=service_history,
         monthly_inspections=monthly_history,
-        monthly_control_items=MONTHLY_CONTROL_ITEMS,
+        monthly_control_items=asset_profile["monthly_control_items"],
         equipment_preset=get_equipment_preset(extinguisher.get("extinguisher_type")),
         company_portal_url=company_portal_url,
+        asset_profile=asset_profile,
     )
 
 
@@ -2499,6 +2676,7 @@ def add_service_log(public_id: str):
     extinguisher = get_extinguisher(public_id)
     company_choices = get_company_choices()
     asset_categories = get_asset_category_choices()
+    asset_profile = get_asset_profile(extinguisher.get("asset_category"))
     if request.method == "POST":
         form = parse_required_form(request.form)
         form["technician_name"] = form.get("technician_name") or current_user_full_name()
@@ -2515,20 +2693,23 @@ def add_service_log(public_id: str):
                 equipment_presets=EQUIPMENT_PRESETS,
                 companies=company_choices,
                 asset_categories=asset_categories,
+                asset_profile=asset_profile,
             )
         required_fields = {
-            "service_date": "Bakim tarihi",
-            "next_service_date": "Sonraki bakim tarihi",
+            "service_date": asset_profile["last_service_label"],
+            "next_service_date": asset_profile["next_service_label"],
             "technician_name": "Teknisyen",
             "company_id": "Cari secimi",
             "asset_category": "Urun grubu",
-            "location_detail": "Firma ici konum",
-            "extinguisher_type": "Tup tipi",
-            "fire_class": "YSC sinifi",
-            "manufacturer": "YSC uretici",
-            "hydrostatic_test_date": "Hidrostatik test tarihi",
+            "location_detail": "Bulundugu yer" if asset_profile["label"] == "Yangin Elbisesi" else "Firma ici konum",
+            "fire_class": asset_profile["class_label"],
+            "manufacturer": asset_profile["brand_label"],
             "operation_summary": "Yapilan islem",
+            "company_contact": asset_profile["owner_label"],
         }
+        if asset_profile["label"] == "Yangin Sondurme Cihazi":
+            required_fields["extinguisher_type"] = "Tup tipi"
+            required_fields["hydrostatic_test_date"] = "Hidrostatik test tarihi"
         missing = [label for key, label in required_fields.items() if not form.get(key)]
         if missing:
             flash(f"Eksik alanlar: {', '.join(missing)}", "error")
@@ -2541,6 +2722,7 @@ def add_service_log(public_id: str):
                 equipment_presets=EQUIPMENT_PRESETS,
                 companies=company_choices,
                 asset_categories=asset_categories,
+                asset_profile=asset_profile,
             )
 
         try:
@@ -2559,11 +2741,12 @@ def add_service_log(public_id: str):
                 equipment_presets=EQUIPMENT_PRESETS,
                 companies=company_choices,
                 asset_categories=asset_categories,
+                asset_profile=asset_profile,
             )
 
         now = datetime.now().isoformat(timespec="seconds")
-        inspection_values = build_monthly_inspection_values(request.form)
-        control_values = build_control_form_values(request.form)
+        inspection_values = build_monthly_inspection_values(request.form, asset_profile["monthly_control_items"])
+        control_values = build_control_form_values(request.form) if asset_profile["control_form_items"] else build_control_form_values({})
         with engine.begin() as connection:
             connection.execute(
                 insert(service_logs).values(
@@ -2592,8 +2775,8 @@ def add_service_log(public_id: str):
                     or extinguisher["extinguisher_type"],
                     fire_class=form.get("fire_class") or extinguisher.get("fire_class"),
                     manufacturer=form.get("manufacturer") or extinguisher.get("manufacturer"),
-                    hydrostatic_test_date=form.get("hydrostatic_test_date") or extinguisher.get("hydrostatic_test_date"),
-                    pressure_status=form.get("pressure_status"),
+                    hydrostatic_test_date=(form.get("hydrostatic_test_date") or extinguisher.get("hydrostatic_test_date")) if asset_profile["show_hydrostatic"] else None,
+                    pressure_status=form.get("pressure_status") if asset_profile["show_pressure"] else None,
                     notes=form.get("notes"),
                     last_service_date=form["service_date"],
                     next_service_date=form["next_service_date"],
@@ -2630,12 +2813,14 @@ def add_service_log(public_id: str):
         equipment_presets=EQUIPMENT_PRESETS,
         companies=company_choices,
         asset_categories=asset_categories,
+        asset_profile=asset_profile,
     )
 
 
 @app.route("/public/<public_id>")
 def public_detail(public_id: str):
     extinguisher = get_extinguisher(public_id)
+    asset_profile = get_asset_profile(extinguisher.get("asset_category"))
     company_portal_url = None
     if extinguisher.get("company_id"):
         company_portal_url = url_for(
@@ -2666,7 +2851,7 @@ def public_detail(public_id: str):
         )
     )
     latest_monthly_inspection = (
-        with_monthly_control_labels([latest_monthly_inspection_raw])[0]
+        with_monthly_control_labels([latest_monthly_inspection_raw], asset_profile["monthly_control_items"])[0]
         if latest_monthly_inspection_raw
         else None
     )
@@ -2676,8 +2861,9 @@ def public_detail(public_id: str):
         latest_log=latest_log,
         latest_monthly_inspection=latest_monthly_inspection,
         equipment_preset=get_equipment_preset(extinguisher.get("extinguisher_type")),
-        monthly_table=build_monthly_table(monthly_history_raw),
+        monthly_table=build_monthly_table(monthly_history_raw, asset_profile["monthly_control_items"]),
         company_portal_url=company_portal_url,
+        asset_profile=asset_profile,
     )
 
 
@@ -2685,6 +2871,7 @@ def public_detail(public_id: str):
 @login_required
 def add_monthly_inspection(public_id: str):
     extinguisher = get_extinguisher(public_id)
+    asset_profile = get_asset_profile(extinguisher.get("asset_category"))
     if request.method == "POST":
         form = parse_required_form(request.form)
         form["inspector_name"] = form.get("inspector_name") or current_user_full_name()
@@ -2698,14 +2885,15 @@ def add_monthly_inspection(public_id: str):
             return render_template(
                 "monthly_inspection_form.html",
                 extinguisher=extinguisher,
-                monthly_control_items=MONTHLY_CONTROL_ITEMS,
-                control_form_items=CONTROL_FORM_ITEMS,
+                monthly_control_items=asset_profile["monthly_control_items"],
+                control_form_items=asset_profile["control_form_items"],
                 form=form,
+                asset_profile=asset_profile,
             )
 
         now = datetime.now().isoformat(timespec="seconds")
-        inspection_values = build_monthly_inspection_values(request.form)
-        control_values = build_control_form_values(request.form)
+        inspection_values = build_monthly_inspection_values(request.form, asset_profile["monthly_control_items"])
+        control_values = build_control_form_values(request.form) if asset_profile["control_form_items"] else build_control_form_values({})
         with engine.begin() as connection:
             save_monthly_inspection(
                 connection=connection,
@@ -2724,9 +2912,10 @@ def add_monthly_inspection(public_id: str):
     return render_template(
         "monthly_inspection_form.html",
         extinguisher=extinguisher,
-        monthly_control_items=MONTHLY_CONTROL_ITEMS,
-        control_form_items=CONTROL_FORM_ITEMS,
+        monthly_control_items=asset_profile["monthly_control_items"],
+        control_form_items=asset_profile["control_form_items"],
         form={"inspector_name": current_user_full_name()},
+        asset_profile=asset_profile,
     )
 
 

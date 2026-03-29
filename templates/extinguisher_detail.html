@@ -11,7 +11,9 @@
         <div class="button-row">
           <a class="button secondary" href="{{ url_for('add_service_log', public_id=extinguisher.public_id) }}">Bakim Guncelle</a>
           <a class="button secondary" href="{{ url_for('add_monthly_inspection', public_id=extinguisher.public_id) }}">Aylik Kontrol Ekle</a>
-          <a class="button secondary" href="{{ url_for('control_form_preview', public_id=extinguisher.public_id) }}">Kontrol Formu Onizleme</a>
+          {% if asset_profile.control_form_enabled %}
+            <a class="button secondary" href="{{ url_for('control_form_preview', public_id=extinguisher.public_id) }}">Kontrol Formu Onizleme</a>
+          {% endif %}
         </div>
       </div>
 
@@ -19,15 +21,19 @@
         <div><strong>Seri No</strong><span>{{ extinguisher.serial_number }}</span></div>
         <div><strong>Urun Grubu</strong><span>{{ extinguisher.asset_category or "Yangin Sondurme Cihazi" }}</span></div>
         <div><strong>Kg</strong><span>{{ extinguisher.weight_kg }}</span></div>
-        <div><strong>Tip</strong><span>{{ extinguisher.extinguisher_type }}</span></div>
-        <div><strong>YSC Sinifi</strong><span>{{ extinguisher.fire_class or "-" }}</span></div>
-        <div><strong>YSC Uretici</strong><span>{{ extinguisher.manufacturer or "-" }}</span></div>
-        <div><strong>Son Bakim</strong><span>{{ extinguisher.last_service_date }}</span></div>
-        <div><strong>Sonraki Bakim</strong><span>{{ extinguisher.next_service_date }}</span></div>
-        <div><strong>Basinç</strong><span>{{ extinguisher.pressure_status or "-" }}</span></div>
-        <div><strong>Hidrostatik Test</strong><span>{{ extinguisher.hydrostatic_test_date or "-" }}</span></div>
+        <div><strong>{{ asset_profile.type_label }}</strong><span>{{ extinguisher.extinguisher_type }}</span></div>
+        <div><strong>{{ asset_profile.class_label }}</strong><span>{{ extinguisher.fire_class or "-" }}</span></div>
+        <div><strong>{{ asset_profile.brand_label }}</strong><span>{{ extinguisher.manufacturer or "-" }}</span></div>
+        <div><strong>{{ asset_profile.last_service_label }}</strong><span>{{ extinguisher.last_service_date }}</span></div>
+        <div><strong>{{ asset_profile.next_service_label }}</strong><span>{{ extinguisher.next_service_date }}</span></div>
+        {% if asset_profile.show_pressure %}
+          <div><strong>Basinç</strong><span>{{ extinguisher.pressure_status or "-" }}</span></div>
+        {% endif %}
+        {% if asset_profile.show_hydrostatic %}
+          <div><strong>Hidrostatik Test</strong><span>{{ extinguisher.hydrostatic_test_date or "-" }}</span></div>
+        {% endif %}
         <div><strong>Muayene Adresi</strong><span>{{ extinguisher.company_address or "-" }}</span></div>
-        <div><strong>Firma Yetkilisi</strong><span>{{ extinguisher.company_contact or "-" }}</span></div>
+        <div><strong>{{ asset_profile.owner_label }}</strong><span>{{ extinguisher.company_contact or "-" }}</span></div>
       </div>
 
       <div class="qr-box">
@@ -76,7 +82,9 @@
             <strong>{{ log.service_date }}</strong>
             <span>{{ log.technician_name }}</span>
             <p>{{ log.operation_summary }}</p>
-            <small>Basinç: {{ log.pressure_status or "-" }}</small>
+            {% if asset_profile.show_pressure %}
+              <small>Basinç: {{ log.pressure_status or "-" }}</small>
+            {% endif %}
             {% if log.notes %}
               <small>Not: {{ log.notes }}</small>
             {% endif %}
