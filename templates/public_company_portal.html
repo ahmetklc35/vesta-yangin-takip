@@ -20,7 +20,7 @@
           {% for section in sections %}
             <a
               class="portal-category-card {% if selected_category and selected_category.slug == section.slug %}is-active{% endif %}"
-              href="{{ url_for('public_company_assets', company_public_id=company.public_id, category_slug=section.slug) }}"
+              href="{{ url_for('public_company_assets', company_slug=company.slug, category_slug=section.slug) }}"
             >
               <strong>{{ section.label }}</strong>
               <span>{{ section.count }} kayit</span>

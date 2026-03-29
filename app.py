@@ -4,6 +4,8 @@ import io
 import json
 import os
 import tempfile
+import re
+import unicodedata
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -203,6 +205,7 @@ companies = Table(
     metadata,
     Column("id", Integer, primary_key=True),
     Column("public_id", String(32), nullable=False, unique=True),
+    Column("slug", String(255), nullable=False, unique=True),
     Column("name", String(255), nullable=False, unique=True),
     Column("address", String(255), nullable=False),
     Column("contact_name", String(255), nullable=False),
@@ -370,6 +373,7 @@ def run_schema_migrations() -> None:
                         CREATE TABLE companies (
                             id INTEGER PRIMARY KEY,
                             public_id VARCHAR(32) NOT NULL UNIQUE,
+                            slug VARCHAR(255) NOT NULL UNIQUE,
                             name VARCHAR(255) NOT NULL UNIQUE,
                             address VARCHAR(255) NOT NULL,
                             contact_name VARCHAR(255) NOT NULL,
@@ -403,6 +407,8 @@ def run_schema_migrations() -> None:
             }
             if "public_id" not in company_columns:
                 connection.execute(text("ALTER TABLE companies ADD COLUMN public_id TEXT"))
+            if "slug" not in company_columns:
+                connection.execute(text("ALTER TABLE companies ADD COLUMN slug TEXT"))
 
             inspection_columns = {
                 row[1] for row in connection.execute(text("PRAGMA table_info(monthly_inspections)")).fetchall()
@@ -430,6 +436,7 @@ def run_schema_migrations() -> None:
                         CREATE TABLE companies (
                             id SERIAL PRIMARY KEY,
                             public_id VARCHAR(32) NOT NULL UNIQUE,
+                            slug VARCHAR(255) NOT NULL UNIQUE,
                             name VARCHAR(255) NOT NULL UNIQUE,
                             address VARCHAR(255) NOT NULL,
                             contact_name VARCHAR(255) NOT NULL,
@@ -476,6 +483,17 @@ def run_schema_migrations() -> None:
             ).fetchone()
             if result is None:
                 connection.execute(text("ALTER TABLE companies ADD COLUMN public_id TEXT"))
+            result = connection.execute(
+                text(
+                    """
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = 'companies' AND column_name = 'slug'
+                    """
+                )
+            ).fetchone()
+            if result is None:
+                connection.execute(text("ALTER TABLE companies ADD COLUMN slug TEXT"))
             for column_name in ["check_a", "check_b", "check_c", "check_d", "check_e", "check_f", "check_g"]:
                 result = connection.execute(
                     text(
@@ -496,8 +514,8 @@ def seed_companies_from_extinguishers() -> None:
     now = datetime.now().isoformat(timespec="seconds")
     with engine.begin() as connection:
         company_rows = {
-            row.name: {"id": row.id, "public_id": row.public_id}
-            for row in connection.execute(select(companies.c.id, companies.c.name, companies.c.public_id)).all()
+            row.name: {"id": row.id, "public_id": row.public_id, "slug": row.slug}
+            for row in connection.execute(select(companies.c.id, companies.c.name, companies.c.public_id, companies.c.slug)).all()
         }
         extinguisher_rows = connection.execute(
             select(
@@ -517,6 +535,7 @@ def seed_companies_from_extinguishers() -> None:
                 result = connection.execute(
                     insert(companies).values(
                         public_id=uuid.uuid4().hex[:12],
+                        slug=build_unique_company_slug(connection, company_name),
                         name=company_name,
                         address=(row.get("company_address") or "-").strip() or "-",
                         contact_name=(row.get("company_contact") or "-").strip() or "-",
@@ -525,7 +544,7 @@ def seed_companies_from_extinguishers() -> None:
                     )
                 )
                 company_id = result.inserted_primary_key[0]
-                company_rows[company_name] = {"id": company_id, "public_id": None}
+                company_rows[company_name] = {"id": company_id, "public_id": None, "slug": None}
             else:
                 company_id = company_info["id"]
             if row.get("company_id") != company_id:
@@ -535,16 +554,21 @@ def seed_companies_from_extinguishers() -> None:
                     .values(company_id=company_id)
                 )
         existing_companies = connection.execute(
-            select(companies.c.id, companies.c.public_id)
+            select(companies.c.id, companies.c.public_id, companies.c.slug, companies.c.name)
         ).mappings().all()
         for company in existing_companies:
-            if company.get("public_id"):
-                continue
-            connection.execute(
-                update(companies)
-                .where(companies.c.id == company["id"])
-                .values(public_id=uuid.uuid4().hex[:12], updated_at=now)
-            )
+            values = {}
+            if not company.get("public_id"):
+                values["public_id"] = uuid.uuid4().hex[:12]
+            if not company.get("slug"):
+                values["slug"] = build_unique_company_slug(connection, company["name"], exclude_id=company["id"])
+            if values:
+                values["updated_at"] = now
+                connection.execute(
+                    update(companies)
+                    .where(companies.c.id == company["id"])
+                    .values(**values)
+                )
 
 
 def seed_asset_categories() -> None:
@@ -561,12 +585,6 @@ def seed_asset_categories() -> None:
                 .where(extinguishers.c.id == row["id"])
                 .values(asset_category=DEFAULT_ASSET_CATEGORY, updated_at=now)
             )
-
-
-run_schema_migrations()
-seed_default_users()
-seed_companies_from_extinguishers()
-seed_asset_categories()
 
 
 def is_authenticated() -> bool:
@@ -668,6 +686,13 @@ def get_company_by_public_id(public_id: str) -> dict:
     return company
 
 
+def get_company_by_slug(slug: str) -> dict:
+    company = fetch_one(select(companies).where(companies.c.slug == slug))
+    if company is None:
+        abort(404)
+    return company
+
+
 def get_company_choices() -> list[dict]:
     return fetch_all(select(companies).order_by(companies.c.name))
 
@@ -682,6 +707,31 @@ def get_asset_category(slug: str | None = None, *, label: str | None = None) -> 
     if label:
         return ASSET_CATEGORY_BY_LABEL.get(label)
     return None
+
+
+def slugify_company_name(value: str) -> str:
+    normalized = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
+    slug = re.sub(r"[^a-zA-Z0-9]+", "-", normalized.lower()).strip("-")
+    return slug or "firma"
+
+
+def build_unique_company_slug(connection, name: str, exclude_id: int | None = None) -> str:
+    base_slug = slugify_company_name(name)
+    slug = base_slug
+    index = 2
+    while True:
+        statement = select(companies.c.id).where(companies.c.slug == slug)
+        row = connection.execute(statement).first()
+        if row is None or (exclude_id is not None and row.id == exclude_id):
+            return slug
+        slug = f"{base_slug}-{index}"
+        index += 1
+
+
+run_schema_migrations()
+seed_default_users()
+seed_companies_from_extinguishers()
+seed_asset_categories()
 
 
 def build_company_portal_sections(company_id: int) -> list[dict]:
@@ -1926,6 +1976,7 @@ def create_company():
             connection.execute(
                 insert(companies).values(
                     public_id=uuid.uuid4().hex[:12],
+                    slug=build_unique_company_slug(connection, name),
                     name=name,
                     address=address,
                     contact_name="-",
@@ -1954,11 +2005,13 @@ def update_company(company_id: int):
     now = datetime.now().isoformat(timespec="seconds")
     try:
         with engine.begin() as connection:
+            slug = build_unique_company_slug(connection, name, exclude_id=company_id)
             connection.execute(
                 update(companies)
                 .where(companies.c.id == company_id)
                 .values(
                     public_id=company.get("public_id") or uuid.uuid4().hex[:12],
+                    slug=slug,
                     name=name,
                     address=address,
                     contact_name=company.get("contact_name") or "-",
@@ -2253,7 +2306,7 @@ def extinguisher_detail(public_id: str):
         company = get_company(extinguisher["company_id"])
         company_portal_url = url_for(
             "public_company_portal",
-            company_public_id=company["public_id"],
+            company_slug=company["slug"],
             _external=True,
         )
     service_history = fetch_all(
@@ -2309,9 +2362,9 @@ def public_control_form_pdf(public_id: str):
     )
 
 
-@app.route("/firma/<company_public_id>")
-def public_company_portal(company_public_id: str):
-    company = get_company_by_public_id(company_public_id)
+@app.route("/firma/<company_slug>")
+def public_company_portal(company_slug: str):
+    company = get_company_by_slug(company_slug)
     sections = build_company_portal_sections(company["id"])
     return render_template(
         "public_company_portal.html",
@@ -2322,9 +2375,9 @@ def public_company_portal(company_public_id: str):
     )
 
 
-@app.route("/firma/<company_public_id>/<category_slug>")
-def public_company_assets(company_public_id: str, category_slug: str):
-    company = get_company_by_public_id(company_public_id)
+@app.route("/firma/<company_slug>/<category_slug>")
+def public_company_assets(company_slug: str, category_slug: str):
+    company = get_company_by_slug(company_slug)
     selected_category = get_asset_category(slug=category_slug)
     if selected_category is None:
         abort(404)
@@ -2496,7 +2549,7 @@ def public_detail(public_id: str):
     if extinguisher.get("company_id"):
         company_portal_url = url_for(
             "public_company_portal",
-            company_public_id=get_company(extinguisher["company_id"])["public_id"],
+            company_slug=get_company(extinguisher["company_id"])["slug"],
         )
     latest_log = fetch_one(
         select(service_logs)

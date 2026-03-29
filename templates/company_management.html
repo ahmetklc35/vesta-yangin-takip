@@ -43,7 +43,7 @@
           </label>
           <label class="full">
             Firma portali linki
-            <input type="text" value="{{ url_for('public_company_portal', company_public_id=company.public_id, _external=True) }}" readonly>
+            <input type="text" value="{{ url_for('public_company_portal', company_slug=company.slug, _external=True) }}" readonly>
           </label>
           <div class="full form-actions">
             <button type="submit" class="button button-secondary">Guncelle</button>
