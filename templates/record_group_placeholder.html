@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="card form-card">
+    <div class="section-head">
+      <div>
+        <h1>{{ group.label }}</h1>
+        <p class="muted">{{ group.description }}</p>
+      </div>
+    </div>
+
+    <section class="note-box">
+      <h2>Siradaki Adim</h2>
+      <p>Bu urun grubu icin ayri form akisini baglayacagiz. Mevcut YSC ekranina dokunmadan bu gruba ozel alanlari ve kontrol maddelerini tanimlayacagiz.</p>
+      <p>
+        <a class="button secondary" href="{{ url_for('record_group_picker') }}">Urun Grubunu Degistir</a>
+      </p>
+    </section>
+  </section>
+{% endblock %}

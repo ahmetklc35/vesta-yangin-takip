@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="card form-card">
+    <div class="section-head">
+      <div>
+        <h1>Yeni Kayit</h1>
+        <p class="muted">Once kaydedecegimiz urun grubunu secelim. Yangin sondurme cihazlari mevcut ekranla devam edecek.</p>
+      </div>
+    </div>
+
+    <section class="group-picker-grid">
+      {% for group in groups %}
+        <a class="group-picker-card" href="{{ url_for('record_group_entry', group_slug=group.slug) }}">
+          <div class="group-picker-head">
+            <strong>{{ group.label }}</strong>
+            {% if group.status == 'active' %}
+              <span class="group-status active">Hazir</span>
+            {% else %}
+              <span class="group-status planned">Sirada</span>
+            {% endif %}
+          </div>
+          <p>{{ group.description }}</p>
+        </a>
+      {% endfor %}
+    </section>
+  </section>
+{% endblock %}

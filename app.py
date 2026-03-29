@@ -111,6 +111,63 @@ ASSET_CATEGORIES = [
 DEFAULT_ASSET_CATEGORY = ASSET_CATEGORIES[0]["label"]
 ASSET_CATEGORY_BY_SLUG = {item["slug"]: item for item in ASSET_CATEGORIES}
 ASSET_CATEGORY_BY_LABEL = {item["label"]: item for item in ASSET_CATEGORIES}
+REGISTRATION_GROUPS = [
+    {
+        "slug": "yangin-sondurme-cihazi",
+        "label": "Yangin Sondurme Cihazi",
+        "description": "Mevcut calisan YSC kayit ekranini kullanir.",
+        "status": "active",
+    },
+    {
+        "slug": "yangin-elbisesi",
+        "label": "Yangin Elbisesi",
+        "description": "Elbise kontrol formuna uygun kayit yapisi hazirlaniyor.",
+        "status": "planned",
+    },
+    {
+        "slug": "yangin-bareti",
+        "label": "Yangin Bareti",
+        "description": "Baret kontrol formuna uygun kayit yapisi hazirlaniyor.",
+        "status": "planned",
+    },
+    {
+        "slug": "yangin-baltasi",
+        "label": "Yangin Baltasi",
+        "description": "Balta kontrol formuna uygun kayit yapisi hazirlaniyor.",
+        "status": "planned",
+    },
+    {
+        "slug": "scba",
+        "label": "SCBA",
+        "description": "Bagimsiz solunum cihazi kayit akisi hazirlaniyor.",
+        "status": "planned",
+    },
+    {
+        "slug": "eebd",
+        "label": "EEBD",
+        "description": "Acil kacis seti icin ayri kayit akisi hazirlaniyor.",
+        "status": "planned",
+    },
+    {
+        "slug": "hava-tupu",
+        "label": "Hava Tupu",
+        "description": "Basincli hava solunum tupu formu ayri baglanacak.",
+        "status": "planned",
+    },
+    {
+        "slug": "yangin-sondurme-dolabi",
+        "label": "Yangin Sondurme Dolabi",
+        "description": "Dolap kontrol formu farkli tablo yapisiyla baglanacak.",
+        "status": "planned",
+    },
+    {
+        "slug": "kopuklu-yangin-sondurme-dolabi",
+        "label": "Kopuklu Yangin Sondurme Dolabi",
+        "description": "Kopuklu dolap icin ayri kontrol akisi baglanacak.",
+        "status": "planned",
+    },
+]
+REGISTRATION_GROUP_BY_SLUG = {item["slug"]: item for item in REGISTRATION_GROUPS}
 EQUIPMENT_PRESETS = {
     "Kopuk": {
         "title": "Taşınılabilir Yangın Söndürücü, 9 Litre Köpük",
@@ -770,6 +827,10 @@ def build_company_portal_sections(company_id: int) -> list[dict]:
             }
         )
     return sections
+
+
+def get_registration_groups() -> list[dict]:
+    return REGISTRATION_GROUPS
 
 
 def sync_company_payload_from_selection(form: dict[str, str]) -> tuple[dict[str, str], dict]:
@@ -2301,6 +2362,29 @@ def create_extinguisher():
         equipment_presets=EQUIPMENT_PRESETS,
         companies=company_choices,
         asset_categories=asset_categories,
+    )
+
+
+@app.route("/records/new")
+@login_required
+def record_group_picker():
+    return render_template(
+        "record_group_picker.html",
+        groups=get_registration_groups(),
+    )
+
+
+@app.route("/records/new/<group_slug>")
+@login_required
+def record_group_entry(group_slug: str):
+    group = REGISTRATION_GROUP_BY_SLUG.get(group_slug)
+    if group is None:
+        abort(404)
+    if group_slug == "yangin-sondurme-cihazi":
+        return redirect(url_for("create_extinguisher"))
+    return render_template(
+        "record_group_placeholder.html",
+        group=group,
     )
 
 
