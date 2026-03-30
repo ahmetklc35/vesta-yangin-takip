@@ -250,6 +250,75 @@ CONTROL_FORM_ITEMS = [
     ("check_f", "f) NOZUL UYGUNLUĞU (PASLANMA VB.)"),
     ("check_g", "g) BASINÇ GÖSTERGESİ İŞLEVSELLİĞİ"),
 ]
+ELECTRICAL_NOTE_SECTIONS = [
+    (
+        "Firma Bilgileri",
+        [
+            "ISG-KATIP Sozlesme ID",
+            "SGK Sicil Numarasi",
+            "Periyodik Kontrol Metodu ve Kapsami",
+        ],
+    ),
+    (
+        "Detay Bilgiler",
+        [
+            "Tesise ait proje var mi",
+            "Tek hat semasi var mi",
+            "Kontrol nedeni",
+            "Topraklayici tipi",
+            "Yapi cinsi",
+            "Son kontrol tarihi",
+            "Faz iletkenlerinin sayisi ve tipi",
+            "Temel topraklama direnci",
+            "Ilave topraklama elektrotu detaylari",
+            "Sistem topraklama iletkeni ve kesiti",
+            "Ana espotansiyel iletkeni ve kesiti",
+            "Besleme kaynagi karakteristikleri",
+            "Ana RCD anma akimi",
+            "Ana kesici karakteristikleri",
+            "Ana RCD test akimi ve suresi",
+        ],
+    ),
+    (
+        "Tespit Edilen Bilgiler",
+        [
+            "Tesisatta kapsamli degisiklik var mi (>%20)",
+            "Asiri gerilim koruma cihazlari kullanilmis mi",
+            "Dogrudan dokunmaya karsi koruma onlemleri",
+            "Bir onceki periyodik kontrol etiketi var mi",
+            "Tespit edilen bilgiler",
+        ],
+    ),
+    (
+        "Termal Kamera ve Olcum Aletleri",
+        [
+            "Termal Kamera 1",
+            "Termal Kamera 2",
+            "Olcum Aleti 1",
+            "Olcum Aleti 2",
+            "Termal fotograf tarihi",
+            "Termal fotograf no",
+            "Kontak gevsakligi isinmasi",
+            "Asiri yuk isinmasi",
+        ],
+    ),
+    (
+        "Test ve Sonuc",
+        [
+            "Kontrol Kriterleri ve Testler",
+            "Olcum ve Dogrulama Metodu",
+            "6.1 Notlari",
+            "6.2 Notlari",
+            "6.3 Notlari",
+            "Kusur Aciklamalari",
+            "Ekipman Fotograflari",
+            "Genel Notlar",
+            "Sonuc ve Kanaat",
+            "Yetkili Kisi",
+            "Nusha Sayisi",
+        ],
+    ),
+]
 FIRE_SUIT_CONTROL_ITEMS = [
     ("item_1", "17. Y .1001.A.1 Gorsel Kumas Kontrol yapildi"),
     ("item_2", "17. Y .1001.A.2 Fonksiyonel Fermuar, Cirt cirtlar ve Dugmeler kontrol edildi"),
@@ -1090,6 +1159,33 @@ def parse_float(value: str, field_name: str) -> float:
 
 def parse_required_form(form: dict[str, str]) -> dict[str, str]:
     return {key: value.strip() for key, value in form.items()}
+
+
+def parse_structured_notes(notes: str | None) -> dict[str, str]:
+    parsed: dict[str, str] = {}
+    if not notes:
+        return parsed
+    for raw_line in notes.splitlines():
+        line = raw_line.strip()
+        if not line or ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        parsed[key.strip()] = value.strip()
+    return parsed
+
+
+def build_electrical_note_sections(notes: str | None) -> list[dict]:
+    parsed = parse_structured_notes(notes)
+    sections: list[dict] = []
+    for title, keys in ELECTRICAL_NOTE_SECTIONS:
+        items = []
+        for key in keys:
+            value = parsed.get(key)
+            if value:
+                items.append({"label": key, "value": value})
+        if items:
+            sections.append({"title": title, "items": items})
+    return sections
 
 
 def get_extinguisher(public_id: str) -> dict:
@@ -3168,6 +3264,11 @@ def record_group_entry(group_slug: str):
 def extinguisher_detail(public_id: str):
     extinguisher = get_extinguisher(public_id)
     asset_profile = get_asset_profile(extinguisher.get("asset_category"))
+    electrical_sections = (
+        build_electrical_note_sections(extinguisher.get("notes"))
+        if extinguisher.get("asset_category") == "Elektrik Ic Tesisati"
+        else []
+    )
     company_portal_url = None
     if extinguisher.get("company_id"):
         company = get_company(extinguisher["company_id"])
@@ -3201,6 +3302,7 @@ def extinguisher_detail(public_id: str):
         equipment_preset=get_equipment_preset(extinguisher.get("extinguisher_type")),
         company_portal_url=company_portal_url,
         asset_profile=asset_profile,
+        electrical_sections=electrical_sections,
     )
 
 
@@ -3428,6 +3530,11 @@ def add_service_log(public_id: str):
 def public_detail(public_id: str):
     extinguisher = get_extinguisher(public_id)
     asset_profile = get_asset_profile(extinguisher.get("asset_category"))
+    electrical_sections = (
+        build_electrical_note_sections(extinguisher.get("notes"))
+        if extinguisher.get("asset_category") == "Elektrik Ic Tesisati"
+        else []
+    )
     company_portal_url = None
     if extinguisher.get("company_id"):
         company_portal_url = url_for(
@@ -3471,6 +3578,7 @@ def public_detail(public_id: str):
         monthly_table=build_monthly_table(monthly_history_raw, asset_profile["monthly_control_items"]),
         company_portal_url=company_portal_url,
         asset_profile=asset_profile,
+        electrical_sections=electrical_sections,
     )
 
 

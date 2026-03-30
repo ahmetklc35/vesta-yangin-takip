@@ -61,6 +61,17 @@
           </section>
         {% endif %}
 
+        {% if electrical_sections %}
+          {% for section in electrical_sections %}
+            <section class="note-box">
+              <h2>{{ section.title }}</h2>
+              {% for item in section.items %}
+                <p><strong>{{ item.label }}:</strong> {{ item.value }}</p>
+              {% endfor %}
+            </section>
+          {% endfor %}
+        {% endif %}
+
         {% if latest_monthly_inspection %}
           <section class="note-box">
             <h2>Son Aylik Kontrol</h2>
