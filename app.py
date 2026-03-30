@@ -3303,7 +3303,66 @@ def extinguisher_detail(public_id: str):
         company_portal_url=company_portal_url,
         asset_profile=asset_profile,
         electrical_sections=electrical_sections,
+        can_delete=is_admin_user(),
     )
+
+
+@app.route("/extinguishers/<public_id>/delete", methods=["POST"])
+@admin_required
+def delete_extinguisher(public_id: str):
+    extinguisher = get_extinguisher(public_id)
+    with engine.begin() as connection:
+        connection.execute(
+            service_logs.delete().where(service_logs.c.extinguisher_id == extinguisher["id"])
+        )
+        connection.execute(
+            monthly_inspections.delete().where(monthly_inspections.c.extinguisher_id == extinguisher["id"])
+        )
+        connection.execute(
+            extinguishers.delete().where(extinguishers.c.id == extinguisher["id"])
+        )
+    flash("Kayit silindi.", "success")
+    return redirect(url_for("index"))
+
+
+@app.route("/extinguishers/<public_id>/service/<int:log_id>/delete", methods=["POST"])
+@admin_required
+def delete_service_log(public_id: str, log_id: int):
+    extinguisher = get_extinguisher(public_id)
+    target_log = fetch_one(
+        select(service_logs).where(
+            service_logs.c.id == log_id,
+            service_logs.c.extinguisher_id == extinguisher["id"],
+        )
+    )
+    if target_log is None:
+        abort(404)
+    with engine.begin() as connection:
+        connection.execute(
+            service_logs.delete().where(service_logs.c.id == log_id)
+        )
+    flash("Bakim kaydi silindi.", "success")
+    return redirect(url_for("extinguisher_detail", public_id=public_id))
+
+
+@app.route("/extinguishers/<public_id>/monthly-inspection/<int:inspection_id>/delete", methods=["POST"])
+@admin_required
+def delete_monthly_inspection(public_id: str, inspection_id: int):
+    extinguisher = get_extinguisher(public_id)
+    target_inspection = fetch_one(
+        select(monthly_inspections).where(
+            monthly_inspections.c.id == inspection_id,
+            monthly_inspections.c.extinguisher_id == extinguisher["id"],
+        )
+    )
+    if target_inspection is None:
+        abort(404)
+    with engine.begin() as connection:
+        connection.execute(
+            monthly_inspections.delete().where(monthly_inspections.c.id == inspection_id)
+        )
+    flash("Aylik kontrol kaydi silindi.", "success")
+    return redirect(url_for("extinguisher_detail", public_id=public_id))
 
 
 @app.route("/extinguishers/<public_id>/control-form.pdf")

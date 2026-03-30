@@ -14,6 +14,11 @@
           {% if asset_profile.control_form_enabled %}
             <a class="button secondary" href="{{ url_for('control_form_preview', public_id=extinguisher.public_id) }}">Kontrol Formu Onizleme</a>
           {% endif %}
+          {% if can_delete %}
+            <form method="post" action="{{ url_for('delete_extinguisher', public_id=extinguisher.public_id) }}" onsubmit="return confirm('Bu ana kaydi ve bagli tum bakim/kontrol gecmisini silmek istiyor musun?');">
+              <button type="submit" class="button danger">Kaydi Sil</button>
+            </form>
+          {% endif %}
         </div>
       </div>
 
@@ -101,6 +106,11 @@
             {% if log.notes %}
               <small>Not: {{ log.notes }}</small>
             {% endif %}
+            {% if can_delete %}
+              <form method="post" action="{{ url_for('delete_service_log', public_id=extinguisher.public_id, log_id=log.id) }}" onsubmit="return confirm('Bu bakim kaydini silmek istiyor musun?');">
+                <button type="submit" class="button tertiary">Bakimi Sil</button>
+              </form>
+            {% endif %}
           </div>
         {% endfor %}
       </div>
@@ -129,6 +139,11 @@
               </div>
               {% if inspection.notes %}
                 <small>Not: {{ inspection.notes }}</small>
+              {% endif %}
+              {% if can_delete %}
+                <form method="post" action="{{ url_for('delete_monthly_inspection', public_id=extinguisher.public_id, inspection_id=inspection.id) }}" onsubmit="return confirm('Bu aylik kontrol kaydini silmek istiyor musun?');">
+                  <button type="submit" class="button tertiary">Kontrolu Sil</button>
+                </form>
               {% endif %}
             </div>
           {% endfor %}
