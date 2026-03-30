@@ -69,9 +69,9 @@
       {% if electrical_sections %}
         {% for section in electrical_sections %}
           <section class="note-box">
-            <h2>{{ section.title }}</h2>
-            {% for item in section.items %}
-              <p><strong>{{ item.label }}:</strong> {{ item.value }}</p>
+            <h2>{{ section["title"] }}</h2>
+            {% for item in section["items"] %}
+              <p><strong>{{ item["label"] }}:</strong> {{ item["value"] }}</p>
             {% endfor %}
           </section>
         {% endfor %}
