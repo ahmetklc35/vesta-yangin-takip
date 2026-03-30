@@ -132,6 +132,11 @@ ASSET_CATEGORIES = [
         "label": "Yangin Hidranti",
         "description": "Yangin hidrant periyodik kontrol kayitlarini goruntule.",
     },
+    {
+        "slug": "elektrik-ic-tesisati",
+        "label": "Elektrik Ic Tesisati",
+        "description": "Elektrik ic tesisati periyodik kontrol raporlarini goruntule.",
+    },
 ]
 DEFAULT_ASSET_CATEGORY = ASSET_CATEGORIES[0]["label"]
 ASSET_CATEGORY_BY_SLUG = {item["slug"]: item for item in ASSET_CATEGORIES}
@@ -195,6 +200,12 @@ REGISTRATION_GROUPS = [
         "slug": "yangin-hidranti",
         "label": "Yangin Hidranti",
         "description": "Yangin hidranti periyodik kontrol kayit akisi.",
+        "status": "active",
+    },
+    {
+        "slug": "elektrik-ic-tesisati",
+        "label": "Elektrik Ic Tesisati",
+        "description": "Elektrik ic tesisati gozle kontrol ve fonksiyon testleri icin trial kayit akisi.",
         "status": "active",
     },
 ]
@@ -500,6 +511,24 @@ ASSET_PROFILES = {
         "control_form_enabled": False,
         "fixed_type": "Yangin Hidranti",
         "monthly_control_items": HYDRANT_CONTROL_ITEMS,
+        "control_form_items": [],
+    },
+    "Elektrik Ic Tesisati": {
+        "label": "Elektrik Ic Tesisati",
+        "type_label": "Rapor Tipi",
+        "class_label": "Sebeke Tipi",
+        "brand_label": "Enerji Saglayan Kurulus",
+        "owner_label": "Rapor Numarasi",
+        "last_service_label": "Rapor Tarihi",
+        "next_service_label": "Bir Sonraki Kontrol",
+        "service_input_label": "Rapor tarihi",
+        "next_service_input_label": "Bir sonraki periyodik kontrol tarihi",
+        "show_weight": False,
+        "show_pressure": False,
+        "show_hydrostatic": False,
+        "control_form_enabled": False,
+        "fixed_type": "Elektrik Ic Tesisati",
+        "monthly_control_items": [],
         "control_form_items": [],
     },
 }
@@ -1327,6 +1356,158 @@ def render_profile_record_form(group_slug: str):
         companies=company_choices,
         asset_profile=asset_profile,
         group=group,
+    )
+
+
+@app.route("/records/new/elektrik-ic-tesisati", methods=["GET", "POST"])
+@login_required
+def create_electrical_installation():
+    group = get_registration_group("elektrik-ic-tesisati")
+    asset_profile = get_asset_profile(group["label"])
+    company_choices = get_company_choices()
+
+    if request.method == "POST":
+        form = parse_required_form(request.form)
+        form["technician_name"] = current_user_full_name()
+        try:
+            form, selected_company = sync_company_payload_from_selection(form)
+        except ValueError as exc:
+            flash(str(exc), "error")
+            return render_template(
+                "create_electrical_installation.html",
+                form=form,
+                companies=company_choices,
+                group=group,
+                asset_profile=asset_profile,
+            )
+
+        required_fields = {
+            "company_id": "Cari secimi",
+            "report_number": "Rapor numarasi",
+            "company_address": "Periyodik kontrol adresi",
+            "report_date": "Rapor tarihi",
+            "control_start": "Periyodik kontrol baslangic tarihi ve saati",
+            "control_end": "Periyodik kontrol bitis tarihi ve saati",
+            "next_service_date": "Bir sonraki periyodik kontrol tarihi",
+            "energy_provider": "Enerji saglayan kurulus",
+            "grid_type": "Sebeke tipi",
+            "grid_voltage": "Sebeke gerilimi",
+            "equipment_usage_purpose": "Ekipmanin kullanim amaci",
+            "technician_name": "Teknisyen",
+        }
+        missing = [label for key, label in required_fields.items() if not form.get(key)]
+        if missing:
+            flash(f"Eksik alanlar: {', '.join(missing)}", "error")
+            return render_template(
+                "create_electrical_installation.html",
+                form=form,
+                companies=company_choices,
+                group=group,
+                asset_profile=asset_profile,
+            )
+
+        structured_notes = {
+            "isg_katip_id": form.get("isg_katip_id", ""),
+            "sgk_number": form.get("sgk_number", ""),
+            "control_method": form.get("control_method", ""),
+            "project_exists": form.get("project_exists", ""),
+            "single_line_schema": form.get("single_line_schema", ""),
+            "control_reason": form.get("control_reason", ""),
+            "grounder_type": form.get("grounder_type", ""),
+            "structure_type": form.get("structure_type", ""),
+            "last_control_date": form.get("last_control_date", ""),
+            "phase_conductor_type": form.get("phase_conductor_type", ""),
+            "ground_resistance": form.get("ground_resistance", ""),
+            "additional_ground_details": form.get("additional_ground_details", ""),
+            "system_ground_conductor": form.get("system_ground_conductor", ""),
+            "equipotential_conductor": form.get("equipotential_conductor", ""),
+            "supply_characteristics": form.get("supply_characteristics", ""),
+            "main_rcd_nominal": form.get("main_rcd_nominal", ""),
+            "main_switch_characteristics": form.get("main_switch_characteristics", ""),
+            "main_rcd_test": form.get("main_rcd_test", ""),
+            "findings": form.get("findings", ""),
+        }
+        note_lines = [
+            "Elektrik Ic Tesisati Trial Kaydi",
+            f"ISG-KATIP Sozlesme ID: {structured_notes['isg_katip_id'] or '-'}",
+            f"SGK Sicil Numarasi: {structured_notes['sgk_number'] or '-'}",
+            f"Periyodik Kontrol Metodu ve Kapsami: {structured_notes['control_method'] or '-'}",
+            f"Tesise ait proje var mi: {structured_notes['project_exists'] or '-'}",
+            f"Tek hat semasi var mi: {structured_notes['single_line_schema'] or '-'}",
+            f"Kontrol nedeni: {structured_notes['control_reason'] or '-'}",
+            f"Topraklayici tipi: {structured_notes['grounder_type'] or '-'}",
+            f"Yapi cinsi: {structured_notes['structure_type'] or '-'}",
+            f"Son kontrol tarihi: {structured_notes['last_control_date'] or '-'}",
+            f"Faz iletkenlerinin sayisi ve tipi: {structured_notes['phase_conductor_type'] or '-'}",
+            f"Temel topraklama direnci: {structured_notes['ground_resistance'] or '-'}",
+            f"Ilave topraklama elektrotu detaylari: {structured_notes['additional_ground_details'] or '-'}",
+            f"Sistem topraklama iletkeni ve kesiti: {structured_notes['system_ground_conductor'] or '-'}",
+            f"Ana espotansiyel iletkeni ve kesiti: {structured_notes['equipotential_conductor'] or '-'}",
+            f"Besleme kaynagi karakteristikleri: {structured_notes['supply_characteristics'] or '-'}",
+            f"Ana RCD anma akimi: {structured_notes['main_rcd_nominal'] or '-'}",
+            f"Ana kesici karakteristikleri: {structured_notes['main_switch_characteristics'] or '-'}",
+            f"Ana RCD test akimi ve suresi: {structured_notes['main_rcd_test'] or '-'}",
+            f"Tespit edilen bilgiler: {structured_notes['findings'] or '-'}",
+        ]
+
+        now = datetime.now().isoformat(timespec="seconds")
+        public_id = uuid.uuid4().hex[:12]
+        with engine.begin() as connection:
+            result = connection.execute(
+                insert(extinguishers).values(
+                    public_id=public_id,
+                    serial_number=form["report_number"],
+                    company_id=selected_company["id"],
+                    company_name=form["company_name"],
+                    company_address=form["company_address"],
+                    company_contact=form["report_number"],
+                    asset_category=group["label"],
+                    location_detail=form["company_address"],
+                    weight_kg=0.0,
+                    extinguisher_type="Elektrik Ic Tesisati",
+                    fire_class=form["grid_type"],
+                    manufacturer=form["energy_provider"],
+                    hydrostatic_test_date=None,
+                    pressure_status=None,
+                    notes="\n".join(note_lines),
+                    last_service_date=form["report_date"],
+                    next_service_date=form["next_service_date"],
+                    created_at=now,
+                    updated_at=now,
+                )
+            )
+            extinguisher_id = result.inserted_primary_key[0]
+            connection.execute(
+                insert(service_logs).values(
+                    extinguisher_id=extinguisher_id,
+                    service_date=form["report_date"],
+                    technician_name=form["technician_name"],
+                    operation_summary=(
+                        f"Elektrik ic tesisati periyodik kontrol raporu olusturuldu. "
+                        f"Baslangic: {form['control_start']} / Bitis: {form['control_end']} / "
+                        f"Kullanim amaci: {form['equipment_usage_purpose']}"
+                    ),
+                    pressure_status=None,
+                    notes=form.get("findings"),
+                    created_at=now,
+                )
+            )
+
+        flash("Elektrik ic tesisati trial kaydi olusturuldu.", "success")
+        return redirect(url_for("extinguisher_detail", public_id=public_id))
+
+    return render_template(
+        "create_electrical_installation.html",
+        form={
+            "technician_name": current_user_full_name(),
+            "control_method": (
+                "TS HD 60364-4-43, TS HD 60364-6, Is Ekipmanlarinin Kullaniminda Saglik ve Guvenlik "
+                "Sartlari Yonetmeligi, Elektrik Ic Tesisleri Yonetmeligi, Elektrik Tesislerinde Topraklamalar Yonetmeligi"
+            ),
+        },
+        companies=company_choices,
+        group=group,
+        asset_profile=asset_profile,
     )
 
 
@@ -2884,6 +3065,8 @@ def record_group_picker():
 @login_required
 def record_group_entry(group_slug: str):
     group = get_registration_group(group_slug)
+    if group_slug == "elektrik-ic-tesisati":
+        return create_electrical_installation()
     if group["status"] == "active":
         return render_profile_record_form(group_slug)
     return render_template(

@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="card form-card">
+    <div class="section-head">
+      <div>
+        <h1>Yeni {{ group.label }} Trial Kaydi</h1>
+        <p class="muted">Bu deneme ekranı, PDF’deki ilk sayfanın ana alanlarını sisteme taşımak için hazırlandı.</p>
+      </div>
+    </div>
+
+    <form method="post" class="grid-form">
+      <label>
+        Cari / Firma
+        <select name="company_id" id="company_id" required>
+          <option value="">Seciniz</option>
+          {% for company in companies %}
+            <option value="{{ company.id }}"
+                    data-company-address="{{ company.address }}"
+                    {% if form.get('company_id') == (company.id|string) %}selected{% endif %}>
+              {{ company.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        Rapor numarasi
+        <input type="text" name="report_number" value="{{ form.get('report_number', '') }}" required>
+      </label>
+      <label class="full">
+        Periyodik kontrol adresi
+        <input type="text" name="company_address" id="company_address" value="{{ form.get('company_address', '') }}" required>
+      </label>
+      <label>
+        Rapor tarihi
+        <input type="date" name="report_date" value="{{ form.get('report_date', '') }}" required>
+      </label>
+      <label>
+        ISG-KATIP Sozlesme ID
+        <input type="text" name="isg_katip_id" value="{{ form.get('isg_katip_id', '') }}">
+      </label>
+      <label>
+        Periyodik kontrol baslangic tarihi ve saati
+        <input type="text" name="control_start" value="{{ form.get('control_start', '') }}" placeholder="31.03.2026 09:00" required>
+      </label>
+      <label>
+        Periyodik kontrol bitis tarihi ve saati
+        <input type="text" name="control_end" value="{{ form.get('control_end', '') }}" placeholder="31.03.2026 11:00" required>
+      </label>
+      <label>
+        SGK Sicil numarasi
+        <input type="text" name="sgk_number" value="{{ form.get('sgk_number', '') }}">
+      </label>
+      <label>
+        Bir sonraki periyodik kontrol tarihi
+        <input type="date" name="next_service_date" value="{{ form.get('next_service_date', '') }}" required>
+      </label>
+      <label class="full">
+        Periyodik kontrol metodu ve kapsami
+        <textarea name="control_method" rows="3" required>{{ form.get('control_method', '') }}</textarea>
+      </label>
+
+      <section class="full checklist-card">
+        <h2>2.1 Detay Bilgiler</h2>
+      </section>
+
+      <label>
+        Enerji saglayan kurulus
+        <input type="text" name="energy_provider" value="{{ form.get('energy_provider', '') }}" required>
+      </label>
+      <label>
+        Sebeke tipi
+        <select name="grid_type" required>
+          <option value="">Seciniz</option>
+          {% for option in ['TT', 'IT', 'TN', 'TN-CS', 'TN-C', 'TN-S'] %}
+            <option value="{{ option }}" {% if form.get('grid_type') == option %}selected{% endif %}>{{ option }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        Sebeke gerilimi
+        <input type="text" name="grid_voltage" value="{{ form.get('grid_voltage', '') }}" placeholder="400/230 V" required>
+      </label>
+      <label>
+        Tesise ait proje var mi?
+        <select name="project_exists">
+          <option value="">Seciniz</option>
+          <option value="Var" {% if form.get('project_exists') == 'Var' %}selected{% endif %}>Var</option>
+          <option value="Yok" {% if form.get('project_exists') == 'Yok' %}selected{% endif %}>Yok</option>
+        </select>
+      </label>
+      <label>
+        Tek hat semasi var mi?
+        <select name="single_line_schema">
+          <option value="">Seciniz</option>
+          <option value="Var" {% if form.get('single_line_schema') == 'Var' %}selected{% endif %}>Var</option>
+          <option value="Yok" {% if form.get('single_line_schema') == 'Yok' %}selected{% endif %}>Yok</option>
+        </select>
+      </label>
+      <label>
+        Kontrol nedeni
+        <select name="control_reason">
+          <option value="">Seciniz</option>
+          <option value="Periyodik Kontrol" {% if form.get('control_reason') == 'Periyodik Kontrol' %}selected{% endif %}>Periyodik Kontrol</option>
+          <option value="Ilk Kontrol" {% if form.get('control_reason') == 'Ilk Kontrol' %}selected{% endif %}>Ilk Kontrol</option>
+        </select>
+      </label>
+      <label>
+        Topraklayici tipi
+        <select name="grounder_type">
+          <option value="">Seciniz</option>
+          {% for option in ['Ring', 'Yuzeysel', 'Temel', 'Derin', 'Belirlenemedi'] %}
+            <option value="{{ option }}" {% if form.get('grounder_type') == option %}selected{% endif %}>{{ option }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        Yapi cinsi
+        <select name="structure_type">
+          <option value="">Seciniz</option>
+          {% for option in ['Ev', 'Ticari', 'Endustri', 'Diger'] %}
+            <option value="{{ option }}" {% if form.get('structure_type') == option %}selected{% endif %}>{{ option }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="full">
+        Ekipmanin kullanim amaci
+        <input type="text" name="equipment_usage_purpose" value="{{ form.get('equipment_usage_purpose', '') }}" required>
+      </label>
+      <label>
+        Son kontrol tarihi
+        <input type="date" name="last_control_date" value="{{ form.get('last_control_date', '') }}">
+      </label>
+      <label>
+        Faz iletkenlerinin sayisi ve tipi
+        <input type="text" name="phase_conductor_type" value="{{ form.get('phase_conductor_type', '') }}" placeholder="3 faz, 4 tel">
+      </label>
+      <label>
+        Temel topraklama direnci (Ohm)
+        <input type="text" name="ground_resistance" value="{{ form.get('ground_resistance', '') }}">
+      </label>
+      <label class="full">
+        Ilave topraklama elektrotu detaylari
+        <input type="text" name="additional_ground_details" value="{{ form.get('additional_ground_details', '') }}">
+      </label>
+      <label>
+        Sistem topraklama iletkeni ve kesiti
+        <input type="text" name="system_ground_conductor" value="{{ form.get('system_ground_conductor', '') }}">
+      </label>
+      <label>
+        Ana espotansiyel iletkeni ve kesiti
+        <input type="text" name="equipotential_conductor" value="{{ form.get('equipotential_conductor', '') }}">
+      </label>
+      <label class="full">
+        Besleme kaynagi karakteristikleri
+        <textarea name="supply_characteristics" rows="3">{{ form.get('supply_characteristics', '') }}</textarea>
+      </label>
+      <label>
+        TT-TN-S sebeke icin ana RCD anma akimi
+        <input type="text" name="main_rcd_nominal" value="{{ form.get('main_rcd_nominal', '') }}">
+      </label>
+      <label>
+        Ana kesici karakteristikleri
+        <input type="text" name="main_switch_characteristics" value="{{ form.get('main_switch_characteristics', '') }}">
+      </label>
+      <label>
+        TT-TN-S sebeke icin ana RCD test akimi ve suresi
+        <input type="text" name="main_rcd_test" value="{{ form.get('main_rcd_test', '') }}">
+      </label>
+      <label class="full">
+        Tespit edilen bilgiler
+        <textarea name="findings" rows="4">{{ form.get('findings', '') }}</textarea>
+      </label>
+      <label>
+        Teknisyen
+        <input type="text" name="technician_name" value="{{ form.get('technician_name', '') }}" readonly required>
+      </label>
+
+      <div class="full form-actions">
+        <button type="submit" class="button">Trial Kaydi Olustur</button>
+      </div>
+    </form>
+  </section>
+
+  <script>
+    const companySelect = document.getElementById('company_id');
+    const companyAddressInput = document.getElementById('company_address');
+
+    function syncCompanyFields() {
+      const selected = companySelect.options[companySelect.selectedIndex];
+      if (selected?.dataset.companyAddress && !companyAddressInput.value) {
+        companyAddressInput.value = selected.dataset.companyAddress;
+      }
+    }
+
+    companySelect.addEventListener('change', syncCompanyFields);
+    syncCompanyFields();
+  </script>
+{% endblock %}
