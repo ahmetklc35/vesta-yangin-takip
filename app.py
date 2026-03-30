@@ -284,28 +284,42 @@ AIR_CYLINDER_CONTROL_ITEMS = [
     ("item_3", "17.C.1001.A.3 Servis etiketi ekipmana yapistirildi"),
 ]
 CABINET_CONTROL_ITEMS = [
-    ("item_1", "17.YD.1001.A.1 Erisebilirlik kontrol edildi"),
-    ("item_2", "17.YD.1001.A.2 Levhalar kontrol edildi"),
-    ("item_3", "17.YD.1001.A.3 Kapak ve kilit kontrolu yapildi"),
-    ("item_4", "17.YD.1001.A.4 Dolap dis yuzey kontrol edildi"),
-    ("item_5", "17.YD.1001.A.5 Makara kontrol edildi"),
-    ("item_6", "17.YD.1001.A.6 Hortum kontrol edildi"),
+    ("item_1", "17.YD.1001.A.1 Erisebilirlik Kontrol Edildi (Dolap onu acik mi, istif veya engel malz. var mi)"),
+    ("item_2", "17.YD.1001.A.2 Levhalar Kontrol Edildi (Yangin dolabi isareti ve talimati mevcut mu)"),
+    ("item_3", "17.YD.1001.A.3 Kapak ve Kilit Kontrolu Yapildi (Kapak rahat aciliyor mu, kilit saglam mi)"),
+    ("item_4", "17.YD.1001.A.4 Dolap Dis Yuzey Kontrol Edildi (Paslanma veya boya kabarmasi var mi)"),
+    ("item_5", "17.YD.1001.A.5 Makara Kontrol Edildi (Kolayca acilabiliyor mu)"),
+    ("item_6", "17.YD.1001.A.6 Hortum Kontrol Edildi (Catlama, kirilma, sertlesme veya kacak var mi)"),
+    ("item_7", "17.YD.1001.A.7 Baglanti Rekorlari Kontrol Edildi (Hortum vana ve lans baglantilari siki mi)"),
+    ("item_8", "17.YD.1001.A.8 Dolap ici ve disi temizlik kontrolu yapildi"),
+    ("item_9", "17.YD.1001.A.9 Vana kontrol edildi (Vana kolu rahat donuyor mu, kacak veya sizdirma var mi)"),
+    ("item_10", "17.YD.1001.A.10 Basinc Kontrol Edildi (Statik ve dinamik basinc degerleri uygun mu) (min.4 bar)"),
+    ("item_11", "17.YD.1001.A.11 Lans Kontrol Edildi (Jet/Spray/Kapali konumlari islevsel mi)"),
 ]
 FOAM_CABINET_CONTROL_ITEMS = [
-    ("item_1", "17.KYD.1001.A.1 Erisebilirlik kontrol edildi"),
-    ("item_2", "17.KYD.1001.A.2 Levhalar kontrol edildi"),
-    ("item_3", "17.KYD.1001.A.3 Kapak ve kilit kontrolu yapildi"),
-    ("item_4", "17.KYD.1001.A.4 Dolap dis yuzey kontrol edildi"),
-    ("item_5", "17.KYD.1001.A.5 Makara kontrol edildi"),
-    ("item_6", "17.KYD.1001.A.6 Hortum kontrol edildi"),
+    ("item_1", "17.KYD.1001.A.1 Erisebilirlik Kontrol Edildi (Dolap onu acik mi, istif veya engel malz. var mi)"),
+    ("item_2", "17.KYD.1001.A.2 Levhalar Kontrol Edildi (Kopuklu yangin dolabi isareti ve talimati mevcut mu)"),
+    ("item_3", "17.KYD.1001.A.3 Kapak ve Kilit Kontrolu Yapildi (Kapak rahat aciliyor mu, kilit saglam mi)"),
+    ("item_4", "17.KYD.1001.A.4 Dolap Dis Yuzey Kontrol Edildi (Paslanma veya boya kabarmasi var mi)"),
+    ("item_5", "17.KYD.1001.A.5 Makara Kontrol Edildi (Kolayca acilabiliyor mu)"),
+    ("item_6", "17.KYD.1001.A.6 Hortum Kontrol Edildi (Catlama, kirilma, sertlesme veya kacak var mi)"),
+    ("item_7", "17.KYD.1001.A.7 Baglanti Rekorlari Kontrol Edildi (Hortum vana ve lans baglantilari siki mi)"),
+    ("item_8", "17.KYD.1001.A.8 Kopuk Doluluk Orani Kontrol Edildi (Seviye gostergesi kontrolu)"),
+    ("item_9", "17.KYD.1001.A.9 Dolap ici ve disi temizlik kontrolu yapildi"),
+    ("item_10", "17.KYD.1001.A.10 Kopuk Oranlayici Ayarlari Kontrol Edildi (Mix ayari dogru yuzde mi %1,%3 veya %6)"),
+    ("item_11", "17.KYD.1001.A.11 Vana kontrol edildi (Ana su giris vanasi ve kopuk vanasi islevsel mi)"),
+    ("item_12", "17.KYD.1001.A.12 Basinc Kontrol Edildi (Sistem calisma basinci kopuk olusumu icin yeterli mi) (min.5-6 bar)"),
+    ("item_13", "17.KYD.1001.A.13 Kopuk Lans Kontrol Edildi (Kopuk yapici ozel lans saglam mi)"),
 ]
 HYDRANT_CONTROL_ITEMS = [
-    ("item_1", "17.H.1001.A.1 Erisebilirlik kontrol edildi"),
-    ("item_2", "17.H.1001.A.2 Gorunurlugu kontrol edildi"),
-    ("item_3", "17.H.1001.A.3 Kapak kontrolu yapildi"),
-    ("item_4", "17.H.1001.A.4 Genel dis yuzey kontrol yapildi"),
-    ("item_5", "17.H.1001.A.5 Makara kontrol edildi"),
-    ("item_6", "17.H.1001.A.6 Acma kapama mili kontrol edildi"),
+    ("item_1", "17.H.1001.A.1 Erisebilirlik Kontrol Edildi (Hidrant cevresinde arac, malzeme engeli var mi)"),
+    ("item_2", "17.H.1001.A.2 Gorunurlugu kontrol edildi (Hidrantin kirmizi boyasi canli mi, yonlendirme levhalari var mi)"),
+    ("item_3", "17.H.1001.A.3 Kapak Kontrolu Yapildi (Cikis agzindaki kor tapalar/kapaklar takili mi, zincirleri saglam mi)"),
+    ("item_4", "17.H.1001.A.4 Genel Dis Yuzey Kontrol Yapildi (Govdede catlak, korozyon veya darbe izi var mi)"),
+    ("item_5", "17.H.1001.A.5 Makara Kontrol Edildi (Kolayca acilabiliyor mu)"),
+    ("item_6", "17.H.1001.A.6 Acma kapama mili kontrol edildi (Hidrant anahtari ile mil rahatca donuyor mu)"),
+    ("item_7", "17.H.1001.A.7 Vana Sizdirmazligi Kontrol Edildi (Hidrant kapaliyken cikis agzindan veya govde altindan su sizintisi var mi)"),
+    ("item_8", "17.H.1001.A.8 Cikis agizlari kontrol edildi (Rekor dislerinde veya tirnaklarinda asinma veya deformasyon var mi)"),
 ]
 ASSET_PROFILES = {
     "Yangin Sondurme Cihazi": {
@@ -602,6 +616,13 @@ monthly_inspections = Table(
     Column("item_4", Boolean, nullable=False),
     Column("item_5", Boolean, nullable=False),
     Column("item_6", Boolean, nullable=False),
+    Column("item_7", Boolean, nullable=False, default=False),
+    Column("item_8", Boolean, nullable=False, default=False),
+    Column("item_9", Boolean, nullable=False, default=False),
+    Column("item_10", Boolean, nullable=False, default=False),
+    Column("item_11", Boolean, nullable=False, default=False),
+    Column("item_12", Boolean, nullable=False, default=False),
+    Column("item_13", Boolean, nullable=False, default=False),
     Column("check_a", Boolean, nullable=False, default=False),
     Column("check_b", Boolean, nullable=False, default=False),
     Column("check_c", Boolean, nullable=False, default=False),
@@ -614,6 +635,47 @@ monthly_inspections = Table(
 )
 
 metadata.create_all(engine)
+
+
+def ensure_monthly_inspection_columns() -> None:
+    extra_boolean_columns = [
+        "item_7",
+        "item_8",
+        "item_9",
+        "item_10",
+        "item_11",
+        "item_12",
+        "item_13",
+    ]
+    with engine.begin() as connection:
+        if engine.dialect.name == "sqlite":
+            existing_rows = connection.execute(text("PRAGMA table_info(monthly_inspections)")).fetchall()
+            existing = {row[1] for row in existing_rows}
+            for column_name in extra_boolean_columns:
+                if column_name not in existing:
+                    connection.execute(
+                        text(
+                            f"ALTER TABLE monthly_inspections ADD COLUMN {column_name} BOOLEAN NOT NULL DEFAULT 0"
+                        )
+                    )
+        else:
+            existing_rows = connection.execute(
+                text(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_name = 'monthly_inspections'"
+                )
+            ).fetchall()
+            existing = {row[0] for row in existing_rows}
+            for column_name in extra_boolean_columns:
+                if column_name not in existing:
+                    connection.execute(
+                        text(
+                            f"ALTER TABLE monthly_inspections ADD COLUMN {column_name} BOOLEAN NOT NULL DEFAULT FALSE"
+                        )
+                    )
+
+
+ensure_monthly_inspection_columns()
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "change-this-secret-key")
