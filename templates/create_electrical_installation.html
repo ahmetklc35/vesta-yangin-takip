@@ -4,8 +4,8 @@
   <section class="card form-card">
     <div class="section-head">
       <div>
-        <h1>Yeni {{ group.label }} Trial Kaydi</h1>
-        <p class="muted">Bu deneme ekranı, PDF’deki ilk sayfanın ana alanlarını sisteme taşımak için hazırlandı.</p>
+        <h1>Yeni {{ group.label }} Kaydi</h1>
+        <p class="muted">Elektrik ic tesisati periyodik kontrol raporunun ana bloklari burada toplanir. Rapor numarasi sistem tarafinda otomatik uretilir.</p>
       </div>
     </div>
 
@@ -25,7 +25,7 @@
       </label>
       <label>
         Rapor numarasi
-        <input type="text" name="report_number" value="{{ form.get('report_number', '') }}" required>
+        <input type="text" name="report_number" value="{{ form.get('report_number', '') }}" readonly required>
       </label>
       <label class="full">
         Periyodik kontrol adresi
@@ -57,7 +57,7 @@
       </label>
       <label class="full">
         Periyodik kontrol metodu ve kapsami
-        <textarea name="control_method" rows="3" required>{{ form.get('control_method', '') }}</textarea>
+        <textarea name="control_method" rows="5" required>{{ form.get('control_method', '') }}</textarea>
       </label>
 
       <section class="full checklist-card">
@@ -153,7 +153,7 @@
       </label>
       <label class="full">
         Besleme kaynagi karakteristikleri
-        <textarea name="supply_characteristics" rows="3">{{ form.get('supply_characteristics', '') }}</textarea>
+        <textarea name="supply_characteristics" rows="4">{{ form.get('supply_characteristics', '') }}</textarea>
       </label>
       <label>
         TT-TN-S sebeke icin ana RCD anma akimi
@@ -167,9 +167,215 @@
         TT-TN-S sebeke icin ana RCD test akimi ve suresi
         <input type="text" name="main_rcd_test" value="{{ form.get('main_rcd_test', '') }}">
       </label>
+
+      <section class="full checklist-card">
+        <h2>2.2 Tespit Edilen Bilgiler</h2>
+      </section>
+
+      <label>
+        Tesisatta kapsamli degisiklik var mi? (>%20)
+        <select name="major_installation_change">
+          <option value="">Seciniz</option>
+          <option value="Var" {% if form.get('major_installation_change') == 'Var' %}selected{% endif %}>Var</option>
+          <option value="Yok" {% if form.get('major_installation_change') == 'Yok' %}selected{% endif %}>Yok</option>
+        </select>
+      </label>
+      <label>
+        Asiri gerilim koruma cihazi (DKD/SPD) kullanilmis mi?
+        <select name="spd_used">
+          <option value="">Seciniz</option>
+          <option value="Evet" {% if form.get('spd_used') == 'Evet' %}selected{% endif %}>Evet</option>
+          <option value="Hayir" {% if form.get('spd_used') == 'Hayir' %}selected{% endif %}>Hayir</option>
+        </select>
+      </label>
+      <label>
+        Bir onceki periyodik kontrol etiketi var mi?
+        <select name="previous_control_label">
+          <option value="">Seciniz</option>
+          <option value="Var" {% if form.get('previous_control_label') == 'Var' %}selected{% endif %}>Var</option>
+          <option value="Yok" {% if form.get('previous_control_label') == 'Yok' %}selected{% endif %}>Yok</option>
+        </select>
+      </label>
+      <label class="full">
+        Dogrudan dokunmaya karsi koruma onlemleri
+        <textarea name="direct_contact_protections" rows="4" placeholder="Gerilim altindaki bolumlerin yalitilmasi, mahfaza, engel, el ulasma uzakligi disina yerlestirme, ilave koruma, 30 mA RCD vb.">{{ form.get('direct_contact_protections', '') }}</textarea>
+      </label>
       <label class="full">
         Tespit edilen bilgiler
         <textarea name="findings" rows="4">{{ form.get('findings', '') }}</textarea>
+      </label>
+
+      <section class="full checklist-card">
+        <h2>3. Termal Kamera Bilgileri</h2>
+      </section>
+
+      <label>
+        Cihaz adi 1
+        <input type="text" name="thermal_camera_1" value="{{ form.get('thermal_camera_1', '') }}">
+      </label>
+      <label>
+        Cihaz adi 2
+        <input type="text" name="thermal_camera_2" value="{{ form.get('thermal_camera_2', '') }}">
+      </label>
+      <label>
+        Kalibrasyon tarihi 1
+        <input type="text" name="thermal_calibration_1" value="{{ form.get('thermal_calibration_1', '') }}">
+      </label>
+      <label>
+        Kalibrasyon tarihi 2
+        <input type="text" name="thermal_calibration_2" value="{{ form.get('thermal_calibration_2', '') }}">
+      </label>
+      <label>
+        Kalibrasyon gecerlilik tarihi 1
+        <input type="text" name="thermal_validity_1" value="{{ form.get('thermal_validity_1', '') }}">
+      </label>
+      <label>
+        Kalibrasyon gecerlilik tarihi 2
+        <input type="text" name="thermal_validity_2" value="{{ form.get('thermal_validity_2', '') }}">
+      </label>
+      <label>
+        Seri numarasi 1
+        <input type="text" name="thermal_serial_1" value="{{ form.get('thermal_serial_1', '') }}">
+      </label>
+      <label>
+        Seri numarasi 2
+        <input type="text" name="thermal_serial_2" value="{{ form.get('thermal_serial_2', '') }}">
+      </label>
+      <label>
+        Kalibrasyon numarasi 1
+        <input type="text" name="thermal_calibration_no_1" value="{{ form.get('thermal_calibration_no_1', '') }}">
+      </label>
+      <label>
+        Kalibrasyon numarasi 2
+        <input type="text" name="thermal_calibration_no_2" value="{{ form.get('thermal_calibration_no_2', '') }}">
+      </label>
+
+      <section class="full checklist-card">
+        <h2>4. Olcum Aletleri Bilgileri</h2>
+      </section>
+
+      <label>
+        Cihaz adi 1
+        <input type="text" name="measurement_device_1" value="{{ form.get('measurement_device_1', '') }}">
+      </label>
+      <label>
+        Cihaz adi 2
+        <input type="text" name="measurement_device_2" value="{{ form.get('measurement_device_2', '') }}">
+      </label>
+      <label>
+        Kalibrasyon tarihi 1
+        <input type="text" name="measurement_calibration_1" value="{{ form.get('measurement_calibration_1', '') }}">
+      </label>
+      <label>
+        Kalibrasyon tarihi 2
+        <input type="text" name="measurement_calibration_2" value="{{ form.get('measurement_calibration_2', '') }}">
+      </label>
+      <label>
+        Kalibrasyon gecerlilik tarihi 1
+        <input type="text" name="measurement_validity_1" value="{{ form.get('measurement_validity_1', '') }}">
+      </label>
+      <label>
+        Kalibrasyon gecerlilik tarihi 2
+        <input type="text" name="measurement_validity_2" value="{{ form.get('measurement_validity_2', '') }}">
+      </label>
+      <label>
+        Seri numarasi 1
+        <input type="text" name="measurement_serial_1" value="{{ form.get('measurement_serial_1', '') }}">
+      </label>
+      <label>
+        Seri numarasi 2
+        <input type="text" name="measurement_serial_2" value="{{ form.get('measurement_serial_2', '') }}">
+      </label>
+      <label>
+        Kalibrasyon numarasi 1
+        <input type="text" name="measurement_calibration_no_1" value="{{ form.get('measurement_calibration_no_1', '') }}">
+      </label>
+      <label>
+        Kalibrasyon numarasi 2
+        <input type="text" name="measurement_calibration_no_2" value="{{ form.get('measurement_calibration_no_2', '') }}">
+      </label>
+
+      <section class="full checklist-card">
+        <h2>5. Kontrol Kriterleri ve Testler</h2>
+      </section>
+
+      <label class="full">
+        Kontrol kriterleri ve testler ozeti
+        <textarea name="control_criteria_notes" rows="5">{{ form.get('control_criteria_notes', '') }}</textarea>
+      </label>
+      <label>
+        Termal fotograf tarihi
+        <input type="text" name="thermal_photo_date" value="{{ form.get('thermal_photo_date', '') }}">
+      </label>
+      <label>
+        Termal fotograf no
+        <input type="text" name="thermal_photo_number" value="{{ form.get('thermal_photo_number', '') }}">
+      </label>
+      <label>
+        Kontak gevsakligi isinmasi
+        <input type="text" name="thermal_loose_contact_heating" value="{{ form.get('thermal_loose_contact_heating', '') }}" placeholder="Var / Yok / Aciklama">
+      </label>
+      <label>
+        Asiri yuk isinmasi (PVC >70 derece)
+        <input type="text" name="thermal_overload_heating" value="{{ form.get('thermal_overload_heating', '') }}" placeholder="Var / Yok / Aciklama">
+      </label>
+
+      <section class="full checklist-card">
+        <h2>6. Fonksiyon Kontrol Kriterleri ve Testler</h2>
+      </section>
+
+      <label>
+        Olcum ve dogrulama metodu
+        <input type="text" name="measurement_method" value="{{ form.get('measurement_method', '') }}" placeholder="Uc uclu karsilastirma / Cevrim empedansi / Klamp yontemi">
+      </label>
+      <label class="full">
+        6.1 Asiri akim / RCD / gerilim / DKD notlari
+        <textarea name="section_61_notes" rows="5">{{ form.get('section_61_notes', '') }}</textarea>
+      </label>
+      <label class="full">
+        6.2 Potansiyel dengeleme iletkenleri notlari
+        <textarea name="section_62_notes" rows="4">{{ form.get('section_62_notes', '') }}</textarea>
+      </label>
+      <label class="full">
+        6.3 Zemin izolasyonu notlari
+        <textarea name="section_63_notes" rows="4">{{ form.get('section_63_notes', '') }}</textarea>
+      </label>
+
+      <section class="full checklist-card">
+        <h2>7-11 Son Sayfa Bloklari</h2>
+      </section>
+
+      <label class="full">
+        Kusur aciklamalari
+        <textarea name="fault_notes" rows="4">{{ form.get('fault_notes', '') }}</textarea>
+      </label>
+      <label class="full">
+        Ekipman fotograflari notlari
+        <textarea name="equipment_photos_notes" rows="3">{{ form.get('equipment_photos_notes', '') }}</textarea>
+      </label>
+      <label class="full">
+        Notlar
+        <textarea name="general_notes" rows="3">{{ form.get('general_notes', '') }}</textarea>
+      </label>
+      <label class="full">
+        Sonuc ve kanaat
+        <textarea name="final_conclusion" rows="5">{{ form.get('final_conclusion', '') }}</textarea>
+      </label>
+      <label>
+        Yetkili kisi adi soyadi
+        <input type="text" name="authorized_person_name" value="{{ form.get('authorized_person_name', '') }}">
+      </label>
+      <label>
+        Meslegi
+        <input type="text" name="authorized_person_job" value="{{ form.get('authorized_person_job', '') }}">
+      </label>
+      <label>
+        Yetkili kisi kayit numarasi
+        <input type="text" name="authorized_person_registry" value="{{ form.get('authorized_person_registry', '') }}">
+      </label>
+      <label>
+        Rapor nusha sayisi
+        <input type="text" name="copy_count" value="{{ form.get('copy_count', '') }}">
       </label>
       <label>
         Teknisyen
@@ -177,7 +383,7 @@
       </label>
 
       <div class="full form-actions">
-        <button type="submit" class="button">Trial Kaydi Olustur</button>
+        <button type="submit" class="button">Kaydi Olustur</button>
       </div>
     </form>
   </section>

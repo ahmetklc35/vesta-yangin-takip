@@ -1216,6 +1216,23 @@ def get_asset_profile(asset_category: str | None) -> dict:
     return ASSET_PROFILES.get(asset_category or "", ASSET_PROFILES["Yangin Sondurme Cihazi"])
 
 
+def generate_prefixed_report_number(prefix: str) -> str:
+    year = datetime.now().year
+    like_pattern = f"{prefix}-{year}-%"
+    existing = fetch_all(
+        select(extinguishers.c.serial_number)
+        .where(extinguishers.c.serial_number.like(like_pattern))
+        .order_by(desc(extinguishers.c.serial_number))
+    )
+    max_number = 0
+    for row in existing:
+        value = row.get("serial_number") or ""
+        match = re.match(rf"^{re.escape(prefix)}-{year}-(\d+)$", value)
+        if match:
+            max_number = max(max_number, int(match.group(1)))
+    return f"{prefix}-{year}-{max_number + 1:04d}"
+
+
 def render_profile_record_form(group_slug: str):
     group = get_registration_group(group_slug)
     if group_slug == "yangin-sondurme-cihazi":
@@ -1369,6 +1386,7 @@ def create_electrical_installation():
     if request.method == "POST":
         form = parse_required_form(request.form)
         form["technician_name"] = current_user_full_name()
+        form["report_number"] = generate_prefixed_report_number("ELK")
         try:
             form, selected_company = sync_company_payload_from_selection(form)
         except ValueError as exc:
@@ -1383,7 +1401,6 @@ def create_electrical_installation():
 
         required_fields = {
             "company_id": "Cari secimi",
-            "report_number": "Rapor numarasi",
             "company_address": "Periyodik kontrol adresi",
             "report_date": "Rapor tarihi",
             "control_start": "Periyodik kontrol baslangic tarihi ve saati",
@@ -1425,10 +1442,51 @@ def create_electrical_installation():
             "main_rcd_nominal": form.get("main_rcd_nominal", ""),
             "main_switch_characteristics": form.get("main_switch_characteristics", ""),
             "main_rcd_test": form.get("main_rcd_test", ""),
+            "major_installation_change": form.get("major_installation_change", ""),
+            "spd_used": form.get("spd_used", ""),
+            "direct_contact_protections": form.get("direct_contact_protections", ""),
+            "previous_control_label": form.get("previous_control_label", ""),
             "findings": form.get("findings", ""),
+            "thermal_camera_1": form.get("thermal_camera_1", ""),
+            "thermal_camera_2": form.get("thermal_camera_2", ""),
+            "thermal_calibration_1": form.get("thermal_calibration_1", ""),
+            "thermal_calibration_2": form.get("thermal_calibration_2", ""),
+            "thermal_validity_1": form.get("thermal_validity_1", ""),
+            "thermal_validity_2": form.get("thermal_validity_2", ""),
+            "thermal_serial_1": form.get("thermal_serial_1", ""),
+            "thermal_serial_2": form.get("thermal_serial_2", ""),
+            "thermal_calibration_no_1": form.get("thermal_calibration_no_1", ""),
+            "thermal_calibration_no_2": form.get("thermal_calibration_no_2", ""),
+            "measurement_device_1": form.get("measurement_device_1", ""),
+            "measurement_device_2": form.get("measurement_device_2", ""),
+            "measurement_calibration_1": form.get("measurement_calibration_1", ""),
+            "measurement_calibration_2": form.get("measurement_calibration_2", ""),
+            "measurement_validity_1": form.get("measurement_validity_1", ""),
+            "measurement_validity_2": form.get("measurement_validity_2", ""),
+            "measurement_serial_1": form.get("measurement_serial_1", ""),
+            "measurement_serial_2": form.get("measurement_serial_2", ""),
+            "measurement_calibration_no_1": form.get("measurement_calibration_no_1", ""),
+            "measurement_calibration_no_2": form.get("measurement_calibration_no_2", ""),
+            "control_criteria_notes": form.get("control_criteria_notes", ""),
+            "measurement_method": form.get("measurement_method", ""),
+            "thermal_photo_date": form.get("thermal_photo_date", ""),
+            "thermal_photo_number": form.get("thermal_photo_number", ""),
+            "thermal_loose_contact_heating": form.get("thermal_loose_contact_heating", ""),
+            "thermal_overload_heating": form.get("thermal_overload_heating", ""),
+            "section_61_notes": form.get("section_61_notes", ""),
+            "section_62_notes": form.get("section_62_notes", ""),
+            "section_63_notes": form.get("section_63_notes", ""),
+            "fault_notes": form.get("fault_notes", ""),
+            "equipment_photos_notes": form.get("equipment_photos_notes", ""),
+            "general_notes": form.get("general_notes", ""),
+            "final_conclusion": form.get("final_conclusion", ""),
+            "authorized_person_name": form.get("authorized_person_name", ""),
+            "authorized_person_job": form.get("authorized_person_job", ""),
+            "authorized_person_registry": form.get("authorized_person_registry", ""),
+            "copy_count": form.get("copy_count", ""),
         }
         note_lines = [
-            "Elektrik Ic Tesisati Trial Kaydi",
+            "Elektrik Ic Tesisati Tam Form Baslangic Kaydi",
             f"ISG-KATIP Sozlesme ID: {structured_notes['isg_katip_id'] or '-'}",
             f"SGK Sicil Numarasi: {structured_notes['sgk_number'] or '-'}",
             f"Periyodik Kontrol Metodu ve Kapsami: {structured_notes['control_method'] or '-'}",
@@ -1447,7 +1505,30 @@ def create_electrical_installation():
             f"Ana RCD anma akimi: {structured_notes['main_rcd_nominal'] or '-'}",
             f"Ana kesici karakteristikleri: {structured_notes['main_switch_characteristics'] or '-'}",
             f"Ana RCD test akimi ve suresi: {structured_notes['main_rcd_test'] or '-'}",
+            f"Tesisatta kapsamli degisiklik var mi (>%20): {structured_notes['major_installation_change'] or '-'}",
+            f"Asiri gerilim koruma cihazlari kullanilmis mi: {structured_notes['spd_used'] or '-'}",
+            f"Dogrudan dokunmaya karsi koruma onlemleri: {structured_notes['direct_contact_protections'] or '-'}",
+            f"Bir onceki periyodik kontrol etiketi var mi: {structured_notes['previous_control_label'] or '-'}",
             f"Tespit edilen bilgiler: {structured_notes['findings'] or '-'}",
+            f"Termal Kamera 1: {structured_notes['thermal_camera_1'] or '-'} / Seri: {structured_notes['thermal_serial_1'] or '-'} / Kal.No: {structured_notes['thermal_calibration_no_1'] or '-'}",
+            f"Termal Kamera 2: {structured_notes['thermal_camera_2'] or '-'} / Seri: {structured_notes['thermal_serial_2'] or '-'} / Kal.No: {structured_notes['thermal_calibration_no_2'] or '-'}",
+            f"Olcum Aleti 1: {structured_notes['measurement_device_1'] or '-'} / Seri: {structured_notes['measurement_serial_1'] or '-'} / Kal.No: {structured_notes['measurement_calibration_no_1'] or '-'}",
+            f"Olcum Aleti 2: {structured_notes['measurement_device_2'] or '-'} / Seri: {structured_notes['measurement_serial_2'] or '-'} / Kal.No: {structured_notes['measurement_calibration_no_2'] or '-'}",
+            f"Kontrol Kriterleri ve Testler: {structured_notes['control_criteria_notes'] or '-'}",
+            f"Olcum ve Dogrulama Metodu: {structured_notes['measurement_method'] or '-'}",
+            f"Termal fotograf tarihi: {structured_notes['thermal_photo_date'] or '-'}",
+            f"Termal fotograf no: {structured_notes['thermal_photo_number'] or '-'}",
+            f"Kontak gevsakligi isinmasi: {structured_notes['thermal_loose_contact_heating'] or '-'}",
+            f"Asiri yuk isinmasi: {structured_notes['thermal_overload_heating'] or '-'}",
+            f"6.1 Notlari: {structured_notes['section_61_notes'] or '-'}",
+            f"6.2 Notlari: {structured_notes['section_62_notes'] or '-'}",
+            f"6.3 Notlari: {structured_notes['section_63_notes'] or '-'}",
+            f"Kusur Aciklamalari: {structured_notes['fault_notes'] or '-'}",
+            f"Ekipman Fotograflari: {structured_notes['equipment_photos_notes'] or '-'}",
+            f"Genel Notlar: {structured_notes['general_notes'] or '-'}",
+            f"Sonuc ve Kanaat: {structured_notes['final_conclusion'] or '-'}",
+            f"Yetkili Kisi: {structured_notes['authorized_person_name'] or '-'} / Meslek: {structured_notes['authorized_person_job'] or '-'} / Kayit No: {structured_notes['authorized_person_registry'] or '-'}",
+            f"Nusha Sayisi: {structured_notes['copy_count'] or '-'}",
         ]
 
         now = datetime.now().isoformat(timespec="seconds")
@@ -1493,17 +1574,24 @@ def create_electrical_installation():
                 )
             )
 
-        flash("Elektrik ic tesisati trial kaydi olusturuldu.", "success")
+        flash("Elektrik ic tesisati kaydi olusturuldu.", "success")
         return redirect(url_for("extinguisher_detail", public_id=public_id))
 
+    report_number = generate_prefixed_report_number("ELK")
     return render_template(
         "create_electrical_installation.html",
         form={
             "technician_name": current_user_full_name(),
+            "report_number": report_number,
             "control_method": (
-                "TS HD 60364-4-43, TS HD 60364-6, Is Ekipmanlarinin Kullaniminda Saglik ve Guvenlik "
-                "Sartlari Yonetmeligi, Elektrik Ic Tesisleri Yonetmeligi, Elektrik Tesislerinde Topraklamalar Yonetmeligi"
+                "- TS HD 60364-4-43 Alcak Gerilim Elektrik Tesisatlari - Bolum 4: Guvenlik Icin Koruma Grup 43 - Asiri Akima Karsi Koruma\n"
+                "- TS HD 60364-6 Alcak Gerilim Elektrik Tesisatlari - Bolum 6: Dogrulama\n"
+                "- Is Ekipmanlarinin Kullaniminda Saglik ve Guvenlik Sartlari Yonetmeligi\n"
+                "- Elektrik Ic Tesisleri Yonetmeligi\n"
+                "- Elektrik Tesislerinde Topraklamalar Yonetmeligi"
             ),
+            "final_conclusion": "Periyodik kontrol tarihi itibari ile mevcut sartlar altinda kullanimi uygundur/uygun degildir.",
+            "copy_count": "2",
         },
         companies=company_choices,
         group=group,
