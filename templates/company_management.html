@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <section class="card form-card">
+  <section class="card form-card" id="musteri-ekle">
     <div class="section-head">
       <div>
-        <h1>Cariler</h1>
-        <p class="muted">Firma ve adres kaydini bir kere gir. Sonra tup formunda sadece firma secelim.</p>
+        <h1>Musteriler</h1>
+        <p class="muted">Musteri ve adres kaydini bir kere gir. Sonra form ekraninda sadece musteriyi secelim.</p>
       </div>
     </div>
 
@@ -23,14 +23,14 @@
         <input type="text" name="address" required>
       </label>
       <div class="full form-actions">
-        <button type="submit" class="button">Cari Ekle</button>
+        <button type="submit" class="button">Musteri Ekle</button>
       </div>
     </form>
   </section>
 
   <section class="card">
     <div class="section-head">
-      <h2>Kayitli Cariler</h2>
+      <h2>Musterilerimiz</h2>
       <span>{{ companies|length }} adet</span>
     </div>
 
@@ -58,7 +58,7 @@
           </div>
         </form>
       {% else %}
-        <p class="muted">Henuz cari kaydi yok.</p>
+        <p class="muted">Henuz musteri kaydi yok.</p>
       {% endfor %}
     </div>
   </section>
