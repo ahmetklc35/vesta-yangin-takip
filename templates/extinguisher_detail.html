@@ -14,6 +14,9 @@
           {% if asset_profile.control_form_enabled %}
             <a class="button secondary" href="{{ url_for('control_form_preview', public_id=extinguisher.public_id) }}">Kontrol Formu Onizleme</a>
           {% endif %}
+          {% if extinguisher.asset_category == "Elektrik Ic Tesisati" %}
+            <a class="button secondary" href="{{ url_for('electrical_report_pdf', public_id=extinguisher.public_id) }}">Elektrik PDF</a>
+          {% endif %}
           {% if can_delete %}
             <form method="post" action="{{ url_for('delete_extinguisher', public_id=extinguisher.public_id) }}" onsubmit="return confirm('Bu ana kaydi ve bagli tum bakim/kontrol gecmisini silmek istiyor musun?');">
               <button type="submit" class="button danger">Kaydi Sil</button>

@@ -38,6 +38,18 @@
           </p>
         </section>
 
+        {% if extinguisher.asset_category == "Elektrik Ic Tesisati" %}
+          <section class="note-box">
+            <h2>Elektrik Ic Tesisati Raporu</h2>
+            <p>Bu kayit icin resmi rapor formatinda PDF indirebilirsiniz.</p>
+            <p>
+              <a class="button" href="{{ url_for('public_electrical_report_pdf', public_id=extinguisher.public_id) }}">
+                PDF Raporunu Indir
+              </a>
+            </p>
+          </section>
+        {% endif %}
+
         {% if asset_profile.control_form_enabled %}
           <section class="note-box">
             <h2>Firma Kontrol Formu</h2>

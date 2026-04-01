@@ -69,6 +69,7 @@ TSE_HYB_LOGO_PATH = BASE_DIR / "static" / "tse-form-amblem.png"
 CONTROL_FORM_TEMPLATE_PATH = BASE_DIR / "assets" / "control-form-template.pdf"
 CONTROL_FORM_TEMPLATE_IMAGE_PATH = BASE_DIR / "assets" / "control-form-template.png"
 CONTROL_FORM_EXCEL_TEMPLATE_PATH = BASE_DIR / "assets" / "control-form-template.xlsx"
+ELECTRICAL_REPORT_TEMPLATE_PATH = BASE_DIR / "assets" / "electrical-installation-template.pdf"
 CONTROL_FORM_METHOD_TEXT = "İEKSGŞY, TS ISO 11602-2, TS 862-7 EN 3-7 + A1 ve TS EN 1866-1 standartlarına göre kontrol edilmiştir."
 CONTROL_FORM_NOTES = [
     "NOT 1: Yangın söndürücünün kontrolü Madde a) ve b) bendindeki gibi listelenmiş koşullarda, bir eksikliği ortaya çıkardığı zaman, acil düzeltici faaliyet yapılmalıdır.",
@@ -1186,6 +1187,22 @@ def build_electrical_note_sections(notes: str | None) -> list[dict]:
         if items:
             sections.append({"title": title, "items": items})
     return sections
+
+
+def parse_electrical_operation_summary(summary: str | None) -> dict[str, str]:
+    if not summary:
+        return {}
+    parsed: dict[str, str] = {}
+    start_match = re.search(r"Baslangic:\s*(.+?)\s*/\s*Bitis:", summary)
+    end_match = re.search(r"Bitis:\s*(.+?)\s*/\s*Kullanim amaci:", summary)
+    usage_match = re.search(r"Kullanim amaci:\s*(.+)$", summary)
+    if start_match:
+        parsed["control_start"] = start_match.group(1).strip()
+    if end_match:
+        parsed["control_end"] = end_match.group(1).strip()
+    if usage_match:
+        parsed["equipment_usage_purpose"] = usage_match.group(1).strip()
+    return parsed
 
 
 def get_extinguisher(public_id: str) -> dict:
@@ -2719,6 +2736,137 @@ def build_pdf_from_html(html: str) -> io.BytesIO:
     return buffer
 
 
+def build_electrical_report_document_data(public_id: str) -> dict:
+    extinguisher = get_extinguisher(public_id)
+    latest_log = fetch_one(
+        select(service_logs)
+        .where(service_logs.c.extinguisher_id == extinguisher["id"])
+        .order_by(desc(service_logs.c.service_date), desc(service_logs.c.id))
+        .limit(1)
+    )
+    notes = parse_structured_notes(extinguisher.get("notes"))
+    summary = parse_electrical_operation_summary(latest_log.get("operation_summary") if latest_log else "")
+    return {
+        "extinguisher": extinguisher,
+        "notes": notes,
+        "summary": summary,
+        "latest_log": latest_log,
+    }
+
+
+def build_electrical_report_pdf(public_id: str) -> io.BytesIO:
+    if not ELECTRICAL_REPORT_TEMPLATE_PATH.exists():
+        raise FileNotFoundError(f"Elektrik raporu sablonu bulunamadi: {ELECTRICAL_REPORT_TEMPLATE_PATH}")
+
+    document_data = build_electrical_report_document_data(public_id)
+    extinguisher = document_data["extinguisher"]
+    notes = document_data["notes"]
+    summary = document_data["summary"]
+
+    def draw_box(page, rect, value, *, size=7, align=0, fontname="helv"):
+        text_value = str(value or "-").strip() or "-"
+        page.insert_textbox(
+            fitz.Rect(*rect),
+            text_value,
+            fontname=fontname,
+            fontsize=size,
+            color=(0, 0, 0),
+            align=align,
+        )
+
+    def mark_checkbox(page, x, y):
+        page.insert_text((x, y), "X", fontname="helv", fontsize=8, color=(0, 0, 0))
+
+    def yes_no_positions(yes_xy, no_xy, value):
+        normalized = (value or "").strip().lower()
+        if normalized in {"var", "evet", "uygun"}:
+            return yes_xy
+        if normalized in {"yok", "hayir", "uygun degil"}:
+            return no_xy
+        return None
+
+    template = fitz.open(ELECTRICAL_REPORT_TEMPLATE_PATH)
+
+    # Page 1
+    page = template[0]
+    draw_box(page, (92, 122, 305, 138), extinguisher.get("company_name"), size=7)
+    draw_box(page, (499, 122, 586, 138), extinguisher.get("serial_number"), size=7, align=1)
+    draw_box(page, (92, 140, 305, 193), extinguisher.get("company_address"), size=7)
+    draw_box(page, (499, 140, 586, 156), extinguisher.get("last_service_date"), size=7, align=1)
+    draw_box(page, (499, 158, 586, 174), notes.get("ISG-KATIP Sozlesme ID"), size=7, align=1)
+    draw_box(page, (499, 176, 586, 192), summary.get("control_start"), size=6, align=1)
+    draw_box(page, (499, 194, 586, 210), summary.get("control_end"), size=6, align=1)
+    draw_box(page, (92, 194, 305, 210), notes.get("SGK Sicil Numarasi"), size=7)
+    draw_box(page, (499, 212, 586, 228), extinguisher.get("next_service_date"), size=7, align=1)
+    draw_box(page, (92, 212, 586, 268), notes.get("Periyodik Kontrol Metodu ve Kapsami"), size=6)
+
+    draw_box(page, (124, 281, 271, 296), extinguisher.get("manufacturer"), size=7)
+    draw_box(page, (123, 306, 197, 321), extinguisher.get("fire_class"), size=7)
+    draw_box(page, (123, 331, 197, 346), notes.get("Yapi cinsi"), size=7)
+    draw_box(page, (256, 306, 399, 321), notes.get("Tesise ait proje var mi"), size=7)
+    draw_box(page, (451, 306, 585, 321), notes.get("Tek hat semasi var mi"), size=7)
+    draw_box(page, (123, 331, 197, 370), notes.get("Kontrol nedeni"), size=7)
+    draw_box(page, (256, 331, 399, 370), notes.get("Topraklayici tipi"), size=7)
+    draw_box(page, (256, 370, 399, 395), summary.get("equipment_usage_purpose"), size=7)
+    draw_box(page, (451, 370, 585, 395), notes.get("Son kontrol tarihi"), size=7)
+    draw_box(page, (123, 396, 197, 460), notes.get("Faz iletkenlerinin sayisi ve tipi"), size=6)
+    draw_box(page, (330, 396, 399, 412), notes.get("Temel topraklama direnci"), size=7)
+    draw_box(page, (330, 412, 585, 428), notes.get("Ilave topraklama elektrotu detaylari"), size=6)
+    draw_box(page, (330, 428, 585, 444), notes.get("Sistem topraklama iletkeni ve kesiti"), size=6)
+    draw_box(page, (330, 444, 585, 460), notes.get("Ana espotansiyel iletkeni ve kesiti"), size=6)
+    draw_box(page, (123, 462, 399, 515), notes.get("Besleme kaynagi karakteristikleri"), size=6)
+    draw_box(page, (504, 462, 585, 489), notes.get("Ana RCD anma akimi"), size=7)
+    draw_box(page, (123, 516, 399, 541), notes.get("Ana kesici karakteristikleri"), size=6)
+    draw_box(page, (504, 516, 585, 541), notes.get("Ana RCD test akimi ve suresi"), size=6)
+
+    checkbox = yes_no_positions((274, 557), (314, 557), notes.get("Tesisatta kapsamli degisiklik var mi (>%20)"))
+    if checkbox:
+        mark_checkbox(page, *checkbox)
+    checkbox = yes_no_positions((274, 573), (314, 573), notes.get("Asiri gerilim koruma cihazlari kullanilmis mi"))
+    if checkbox:
+        mark_checkbox(page, *checkbox)
+    checkbox = yes_no_positions((274, 650), (314, 650), notes.get("Bir onceki periyodik kontrol etiketi var mi"))
+    if checkbox:
+        mark_checkbox(page, *checkbox)
+    draw_box(page, (272, 589, 585, 645), notes.get("Dogrudan dokunmaya karsi koruma onlemleri"), size=5.5)
+    draw_box(page, (120, 589, 272, 645), notes.get("Tespit edilen bilgiler"), size=5.5)
+    draw_box(page, (120, 683, 271, 755), notes.get("Termal Kamera 1"), size=6)
+    draw_box(page, (272, 683, 585, 755), notes.get("Termal Kamera 2"), size=6)
+
+    # Page 2
+    page = template[1]
+    draw_box(page, (120, 112, 271, 184), notes.get("Olcum Aleti 1"), size=6)
+    draw_box(page, (272, 112, 585, 184), notes.get("Olcum Aleti 2"), size=6)
+    draw_box(page, (182, 216, 585, 474), notes.get("Kontrol Kriterleri ve Testler"), size=6)
+    draw_box(page, (119, 474, 271, 528), notes.get("Termal fotograf tarihi"), size=6)
+    draw_box(page, (424, 474, 585, 528), notes.get("Termal fotograf no"), size=6)
+    draw_box(page, (271, 474, 424, 501), notes.get("Kontak gevsakligi isinmasi"), size=6)
+    draw_box(page, (271, 501, 424, 528), notes.get("Asiri yuk isinmasi"), size=6)
+    draw_box(page, (122, 576, 585, 593), notes.get("Olcum ve Dogrulama Metodu"), size=7)
+    draw_box(page, (119, 631, 585, 701), notes.get("6.1 Notlari"), size=6)
+
+    # Page 3
+    page = template[2]
+    draw_box(page, (28, 294, 569, 408), notes.get("6.2 Notlari"), size=6)
+    draw_box(page, (28, 438, 569, 493), notes.get("6.3 Notlari"), size=6)
+    draw_box(page, (28, 523, 569, 598), notes.get("Kusur Aciklamalari"), size=6)
+    draw_box(page, (28, 621, 569, 736), notes.get("Ekipman Fotograflari"), size=6)
+    draw_box(page, (28, 758, 569, 808), notes.get("Genel Notlar"), size=6)
+
+    # Page 4
+    page = template[3]
+    draw_box(page, (26, 104, 569, 329), notes.get("Sonuc ve Kanaat"), size=6)
+    draw_box(page, (120, 783, 455, 797), notes.get("Yetkili Kisi"), size=7)
+    draw_box(page, (120, 797, 455, 811), notes.get("Yetkili Kisi"), size=7)
+    draw_box(page, (120, 811, 455, 825), notes.get("Yetkili Kisi"), size=7)
+    draw_box(page, (25, 823, 270, 836), f"Bu rapor {notes.get('Nusha Sayisi') or '2'} (yazi/rakam) nusha olarak hazirlanmistir.", size=5)
+
+    output = io.BytesIO(template.tobytes(garbage=4, deflate=True))
+    output.seek(0)
+    template.close()
+    return output
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -3384,6 +3532,37 @@ def public_control_form_pdf(public_id: str):
     document_data = build_control_form_document_data(public_id)
     pdf_buffer = build_control_form_pdf_reportlab(document_data)
     filename = f"{build_company_filename(document_data['company_name'])}-kontrol-formu.pdf"
+    return send_file(
+        pdf_buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=filename,
+    )
+
+
+@app.route("/extinguishers/<public_id>/electrical-report.pdf")
+@login_required
+def electrical_report_pdf(public_id: str):
+    extinguisher = get_extinguisher(public_id)
+    if extinguisher.get("asset_category") != "Elektrik Ic Tesisati":
+        abort(404)
+    pdf_buffer = build_electrical_report_pdf(public_id)
+    filename = f"{build_company_filename(extinguisher['company_name'])}-elektrik-ic-tesisati-raporu.pdf"
+    return send_file(
+        pdf_buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=filename,
+    )
+
+
+@app.route("/public/<public_id>/electrical-report.pdf")
+def public_electrical_report_pdf(public_id: str):
+    extinguisher = get_extinguisher(public_id)
+    if extinguisher.get("asset_category") != "Elektrik Ic Tesisati":
+        abort(404)
+    pdf_buffer = build_electrical_report_pdf(public_id)
+    filename = f"{build_company_filename(extinguisher['company_name'])}-elektrik-ic-tesisati-raporu.pdf"
     return send_file(
         pdf_buffer,
         mimetype="application/pdf",
