@@ -3020,6 +3020,25 @@ def build_electrical_report_pdf_html(public_id: str) -> io.BytesIO:
         return build_pdf_from_html(html)
 
 
+@app.route("/extinguishers/<public_id>/electrical-report")
+@login_required
+def electrical_report_preview(public_id: str):
+    extinguisher = get_extinguisher(public_id)
+    if extinguisher.get("asset_category") != "Elektrik Ic Tesisati":
+        abort(404)
+    context = build_electrical_report_html_context(public_id)
+    return render_template("electrical_report_pdf.html", **context)
+
+
+@app.route("/public/<public_id>/electrical-report")
+def public_electrical_report_preview(public_id: str):
+    extinguisher = get_extinguisher(public_id)
+    if extinguisher.get("asset_category") != "Elektrik Ic Tesisati":
+        abort(404)
+    context = build_electrical_report_html_context(public_id)
+    return render_template("electrical_report_pdf.html", **context)
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":

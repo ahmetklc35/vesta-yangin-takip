@@ -15,6 +15,7 @@
             <a class="button secondary" href="{{ url_for('control_form_preview', public_id=extinguisher.public_id) }}">Kontrol Formu Onizleme</a>
           {% endif %}
           {% if extinguisher.asset_category == "Elektrik Ic Tesisati" %}
+            <a class="button secondary" href="{{ url_for('electrical_report_preview', public_id=extinguisher.public_id) }}" target="_blank" rel="noopener">Elektrik Onizleme</a>
             <a class="button secondary" href="{{ url_for('electrical_report_pdf', public_id=extinguisher.public_id) }}">Elektrik PDF</a>
           {% endif %}
           {% if can_delete %}
