@@ -1207,6 +1207,17 @@ def parse_electrical_operation_summary(summary: str | None) -> dict[str, str]:
     return parsed
 
 
+def build_electrical_final_conclusion(status: str | None) -> str:
+    normalized = (status or "").strip().lower()
+    if normalized == "uygundur":
+        suffix = "uygundur."
+    elif normalized == "uygun degildir":
+        suffix = "uygun degildir."
+    else:
+        return "-"
+    return f"Periyodik kontrol tarihi itibari ile mevcut sartlar altinda kullanimi {suffix}"
+
+
 def get_extinguisher(public_id: str) -> dict:
     extinguisher = fetch_one(
         select(extinguishers).where(extinguishers.c.public_id == public_id)
@@ -1525,6 +1536,7 @@ def create_electrical_installation():
             "grid_type": "Sebeke tipi",
             "grid_voltage": "Sebeke gerilimi",
             "equipment_usage_purpose": "Ekipmanin kullanim amaci",
+            "final_conclusion_status": "Sonuc ve kanaat",
             "technician_name": "Teknisyen",
         }
         missing = [label for key, label in required_fields.items() if not form.get(key)]
@@ -1537,6 +1549,8 @@ def create_electrical_installation():
                 group=group,
                 asset_profile=asset_profile,
             )
+
+        final_conclusion_text = build_electrical_final_conclusion(form.get("final_conclusion_status"))
 
         structured_notes = {
             "isg_katip_id": form.get("isg_katip_id", ""),
@@ -1594,7 +1608,8 @@ def create_electrical_installation():
             "fault_notes": form.get("fault_notes", ""),
             "equipment_photos_notes": form.get("equipment_photos_notes", ""),
             "general_notes": form.get("general_notes", ""),
-            "final_conclusion": form.get("final_conclusion", ""),
+            "final_conclusion_status": form.get("final_conclusion_status", ""),
+            "final_conclusion": final_conclusion_text,
             "authorized_person_name": form.get("authorized_person_name", ""),
             "authorized_person_job": form.get("authorized_person_job", ""),
             "authorized_person_registry": form.get("authorized_person_registry", ""),
@@ -1641,6 +1656,7 @@ def create_electrical_installation():
             f"Kusur Aciklamalari: {structured_notes['fault_notes'] or '-'}",
             f"Ekipman Fotograflari: {structured_notes['equipment_photos_notes'] or '-'}",
             f"Genel Notlar: {structured_notes['general_notes'] or '-'}",
+            f"Sonuc Durumu: {structured_notes['final_conclusion_status'] or '-'}",
             f"Sonuc ve Kanaat: {structured_notes['final_conclusion'] or '-'}",
             f"Yetkili Kisi: {structured_notes['authorized_person_name'] or '-'} / Meslek: {structured_notes['authorized_person_job'] or '-'} / Kayit No: {structured_notes['authorized_person_registry'] or '-'}",
             f"Nusha Sayisi: {structured_notes['copy_count'] or '-'}",
@@ -1705,7 +1721,7 @@ def create_electrical_installation():
                 "- Elektrik Ic Tesisleri Yonetmeligi\n"
                 "- Elektrik Tesislerinde Topraklamalar Yonetmeligi"
             ),
-            "final_conclusion": "Periyodik kontrol tarihi itibari ile mevcut sartlar altinda kullanimi uygundur/uygun degildir.",
+            "final_conclusion_status": "uygundur",
             "copy_count": "2",
         },
         companies=company_choices,
@@ -2978,26 +2994,30 @@ def build_electrical_report_html_context(public_id: str) -> dict:
 def build_electrical_report_pdf_html(public_id: str) -> io.BytesIO:
     context = build_electrical_report_html_context(public_id)
     html = render_template("electrical_report_pdf.html", **context)
-    with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(
-            headless=True,
-            args=[
-                "--no-sandbox",
-                "--disable-setuid-sandbox",
-                "--disable-dev-shm-usage",
-            ],
-        )
-        page = browser.new_page(viewport={"width": 1191, "height": 1684})
-        page.set_content(html, wait_until="load")
-        pdf_bytes = page.pdf(
-            format="A4",
-            print_background=True,
-            margin={"top": "0", "right": "0", "bottom": "0", "left": "0"},
-        )
-        browser.close()
-    buffer = io.BytesIO(pdf_bytes)
-    buffer.seek(0)
-    return buffer
+    try:
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(
+                executable_path=playwright.chromium.executable_path,
+                headless=True,
+                args=[
+                    "--no-sandbox",
+                    "--disable-setuid-sandbox",
+                    "--disable-dev-shm-usage",
+                ],
+            )
+            page = browser.new_page(viewport={"width": 1191, "height": 1684})
+            page.set_content(html, wait_until="load")
+            pdf_bytes = page.pdf(
+                format="A4",
+                print_background=True,
+                margin={"top": "0", "right": "0", "bottom": "0", "left": "0"},
+            )
+            browser.close()
+        buffer = io.BytesIO(pdf_bytes)
+        buffer.seek(0)
+        return buffer
+    except Exception:
+        return build_pdf_from_html(html)
 
 
 @app.route("/login", methods=["GET", "POST"])

@@ -359,7 +359,16 @@
       </label>
       <label class="full">
         Sonuc ve kanaat
-        <textarea name="final_conclusion" rows="5">{{ form.get('final_conclusion', '') }}</textarea>
+        <div class="stacked-field">
+          <div class="readonly-note">
+            Periyodik kontrol tarihi itibari ile mevcut sartlar altinda kullanimi
+          </div>
+          <select name="final_conclusion_status" required>
+            <option value="">Seciniz</option>
+            <option value="uygundur" {% if form.get('final_conclusion_status') == 'uygundur' %}selected{% endif %}>Uygundur</option>
+            <option value="uygun degildir" {% if form.get('final_conclusion_status') == 'uygun degildir' %}selected{% endif %}>Uygun Degildir</option>
+          </select>
+        </div>
       </label>
       <label>
         Yetkili kisi adi soyadi

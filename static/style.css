@@ -472,6 +472,21 @@ tbody tr:nth-child(odd) td {
   justify-content: flex-end;
 }
 
+.stacked-field {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.readonly-note {
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(98, 69, 49, 0.2);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
 .inline-form {
   display: flex;
   gap: 8px;
