@@ -7,6 +7,7 @@ import tempfile
 import re
 import unicodedata
 import uuid
+import base64
 from datetime import datetime
 from pathlib import Path
 from functools import wraps
@@ -28,6 +29,7 @@ from flask import (
 )
 from openpyxl import Workbook, load_workbook
 from PIL import Image, ImageDraw, ImageFont
+from playwright.sync_api import sync_playwright
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet
@@ -2867,6 +2869,137 @@ def build_electrical_report_pdf(public_id: str) -> io.BytesIO:
     return output
 
 
+def pdf_page_to_data_uri(pdf_path: Path, page_number: int) -> str:
+    document = fitz.open(pdf_path)
+    try:
+        page = document[page_number]
+        pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2), alpha=False)
+        encoded = base64.b64encode(pixmap.tobytes("png")).decode("ascii")
+        return f"data:image/png;base64,{encoded}"
+    finally:
+        document.close()
+
+
+def build_electrical_report_html_context(public_id: str) -> dict:
+    document_data = build_electrical_report_document_data(public_id)
+    extinguisher = document_data["extinguisher"]
+    notes = document_data["notes"]
+    summary = document_data["summary"]
+
+    backgrounds = [
+        pdf_page_to_data_uri(ELECTRICAL_REPORT_TEMPLATE_PATH, idx)
+        for idx in range(4)
+    ]
+
+    def box(left, top, width, height, value, size=12, align="left", weight="normal"):
+        return {
+            "left": left * 2,
+            "top": top * 2,
+            "width": width * 2,
+            "height": height * 2,
+            "value": str(value or "-").strip() or "-",
+            "size": size,
+            "align": align,
+            "weight": weight,
+        }
+
+    page_boxes = {
+        0: [
+            box(92, 122, 213, 16, extinguisher.get("company_name")),
+            box(499, 122, 87, 16, extinguisher.get("serial_number"), align="center"),
+            box(92, 140, 213, 53, extinguisher.get("company_address")),
+            box(499, 140, 87, 16, extinguisher.get("last_service_date"), align="center"),
+            box(499, 158, 87, 16, notes.get("ISG-KATIP Sozlesme ID"), align="center"),
+            box(499, 176, 87, 16, summary.get("control_start"), size=10, align="center"),
+            box(499, 194, 87, 16, summary.get("control_end"), size=10, align="center"),
+            box(92, 194, 213, 16, notes.get("SGK Sicil Numarasi")),
+            box(499, 212, 87, 16, extinguisher.get("next_service_date"), align="center"),
+            box(92, 212, 494, 56, notes.get("Periyodik Kontrol Metodu ve Kapsami"), size=10),
+            box(124, 281, 147, 15, extinguisher.get("manufacturer")),
+            box(123, 306, 74, 15, extinguisher.get("fire_class")),
+            box(256, 306, 143, 15, notes.get("Tesise ait proje var mi")),
+            box(451, 306, 134, 15, notes.get("Tek hat semasi var mi")),
+            box(123, 331, 74, 39, notes.get("Kontrol nedeni")),
+            box(256, 331, 143, 39, notes.get("Topraklayici tipi")),
+            box(123, 370, 74, 26, notes.get("Yapi cinsi")),
+            box(256, 370, 143, 25, summary.get("equipment_usage_purpose")),
+            box(451, 370, 134, 25, notes.get("Son kontrol tarihi")),
+            box(123, 396, 74, 64, notes.get("Faz iletkenlerinin sayisi ve tipi"), size=10),
+            box(330, 396, 69, 16, notes.get("Temel topraklama direnci")),
+            box(330, 412, 255, 16, notes.get("Ilave topraklama elektrotu detaylari"), size=10),
+            box(330, 428, 255, 16, notes.get("Sistem topraklama iletkeni ve kesiti"), size=10),
+            box(330, 444, 255, 16, notes.get("Ana espotansiyel iletkeni ve kesiti"), size=10),
+            box(123, 462, 276, 53, notes.get("Besleme kaynagi karakteristikleri"), size=10),
+            box(504, 462, 81, 27, notes.get("Ana RCD anma akimi"), align="center"),
+            box(123, 516, 276, 25, notes.get("Ana kesici karakteristikleri"), size=10),
+            box(504, 516, 81, 25, notes.get("Ana RCD test akimi ve suresi"), size=10, align="center"),
+            box(121, 554, 147, 16, notes.get("Tesisatta kapsamli degisiklik var mi (>%20)")),
+            box(121, 570, 147, 18, notes.get("Asiri gerilim koruma cihazlari kullanilmis mi"), size=10),
+            box(271, 589, 314, 56, notes.get("Dogrudan dokunmaya karsi koruma onlemleri"), size=9),
+            box(121, 589, 150, 56, notes.get("Tespit edilen bilgiler"), size=9),
+            box(121, 647, 147, 16, notes.get("Bir onceki periyodik kontrol etiketi var mi")),
+            box(120, 683, 151, 72, notes.get("Termal Kamera 1"), size=10),
+            box(272, 683, 313, 72, notes.get("Termal Kamera 2"), size=10),
+        ],
+        1: [
+            box(120, 112, 151, 72, notes.get("Olcum Aleti 1"), size=10),
+            box(272, 112, 313, 72, notes.get("Olcum Aleti 2"), size=10),
+            box(182, 216, 403, 258, notes.get("Kontrol Kriterleri ve Testler"), size=9),
+            box(119, 474, 152, 54, notes.get("Termal fotograf tarihi"), size=10),
+            box(271, 474, 153, 27, notes.get("Kontak gevsakligi isinmasi"), size=10),
+            box(271, 501, 153, 27, notes.get("Asiri yuk isinmasi"), size=10),
+            box(424, 474, 161, 54, notes.get("Termal fotograf no"), size=10),
+            box(122, 576, 463, 17, notes.get("Olcum ve Dogrulama Metodu")),
+            box(119, 631, 466, 70, notes.get("6.1 Notlari"), size=9),
+        ],
+        2: [
+            box(28, 294, 541, 114, notes.get("6.2 Notlari"), size=9),
+            box(28, 438, 541, 55, notes.get("6.3 Notlari"), size=9),
+            box(28, 523, 541, 75, notes.get("Kusur Aciklamalari"), size=9),
+            box(28, 621, 541, 115, notes.get("Ekipman Fotograflari"), size=9),
+            box(28, 758, 541, 50, notes.get("Genel Notlar"), size=9),
+        ],
+        3: [
+            box(26, 104, 543, 225, notes.get("Sonuc ve Kanaat"), size=9),
+            box(120, 783, 335, 14, notes.get("Yetkili Kisi"), size=10),
+            box(120, 797, 335, 14, notes.get("Yetkili Kisi"), size=10),
+            box(120, 811, 335, 14, notes.get("Yetkili Kisi"), size=10),
+            box(25, 823, 245, 13, f"Bu rapor {notes.get('Nusha Sayisi') or '2'} (yazi/rakam) nusha olarak hazirlanmistir.", size=8),
+        ],
+    }
+
+    return {
+        "extinguisher": extinguisher,
+        "page_backgrounds": backgrounds,
+        "page_boxes": page_boxes,
+    }
+
+
+def build_electrical_report_pdf_html(public_id: str) -> io.BytesIO:
+    context = build_electrical_report_html_context(public_id)
+    html = render_template("electrical_report_pdf.html", **context)
+    with sync_playwright() as playwright:
+        browser = playwright.chromium.launch(
+            headless=True,
+            args=[
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+            ],
+        )
+        page = browser.new_page(viewport={"width": 1191, "height": 1684})
+        page.set_content(html, wait_until="load")
+        pdf_bytes = page.pdf(
+            format="A4",
+            print_background=True,
+            margin={"top": "0", "right": "0", "bottom": "0", "left": "0"},
+        )
+        browser.close()
+    buffer = io.BytesIO(pdf_bytes)
+    buffer.seek(0)
+    return buffer
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -3546,7 +3679,7 @@ def electrical_report_pdf(public_id: str):
     extinguisher = get_extinguisher(public_id)
     if extinguisher.get("asset_category") != "Elektrik Ic Tesisati":
         abort(404)
-    pdf_buffer = build_electrical_report_pdf(public_id)
+    pdf_buffer = build_electrical_report_pdf_html(public_id)
     filename = f"{build_company_filename(extinguisher['company_name'])}-elektrik-ic-tesisati-raporu.pdf"
     return send_file(
         pdf_buffer,
@@ -3561,7 +3694,7 @@ def public_electrical_report_pdf(public_id: str):
     extinguisher = get_extinguisher(public_id)
     if extinguisher.get("asset_category") != "Elektrik Ic Tesisati":
         abort(404)
-    pdf_buffer = build_electrical_report_pdf(public_id)
+    pdf_buffer = build_electrical_report_pdf_html(public_id)
     filename = f"{build_company_filename(extinguisher['company_name'])}-elektrik-ic-tesisati-raporu.pdf"
     return send_file(
         pdf_buffer,

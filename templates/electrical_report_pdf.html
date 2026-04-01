@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8">
+    <title>Elektrik Ic Tesisati Raporu</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+        font-family: Arial, sans-serif;
+      }
+
+      .report-page {
+        position: relative;
+        width: 1191px;
+        height: 1684px;
+        page-break-after: always;
+        break-after: page;
+        overflow: hidden;
+      }
+
+      .report-page:last-child {
+        page-break-after: auto;
+        break-after: auto;
+      }
+
+      .report-bg {
+        position: absolute;
+        inset: 0;
+        width: 1191px;
+        height: 1684px;
+      }
+
+      .report-box {
+        position: absolute;
+        white-space: pre-wrap;
+        overflow: hidden;
+        color: #000;
+        line-height: 1.2;
+        padding: 2px 4px;
+      }
+    </style>
+  </head>
+  <body>
+    {% for background in page_backgrounds %}
+      <section class="report-page">
+        <img class="report-bg" src="{{ background }}" alt="Elektrik raporu sayfa {{ loop.index }}">
+        {% for box in page_boxes.get(loop.index0, []) %}
+          <div
+            class="report-box"
+            style="
+              left: {{ box.left }}px;
+              top: {{ box.top }}px;
+              width: {{ box.width }}px;
+              height: {{ box.height }}px;
+              font-size: {{ box.size }}px;
+              text-align: {{ box.align }};
+              font-weight: {{ box.weight }};
+            "
+          >{{ box.value }}</div>
+        {% endfor %}
+      </section>
+    {% endfor %}
+  </body>
+</html>
