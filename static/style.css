@@ -742,6 +742,7 @@ tbody tr:nth-child(odd) td {
 }
 
 .public-shell {
+  width: min(100%, 1000px);
   padding: 40px 0;
 }
 
@@ -863,6 +864,70 @@ tbody tr:nth-child(odd) td {
   .portal-categories,
   .stats.compact {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .shell.public-shell {
+    width: 100%;
+    padding: 16px 12px 28px;
+  }
+
+  .public-page .card {
+    padding: 18px 14px;
+    border-radius: 22px;
+  }
+
+  .public-page h1 {
+    font-size: clamp(2rem, 10vw, 2.7rem);
+    line-height: 0.95;
+    max-width: 100%;
+    margin-right: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .public-page .lede {
+    font-size: 0.95rem;
+    overflow-wrap: anywhere;
+  }
+
+  .public-page .stats {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .public-page .button,
+  .public-page .button.secondary {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  .public-page .note-box {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .public-page .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -4px;
+    padding-bottom: 4px;
+  }
+
+  .public-page .monthly-table {
+    min-width: 680px;
+    font-size: 0.8rem;
+  }
+
+  .public-page .monthly-table th,
+  .public-page .monthly-table td {
+    padding: 8px 6px;
+  }
+
+  .public-page .equipment-card img {
+    width: 100%;
   }
 }
 
