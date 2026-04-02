@@ -2601,9 +2601,35 @@ def build_scba_company_document_data(public_id: str) -> dict:
         for row in inspection_rows:
             latest_inspections.setdefault(row["extinguisher_id"], row)
 
+    latest_service_log = fetch_one(
+        select(service_logs)
+        .where(service_logs.c.extinguisher_id == extinguisher["id"])
+        .order_by(desc(service_logs.c.service_date), desc(service_logs.c.id))
+        .limit(1)
+    )
+    latest_direct_inspection = fetch_one(
+        select(monthly_inspections)
+        .where(monthly_inspections.c.extinguisher_id == extinguisher["id"])
+        .order_by(desc(monthly_inspections.c.inspection_date), desc(monthly_inspections.c.id))
+        .limit(1)
+    )
+    periodic_control_person = (
+        (latest_service_log or {}).get("technician_name")
+        or (latest_direct_inspection or {}).get("inspector_name")
+        or "-"
+    )
+
     rows = []
     for index, row in enumerate(category_assets, start=1):
         inspection = latest_inspections.get(row["id"], {})
+        checks = []
+        for key, _label in SCBA_CONTROL_ITEMS:
+            if key == "item_7":
+                checks.append("V")
+            elif inspection:
+                checks.append("V" if inspection.get(key) else "X")
+            else:
+                checks.append("V")
         rows.append(
             {
                 "device_no": index,
@@ -2613,17 +2639,17 @@ def build_scba_company_document_data(public_id: str) -> dict:
                 "service_date": row.get("last_service_date") or "-",
                 "hydrostatic_test_date": row.get("hydrostatic_test_date") or "-",
                 "location_detail": row.get("location_detail") or "-",
-                "checks": [
-                    "✔" if inspection.get(key) else "X" if inspection else "─"
-                    for key, _label in SCBA_CONTROL_ITEMS
-                ],
+                "checks": checks,
             }
         )
+        rows[-1]["checks"] = checks
 
     return {
         "company_name": extinguisher["company_name"],
         "company_address": extinguisher.get("company_address") or "-",
         "company_contact": extinguisher.get("company_contact") or "-",
+        "periodic_control_person": periodic_control_person,
+        "approval_name": "Mustafa Kilic",
         "asset_category": "SCBA",
         "control_date": datetime.now().strftime("%d.%m.%Y"),
         "method_text": SCBA_METHOD_TEXT,
@@ -3081,10 +3107,18 @@ def build_scba_company_form_pdf(document_data: dict) -> io.BytesIO:
 
     compact_location_style = styles["BodyText"].clone("scba_compact_location")
     compact_location_style.fontName = "VestaPDF"
-    compact_location_style.fontSize = 5.0
-    compact_location_style.leading = 5.5
+    compact_location_style.fontSize = 4.5
+    compact_location_style.leading = 5.0
     compact_location_style.spaceBefore = 0
     compact_location_style.spaceAfter = 0
+
+    compact_date_style = styles["BodyText"].clone("scba_compact_date")
+    compact_date_style.fontName = "VestaPDF"
+    compact_date_style.fontSize = 5.0
+    compact_date_style.leading = 5.5
+    compact_date_style.spaceBefore = 0
+    compact_date_style.spaceAfter = 0
+    compact_date_style.alignment = 1
 
     form_total_width = 210 * mm
 
@@ -3202,7 +3236,7 @@ def build_scba_company_form_pdf(document_data: dict) -> io.BytesIO:
         "", "", "", "", "", "",
     ]
     header_row_2 = [
-        Paragraph("<b>CİHAZ NO</b>", tiny_bold_style),
+        Paragraph("<b>CIHAZ</b><br/><b>NO</b>", tiny_bold_style),
         Paragraph("<b>KATEGORİ / CİNSİ</b>", tiny_bold_style),
         "",
         Paragraph("<b>SERİ NO / KOD</b>", tiny_bold_style),
@@ -3217,13 +3251,13 @@ def build_scba_company_form_pdf(document_data: dict) -> io.BytesIO:
         data_rows.append(
             [
                 row["device_no"],
-                Paragraph(str(row["category"]).replace(" ", "<br/>"), compact_style),
+                Paragraph(str(row["category"]), compact_style),
                 "",
                 Paragraph(str(row["serial_number"]), compact_style),
                 Paragraph(str(row["manufacturer"]), compact_style),
-                Paragraph(str(row["service_date"]), compact_style),
-                Paragraph(str(row["hydrostatic_test_date"]), compact_style),
-                Paragraph(str(row["location_detail"]).replace(" ", "<br/>"), compact_location_style),
+                Paragraph(str(row["service_date"]).replace("-", "&#8209;"), compact_date_style),
+                Paragraph(str(row["hydrostatic_test_date"]).replace("-", "&#8209;"), compact_date_style),
+                Paragraph(str(row["location_detail"]), compact_location_style),
                 *row["checks"],
             ]
         )
@@ -3234,7 +3268,7 @@ def build_scba_company_form_pdf(document_data: dict) -> io.BytesIO:
     main_table = PdfTable(
         data_rows,
         repeatRows=2,
-        colWidths=[12 * mm, 6 * mm, 19 * mm, 19 * mm, 17 * mm, 15 * mm, 18 * mm, 24 * mm, 10 * mm, 10 * mm, 10 * mm, 10 * mm, 10 * mm, 15 * mm, 15 * mm],
+        colWidths=[12 * mm, 6 * mm, 19 * mm, 19 * mm, 17 * mm, 16 * mm, 19 * mm, 22 * mm, 10 * mm, 10 * mm, 10 * mm, 10 * mm, 10 * mm, 15 * mm, 15 * mm],
         rowHeights=[7 * mm, 18 * mm] + [6 * mm] * (len(data_rows) - 2),
         hAlign="CENTER",
     )
@@ -3276,14 +3310,17 @@ def build_scba_company_form_pdf(document_data: dict) -> io.BytesIO:
     story.append(PdfTable([[Paragraph("<b>AÇIKLAMALAR</b>", body_style)]], colWidths=[form_total_width], hAlign="CENTER", rowHeights=[7 * mm]))
     story.append(PdfTable([[""]], colWidths=[form_total_width], hAlign="CENTER", rowHeights=[28 * mm], style=TableStyle([("GRID",(0,0),(-1,-1),0.6,colors.black)])))
     signature = PdfTable(
-        [[Paragraph("<b>PERİYODİK KONTROL PERSONELİ</b>", body_style), "", Paragraph("<b>FİRMA YETKİLİSİ</b>", body_style), ""]],
+        [
+            [Paragraph("<b>PERIYODIK KONTROL PERSONELI</b>", body_style), "", Paragraph("<b>FIRMA YETKILISI</b>", body_style), ""],
+            [Paragraph(document_data.get("periodic_control_person") or "-", body_style), "", Paragraph(document_data.get("company_contact") or "-", body_style), ""],
+        ],
         colWidths=[52.5 * mm, 52.5 * mm, 52.5 * mm, 52.5 * mm],
-        rowHeights=[7 * mm],
+        rowHeights=[7 * mm, 10 * mm],
         hAlign="CENTER",
     )
-    signature.setStyle(TableStyle([("GRID",(0,0),(-1,-1),0.6,colors.black), ("SPAN",(0,0),(1,0)), ("SPAN",(2,0),(3,0)), ("ALIGN",(0,0),(-1,-1),"CENTER"), ("FONTNAME",(0,0),(-1,-1),"VestaPDFBold")]))
+    signature.setStyle(TableStyle([("GRID",(0,0),(-1,-1),0.6,colors.black), ("SPAN",(0,0),(1,0)), ("SPAN",(2,0),(3,0)), ("SPAN",(0,1),(1,1)), ("SPAN",(2,1),(3,1)), ("ALIGN",(0,0),(-1,-1),"CENTER"), ("VALIGN",(0,0),(-1,-1),"MIDDLE"), ("FONTNAME",(0,0),(-1,0),"VestaPDFBold"), ("FONTNAME",(0,1),(-1,1),"VestaPDF")]))
     story.append(signature)
-    story.append(PdfTable([["ONAY"]], colWidths=[form_total_width], hAlign="CENTER", rowHeights=[26 * mm], style=TableStyle([("GRID",(0,0),(-1,-1),0.6,colors.black), ("ALIGN",(0,0),(-1,-1),"LEFT"), ("VALIGN",(0,0),(-1,-1),"TOP"), ("FONTNAME",(0,0),(-1,-1),"VestaPDFBold"), ("LEFTPADDING",(0,0),(-1,-1),4), ("TOPPADDING",(0,0),(-1,-1),4)])))
+    story.append(PdfTable([["ONAY"], [document_data.get("approval_name") or "Mustafa Kilic"]], colWidths=[form_total_width], hAlign="CENTER", rowHeights=[8 * mm, 18 * mm], style=TableStyle([("GRID",(0,0),(-1,-1),0.6,colors.black), ("ALIGN",(0,0),(-1,-1),"LEFT"), ("VALIGN",(0,0),(-1,-1),"TOP"), ("FONTNAME",(0,0),(0,0),"VestaPDFBold"), ("FONTNAME",(0,1),(0,1),"VestaPDF"), ("LEFTPADDING",(0,0),(-1,-1),4), ("TOPPADDING",(0,0),(-1,-1),4)])))
     story.append(Spacer(1, 2 * mm))
     if add_second_page:
         notes2 = PdfTable([[Paragraph(note, note_style)] for note in document_data["notes"]], colWidths=[form_total_width], hAlign="CENTER")
