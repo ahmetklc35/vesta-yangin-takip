@@ -2742,7 +2742,7 @@ def build_scba_company_document_data(public_id: str) -> dict:
         "periodic_control_person": periodic_control_person,
         "approval_name": "Mustafa Kilic",
         "asset_category": "SCBA",
-        "control_date": datetime.now().strftime("%d.%m.%Y"),
+        "control_date": control_date,
         "method_text": SCBA_METHOD_TEXT,
         "rows": rows,
         "notes": SCBA_NOTES,
@@ -2841,14 +2841,15 @@ def build_special_category_company_document_data(public_id: str) -> dict:
             }
         )
 
-    preferred_dates = []
-    for row in category_assets:
-        parsed = coerce_date(row.get("last_service_date"))
-        if parsed:
-            preferred_dates.append(parsed)
+    starter_dates = [
+        coerce_date(extinguisher.get("last_service_date")),
+        coerce_date((latest_inspection or {}).get("inspection_date")),
+        coerce_date((latest_log or {}).get("service_date")),
+    ]
+    starter_dates = [value for value in starter_dates if value]
     control_date = (
-        max(preferred_dates).strftime("%d.%m.%Y")
-        if preferred_dates
+        starter_dates[0].strftime("%d.%m.%Y")
+        if starter_dates
         else max(control_date_candidates).strftime("%d.%m.%Y")
         if control_date_candidates
         else datetime.now().strftime("%d.%m.%Y")
@@ -2865,7 +2866,7 @@ def build_special_category_company_document_data(public_id: str) -> dict:
         "form_code": config["form_code"],
         "subject": config["subject"],
         "section_title": config["section_title"],
-        "control_date": datetime.now().strftime("%d.%m.%Y"),
+        "control_date": control_date,
         "method_text": config["method_text"],
         "rows": rows,
         "check_headers": [label for _key, label in asset_profile["monthly_control_items"]],
