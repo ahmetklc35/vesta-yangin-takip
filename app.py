@@ -35,7 +35,7 @@ from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.lib.utils import ImageReader, simpleSplit
-from reportlab.platypus import Flowable, Image as PdfImage, Paragraph, SimpleDocTemplate, Spacer, Table as PdfTable, TableStyle
+from reportlab.platypus import Flowable, Image as PdfImage, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table as PdfTable, TableStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
@@ -3079,6 +3079,27 @@ def build_scba_company_form_pdf(document_data: dict) -> io.BytesIO:
     compact_style.spaceBefore = 0
     compact_style.spaceAfter = 0
 
+    compact_location_style = styles["BodyText"].clone("scba_compact_location")
+    compact_location_style.fontName = "VestaPDF"
+    compact_location_style.fontSize = 5.0
+    compact_location_style.leading = 5.5
+    compact_location_style.spaceBefore = 0
+    compact_location_style.spaceAfter = 0
+
+    form_total_width = 210 * mm
+
+    def scba_check_header_text(label: str) -> str:
+        mapping = {
+            "17.S.1001.A.1 Yüz Maskesi Kontrol Edildi": "Yüz<br/>Maskesi<br/>Kontrol<br/>Edildi",
+            "17.S.1001.A.2 Solunum Valfi Kontrol Edildi": "Solunum<br/>Valfi<br/>Kontrol<br/>Edildi",
+            "17.S.1001.A.3 Regülatör Ünitesi Kontrol Edildi": "Regülatör<br/>Ünitesi<br/>Kontrol<br/>Edildi",
+            "17.S.1001.A.4 Kemer Kontrol Edildi": "Kemer<br/>Kontrol<br/>Edildi",
+            "17.S.1001.A.5 Silindir Kontrol Edildi": "Silindir<br/>Kontrol<br/>Edildi",
+            "17.S.1001.A.6 NOZUL UYGUNLUĞU (PASLANMA VB.)": "NOZUL<br/>UYGUNLUĞU<br/>(PASLANMA<br/>VB.)",
+            "17.S.1001.A.7 Servis Etiketi Ekipmana Yapıştırıldı": "Servis<br/>Etiketi<br/>Ekipmana<br/>Yapıştırıldı",
+        }
+        return mapping.get(label, label)
+
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -3189,7 +3210,7 @@ def build_scba_company_form_pdf(document_data: dict) -> io.BytesIO:
         Paragraph("<b>DOLUM TARİHİ</b>", tiny_bold_style),
         Paragraph("<b>HİDROSTATİK TEST TARİHİ</b>", tiny_bold_style),
         Paragraph("<b>BULUNDUĞU YER</b>", tiny_bold_style),
-        *[Paragraph(f"<b>{label.split(' ', 1)[1]}</b>", tiny_style) for _key, label in SCBA_CONTROL_ITEMS],
+        *[Paragraph(f"<b>{scba_check_header_text(label)}</b>", tiny_style) for _key, label in SCBA_CONTROL_ITEMS],
     ]
     data_rows = [header_row_1, header_row_2]
     for row in document_data["rows"]:
@@ -3202,17 +3223,18 @@ def build_scba_company_form_pdf(document_data: dict) -> io.BytesIO:
                 Paragraph(str(row["manufacturer"]), compact_style),
                 Paragraph(str(row["service_date"]), compact_style),
                 Paragraph(str(row["hydrostatic_test_date"]), compact_style),
-                Paragraph(str(row["location_detail"]), compact_style),
+                Paragraph(str(row["location_detail"]).replace(" ", "<br/>"), compact_location_style),
                 *row["checks"],
             ]
         )
-    while len(data_rows) < 16:
+    target_rows = 10 if len(document_data["rows"]) <= 10 else len(document_data["rows"])
+    while len(data_rows) < (target_rows + 2):
         data_rows.append([""] * 15)
 
     main_table = PdfTable(
         data_rows,
         repeatRows=2,
-        colWidths=[10 * mm, 17 * mm, 6 * mm, 18 * mm, 18 * mm, 16 * mm, 19 * mm, 18 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 13 * mm, 13 * mm],
+        colWidths=[12 * mm, 6 * mm, 19 * mm, 19 * mm, 17 * mm, 15 * mm, 18 * mm, 24 * mm, 10 * mm, 10 * mm, 10 * mm, 10 * mm, 10 * mm, 15 * mm, 15 * mm],
         rowHeights=[7 * mm, 18 * mm] + [6 * mm] * (len(data_rows) - 2),
         hAlign="CENTER",
     )
@@ -3222,6 +3244,7 @@ def build_scba_company_form_pdf(document_data: dict) -> io.BytesIO:
                 ("SPAN", (0, 0), (7, 0)),
                 ("SPAN", (8, 0), (14, 0)),
                 ("SPAN", (1, 1), (2, 1)),
+                ("SPAN", (1, 2), (2, -1)),
                 ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
                 ("BACKGROUND", (0, 0), (-1, 1), colors.HexColor("#f7f7f7")),
                 ("FONTNAME", (0, 0), (-1, 1), "VestaPDFBold"),
@@ -3238,28 +3261,34 @@ def build_scba_company_form_pdf(document_data: dict) -> io.BytesIO:
     note_style.fontName = "VestaPDF"
     note_style.fontSize = 5
     note_style.leading = 6
-    notes_table = PdfTable([[Paragraph(note, note_style)] for note in document_data["notes"]], colWidths=[193 * mm], hAlign="CENTER")
+    notes_table = PdfTable([[Paragraph(note, note_style)] for note in document_data["notes"]], colWidths=[form_total_width], hAlign="CENTER")
     notes_table.setStyle(TableStyle([("LEFTPADDING", (0,0), (-1,-1), 0), ("RIGHTPADDING", (0,0), (-1,-1), 0), ("TOPPADDING", (0,0), (-1,-1), 0), ("BOTTOMPADDING", (0,0), (-1,-1), 0)]))
     story.append(notes_table)
 
-    story.append(Spacer(1, 8 * mm))
-    story.append(header_table)
-    story.append(Spacer(1, 2 * mm))
-    story.append(PdfTable([[Paragraph("<b>AÇIKLAMALAR</b>", body_style)]], colWidths=[193 * mm], hAlign="CENTER", rowHeights=[7 * mm]))
-    story.append(PdfTable([[""]], colWidths=[193 * mm], hAlign="CENTER", rowHeights=[28 * mm], style=TableStyle([("GRID",(0,0),(-1,-1),0.6,colors.black)])))
+    add_second_page = len(document_data["rows"]) > 10
+    if add_second_page:
+        story.append(PageBreak())
+        story.append(header_table)
+        story.append(Spacer(1, 2 * mm))
+    else:
+        story.append(Spacer(1, 4 * mm))
+
+    story.append(PdfTable([[Paragraph("<b>AÇIKLAMALAR</b>", body_style)]], colWidths=[form_total_width], hAlign="CENTER", rowHeights=[7 * mm]))
+    story.append(PdfTable([[""]], colWidths=[form_total_width], hAlign="CENTER", rowHeights=[28 * mm], style=TableStyle([("GRID",(0,0),(-1,-1),0.6,colors.black)])))
     signature = PdfTable(
         [[Paragraph("<b>PERİYODİK KONTROL PERSONELİ</b>", body_style), "", Paragraph("<b>FİRMA YETKİLİSİ</b>", body_style), ""]],
-        colWidths=[48 * mm, 48 * mm, 48 * mm, 49 * mm],
+        colWidths=[52.5 * mm, 52.5 * mm, 52.5 * mm, 52.5 * mm],
         rowHeights=[7 * mm],
         hAlign="CENTER",
     )
     signature.setStyle(TableStyle([("GRID",(0,0),(-1,-1),0.6,colors.black), ("SPAN",(0,0),(1,0)), ("SPAN",(2,0),(3,0)), ("ALIGN",(0,0),(-1,-1),"CENTER"), ("FONTNAME",(0,0),(-1,-1),"VestaPDFBold")]))
     story.append(signature)
-    story.append(PdfTable([["ONAY"]], colWidths=[193 * mm], hAlign="CENTER", rowHeights=[26 * mm], style=TableStyle([("GRID",(0,0),(-1,-1),0.6,colors.black), ("ALIGN",(0,0),(-1,-1),"LEFT"), ("VALIGN",(0,0),(-1,-1),"TOP"), ("FONTNAME",(0,0),(-1,-1),"VestaPDFBold"), ("LEFTPADDING",(0,0),(-1,-1),4), ("TOPPADDING",(0,0),(-1,-1),4)])))
+    story.append(PdfTable([["ONAY"]], colWidths=[form_total_width], hAlign="CENTER", rowHeights=[26 * mm], style=TableStyle([("GRID",(0,0),(-1,-1),0.6,colors.black), ("ALIGN",(0,0),(-1,-1),"LEFT"), ("VALIGN",(0,0),(-1,-1),"TOP"), ("FONTNAME",(0,0),(-1,-1),"VestaPDFBold"), ("LEFTPADDING",(0,0),(-1,-1),4), ("TOPPADDING",(0,0),(-1,-1),4)])))
     story.append(Spacer(1, 2 * mm))
-    notes2 = PdfTable([[Paragraph(note, note_style)] for note in document_data["notes"]], colWidths=[193 * mm], hAlign="CENTER")
-    notes2.setStyle(TableStyle([("LEFTPADDING", (0,0), (-1,-1), 0), ("RIGHTPADDING", (0,0), (-1,-1), 0), ("TOPPADDING", (0,0), (-1,-1), 0), ("BOTTOMPADDING", (0,0), (-1,-1), 0)]))
-    story.append(notes2)
+    if add_second_page:
+        notes2 = PdfTable([[Paragraph(note, note_style)] for note in document_data["notes"]], colWidths=[form_total_width], hAlign="CENTER")
+        notes2.setStyle(TableStyle([("LEFTPADDING", (0,0), (-1,-1), 0), ("RIGHTPADDING", (0,0), (-1,-1), 0), ("TOPPADDING", (0,0), (-1,-1), 0), ("BOTTOMPADDING", (0,0), (-1,-1), 0)]))
+        story.append(notes2)
 
     doc.build(story)
     buffer.seek(0)
