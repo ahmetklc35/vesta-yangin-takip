@@ -87,6 +87,97 @@ SCBA_NOTES = [
     "NOT 3: Madde a), b), c), d) veya e) bendindeki koşullarından herhangi birinde, bağımsız solunum cihazı kontrolü bir eksikliği ortaya çıkardığı zaman, bu solunum cihazı hizmetten kaldırılmalıdır.",
     "NOT 4: Bu muayene raporundaki bulgular muayene tarihindeki işletme koşulları için geçerlidir. Bu rapor 2 nüsha basılmıştır. Muayene raporu VESTA YANGIN onayı olmaksızın kopya edilemez.",
 ]
+SPECIAL_CATEGORY_FORM_CONFIGS = {
+    "EEBD": {
+        "form_code": "F-18",
+        "subject": "ACIL KACIS SETI (EMERGENCY ESCAPE BREATHING DEVICE SET) Kontrol Formu",
+        "section_title": "ACIL KACIS SETI (EEBD) BILGILERI",
+        "method_text": "IEKSGSY ve firma kontrol kriterlerine gore kontrol edilmistir.",
+        "notes": [
+            "NOT 1: EEBD kontrolunde uygunsuzluk tespit edilirse ekipman kullanima verilmeden once duzeltici faaliyet uygulanmalidir.",
+            "NOT 2: Solunum, regulator, silindir veya kemer bilesenlerinde uygunsuzluk varsa ekipman VESTA YANGIN tarafindan bakima alinmalidir.",
+            "NOT 3: Bu muayene raporundaki bulgular muayene tarihindeki isletme kosullari icin gecerlidir.",
+        ],
+    },
+    "Hava Tupu": {
+        "form_code": "F-19",
+        "subject": "BASINCLI HAVA SOLUNUM TUPU (COMPRESSED AIR BREATHING CYLINDERS) Kontrol Formu",
+        "section_title": "BASINCLI HAVA SOLUNUM TUPU BILGILERI",
+        "method_text": "IEKSGSY ve firma kontrol kriterlerine gore kontrol edilmistir.",
+        "notes": [
+            "NOT 1: Valf, silindir veya servis etiketinde uygunsuzluk tespit edilirse tup hizmete verilmeden once duzeltici faaliyet uygulanmalidir.",
+            "NOT 2: Hidrostatik test ve dolum bilgileri guncel tutulmalidir.",
+            "NOT 3: Bu muayene raporundaki bulgular muayene tarihindeki isletme kosullari icin gecerlidir.",
+        ],
+    },
+    "Yangin Elbisesi": {
+        "form_code": "F-20",
+        "subject": "YANGIN ELBISESI Kontrol Formu",
+        "section_title": "YANGIN ELBISESI BILGILERI",
+        "method_text": "IEKSGSY ve firma kontrol kriterlerine gore kontrol edilmistir.",
+        "notes": [
+            "NOT 1: Kumas, fermuar, bant, astar veya dikislerde uygunsuzluk tespit edilirse ekipman kullanima verilmeden once bakima alinmalidir.",
+            "NOT 2: Servis etiketi guncel olmayan ekipman hizmete verilmemelidir.",
+            "NOT 3: Bu muayene raporundaki bulgular muayene tarihindeki isletme kosullari icin gecerlidir.",
+        ],
+    },
+    "Yangin Bareti": {
+        "form_code": "F-21",
+        "subject": "YANGIN BARETI Kontrol Formu",
+        "section_title": "YANGIN BARETI BILGILERI",
+        "method_text": "IEKSGSY ve firma kontrol kriterlerine gore kontrol edilmistir.",
+        "notes": [
+            "NOT 1: Baretin dis yuzu, ic yapi, vizor veya boyun koruyucusunda uygunsuzluk varsa ekipman bakima alinmalidir.",
+            "NOT 2: Servis etiketi guncel olmayan ekipman hizmete verilmemelidir.",
+            "NOT 3: Bu muayene raporundaki bulgular muayene tarihindeki isletme kosullari icin gecerlidir.",
+        ],
+    },
+    "Yangin Baltasi": {
+        "form_code": "F-22",
+        "subject": "YANGIN BALTASI Kontrol Formu",
+        "section_title": "YANGIN BALTASI BILGILERI",
+        "method_text": "IEKSGSY ve firma kontrol kriterlerine gore kontrol edilmistir.",
+        "notes": [
+            "NOT 1: Sap, metal kisim, agiz veya ulasilabilirlikte uygunsuzluk varsa ekipman kullanima verilmeden once duzeltilmelidir.",
+            "NOT 2: Servis etiketi guncel olmayan ekipman hizmete verilmemelidir.",
+            "NOT 3: Bu muayene raporundaki bulgular muayene tarihindeki isletme kosullari icin gecerlidir.",
+        ],
+    },
+    "Yangin Sondurme Dolabi": {
+        "form_code": "F-23",
+        "subject": "YANGIN SONDURME DOLABI Periyodik Kontrol Formu",
+        "section_title": "YANGIN SONDURME DOLABI BILGILERI",
+        "method_text": "IEKSGSY ve firma kontrol kriterlerine gore kontrol edilmistir.",
+        "notes": [
+            "NOT 1: Dolap, hortum, lans, vana ve basinc kontrol kriterlerinden herhangi birinde uygunsuzluk tespit edilirse dolap bakima alinmalidir.",
+            "NOT 2: Erisebilirlik ve levha uygunsuzluklari acil duzeltici faaliyet gerektirir.",
+            "NOT 3: Bu muayene raporundaki bulgular muayene tarihindeki isletme kosullari icin gecerlidir.",
+        ],
+    },
+    "Kopuklu Yangin Sondurme Dolabi": {
+        "form_code": "F-24",
+        "subject": "KOPUKLU YANGIN SONDURME DOLABI Periyodik Kontrol Formu",
+        "section_title": "KOPUKLU YANGIN SONDURME DOLABI BILGILERI",
+        "method_text": "IEKSGSY ve firma kontrol kriterlerine gore kontrol edilmistir.",
+        "notes": [
+            "NOT 1: Dolap, hortum, vana, oranlayici, basinc ve lans kriterlerinden herhangi birinde uygunsuzluk varsa sistem bakima alinmalidir.",
+            "NOT 2: Kopuk doluluk ve karisim ayarlari guncel tutulmalidir.",
+            "NOT 3: Bu muayene raporundaki bulgular muayene tarihindeki isletme kosullari icin gecerlidir.",
+        ],
+    },
+    "Yangin Hidranti": {
+        "form_code": "F-25",
+        "subject": "YANGIN HIDRANTI Periyodik Kontrol Formu",
+        "section_title": "YANGIN HIDRANTI BILGILERI",
+        "method_text": "IEKSGSY ve firma kontrol kriterlerine gore kontrol edilmistir.",
+        "notes": [
+            "NOT 1: Hidrant ulasilabilirligi, kapak, vana sizdirmazligi ve cikis agizlarinda uygunsuzluk tespit edilirse sistem bakima alinmalidir.",
+            "NOT 2: Erisebilirlik ve gorunurluk uygunsuzluklari acil duzeltici faaliyet gerektirir.",
+            "NOT 3: Bu muayene raporundaki bulgular muayene tarihindeki isletme kosullari icin gecerlidir.",
+        ],
+    },
+}
+
 EQUIPMENT_OPTIONS = [
     "Kuru Kimyevi Toz",
     "CO2",
@@ -2658,6 +2749,333 @@ def build_scba_company_document_data(public_id: str) -> dict:
     }
 
 
+def build_special_category_company_document_data(public_id: str) -> dict:
+    extinguisher = get_extinguisher(public_id)
+    category = extinguisher.get("asset_category") or DEFAULT_ASSET_CATEGORY
+    config = SPECIAL_CATEGORY_FORM_CONFIGS[category]
+    asset_profile = get_asset_profile(category)
+    category_assets = fetch_company_category_assets(extinguisher)
+    asset_ids = [row["id"] for row in category_assets]
+    latest_inspections: dict[int, dict] = {}
+    latest_logs: dict[int, dict] = {}
+    if asset_ids:
+        inspection_rows = fetch_all(
+            select(monthly_inspections)
+            .where(monthly_inspections.c.extinguisher_id.in_(asset_ids))
+            .order_by(
+                monthly_inspections.c.extinguisher_id,
+                desc(monthly_inspections.c.inspection_date),
+                desc(monthly_inspections.c.id),
+            )
+        )
+        for row in inspection_rows:
+            latest_inspections.setdefault(row["extinguisher_id"], row)
+        service_rows = fetch_all(
+            select(service_logs)
+            .where(service_logs.c.extinguisher_id.in_(asset_ids))
+            .order_by(
+                service_logs.c.extinguisher_id,
+                desc(service_logs.c.service_date),
+                desc(service_logs.c.id),
+            )
+        )
+        for row in service_rows:
+            latest_logs.setdefault(row["extinguisher_id"], row)
+
+    latest_log = latest_logs.get(extinguisher["id"]) or fetch_one(
+        select(service_logs)
+        .where(service_logs.c.extinguisher_id == extinguisher["id"])
+        .order_by(desc(service_logs.c.service_date), desc(service_logs.c.id))
+        .limit(1)
+    )
+    latest_inspection = latest_inspections.get(extinguisher["id"]) or fetch_one(
+        select(monthly_inspections)
+        .where(monthly_inspections.c.extinguisher_id == extinguisher["id"])
+        .order_by(desc(monthly_inspections.c.inspection_date), desc(monthly_inspections.c.id))
+        .limit(1)
+    )
+
+    rows = []
+    for index, row in enumerate(category_assets, start=1):
+        inspection = latest_inspections.get(row["id"])
+        checks = [
+            "V" if inspection and inspection.get(key) else "X" if inspection else "-"
+            for key, _label in asset_profile["monthly_control_items"]
+        ]
+        rows.append(
+            {
+                "device_no": index,
+                "category": row.get("fire_class") or row.get("extinguisher_type") or asset_profile["label"],
+                "serial_number": row.get("serial_number") or "-",
+                "manufacturer": row.get("manufacturer") or "-",
+                "service_date": row.get("last_service_date") or "-",
+                "hydrostatic_test_date": row.get("hydrostatic_test_date") or "-",
+                "location_detail": row.get("location_detail") or "-",
+                "company_contact": row.get("company_contact") or "-",
+                "checks": checks,
+            }
+        )
+
+    return {
+        "company_name": extinguisher["company_name"],
+        "company_address": extinguisher.get("company_address") or "-",
+        "company_contact": extinguisher.get("company_contact") or "-",
+        "periodic_control_person": (latest_log or {}).get("technician_name") or (latest_inspection or {}).get("inspector_name") or "-",
+        "approval_name": "Mustafa Kilic",
+        "asset_category": category,
+        "asset_profile": asset_profile,
+        "form_code": config["form_code"],
+        "subject": config["subject"],
+        "section_title": config["section_title"],
+        "control_date": datetime.now().strftime("%d.%m.%Y"),
+        "method_text": config["method_text"],
+        "rows": rows,
+        "check_headers": [label for _key, label in asset_profile["monthly_control_items"]],
+        "notes": config["notes"],
+    }
+
+
+def build_special_category_company_form_pdf(document_data: dict) -> io.BytesIO:
+    regular_font_path = resolve_system_font(
+        "C:/Windows/Fonts/arial.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+    )
+    bold_font_path = resolve_system_font(
+        "C:/Windows/Fonts/arialbd.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
+    )
+    if "VestaPDF" not in pdfmetrics.getRegisteredFontNames():
+        pdfmetrics.registerFont(TTFont("VestaPDF", regular_font_path))
+    if "VestaPDFBold" not in pdfmetrics.getRegisteredFontNames():
+        pdfmetrics.registerFont(TTFont("VestaPDFBold", bold_font_path))
+
+    styles = getSampleStyleSheet()
+    body_style = styles["BodyText"].clone("special_body")
+    body_style.fontName = "VestaPDF"
+    body_style.fontSize = 7
+    body_style.leading = 8
+
+    tiny_style = styles["BodyText"].clone("special_tiny")
+    tiny_style.fontName = "VestaPDF"
+    tiny_style.fontSize = 5
+    tiny_style.leading = 6
+
+    tiny_bold_style = styles["BodyText"].clone("special_tiny_bold")
+    tiny_bold_style.fontName = "VestaPDFBold"
+    tiny_bold_style.fontSize = 5
+    tiny_bold_style.leading = 6
+
+    compact_style = styles["BodyText"].clone("special_compact")
+    compact_style.fontName = "VestaPDF"
+    compact_style.fontSize = 5.4
+    compact_style.leading = 6
+    compact_style.spaceBefore = 0
+    compact_style.spaceAfter = 0
+
+    compact_location_style = styles["BodyText"].clone("special_location")
+    compact_location_style.fontName = "VestaPDF"
+    compact_location_style.fontSize = 4.6
+    compact_location_style.leading = 5
+    compact_location_style.spaceBefore = 0
+    compact_location_style.spaceAfter = 0
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(A4),
+        leftMargin=6 * mm,
+        rightMargin=6 * mm,
+        topMargin=6 * mm,
+        bottomMargin=6 * mm,
+    )
+    story = []
+
+    logo_cells = []
+    if TSE_HYB_LOGO_PATH.exists():
+        logo_cells.append(PdfImage(str(TSE_HYB_LOGO_PATH), width=17 * mm, height=17 * mm))
+    else:
+        logo_cells.append(Paragraph("<b>TSE-HYB</b>", body_style))
+    if VESTA_HEADER_LOGO_PATH.exists():
+        logo_cells.append(PdfImage(str(VESTA_HEADER_LOGO_PATH), width=13 * mm, height=16 * mm))
+    else:
+        logo_cells.append(Paragraph("<b>VESTA</b>", body_style))
+
+    logo_table = PdfTable([logo_cells], colWidths=[20 * mm, 20 * mm], rowHeights=[18 * mm])
+    logo_table.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("ALIGN", (0, 0), (-1, -1), "CENTER")]))
+
+    header_table = PdfTable(
+        [
+            [
+                logo_table,
+                Paragraph("<b>Onay: Sirket Muduru<br/>Mustafa Kilic</b>", body_style),
+                Paragraph("<b>Bolum</b>", body_style),
+                Paragraph("<b>Revizyon No</b>", body_style),
+                Paragraph("<b>Revizyon Tarihi</b>", body_style),
+                Paragraph("<b>Sayfa</b>", body_style),
+            ],
+            ["", "", document_data["form_code"], "0", "2026-03-01", "1"],
+            [
+                Paragraph("<b>FORM</b>", body_style),
+                Paragraph(f"<b>Konu: {document_data['subject']}</b>", body_style),
+                Paragraph("<b>Hazirlayan: Kalite Temsilcisi</b>", body_style),
+                "",
+                "",
+                "",
+            ],
+        ],
+        colWidths=[40 * mm, 76 * mm, 16 * mm, 24 * mm, 34 * mm, 20 * mm],
+        hAlign="CENTER",
+    )
+    header_table.setStyle(
+        TableStyle([
+            ("GRID", (0, 0), (-1, -1), 0.6, colors.black),
+            ("SPAN", (0, 0), (0, 1)),
+            ("SPAN", (1, 0), (1, 1)),
+            ("SPAN", (1, 2), (2, 2)),
+            ("SPAN", (3, 2), (5, 2)),
+            ("FONTNAME", (0, 0), (-1, -1), "VestaPDF"),
+            ("FONTNAME", (0, 0), (-1, 0), "VestaPDFBold"),
+            ("FONTNAME", (0, 2), (-1, 2), "VestaPDFBold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 7),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("ALIGN", (2, 0), (-1, 1), "CENTER"),
+        ])
+    )
+    story.extend([header_table, Spacer(1, 1 * mm)])
+
+    info_table = PdfTable(
+        [
+            [Paragraph("<b>FIRMA ADI</b>", body_style), document_data["company_name"], "", "", Paragraph("<b>KONTROL TARIHI</b>", body_style), document_data["control_date"]],
+            [Paragraph("<b>MUAYENE ADRESI</b>", body_style), document_data["company_address"], "", "", Paragraph("<b>FIRMA YETKILISI</b>", body_style), document_data["company_contact"]],
+            [Paragraph("<b>PERIYODIK KONTROL METODU</b>", body_style), document_data["method_text"], "", "", "", ""],
+        ],
+        colWidths=[28 * mm, 86 * mm, 2 * mm, 2 * mm, 32 * mm, 60 * mm],
+        hAlign="CENTER",
+    )
+    info_table.setStyle(
+        TableStyle([
+            ("GRID", (0, 0), (-1, -1), 0.6, colors.black),
+            ("SPAN", (1, 0), (3, 0)),
+            ("SPAN", (1, 1), (3, 1)),
+            ("SPAN", (1, 2), (-1, 2)),
+            ("FONTNAME", (0, 0), (-1, -1), "VestaPDF"),
+            ("FONTNAME", (0, 0), (0, -1), "VestaPDFBold"),
+            ("FONTNAME", (4, 0), (4, 1), "VestaPDFBold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 7),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 2),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+        ])
+    )
+    story.extend([info_table, Spacer(1, 1 * mm)])
+
+    check_headers = document_data["check_headers"]
+    check_count = len(check_headers)
+    first_col_widths = [10 * mm, 24 * mm, 22 * mm, 22 * mm, 18 * mm]
+    if document_data["asset_profile"].get("show_hydrostatic"):
+        first_col_widths.append(18 * mm)
+    first_col_widths.append(28 * mm)
+    remaining_width = 285 * mm - sum(first_col_widths)
+    check_width = max(8.5 * mm, remaining_width / max(check_count, 1))
+    col_widths = first_col_widths + [check_width] * check_count
+
+    static_col_count = len(first_col_widths)
+    header_row_1 = [Paragraph(f"<b>{document_data['section_title']}</b>", body_style)] + [""] * (static_col_count - 1) + [Paragraph("<b>TESPIT VE DEGERLENDIRME</b><br/><font size='6'>(V: UYGUN, X: UYGUN DEGIL, -: UYGULAMA YOK)</font>", tiny_bold_style)] + [""] * (check_count - 1)
+    header_row_2 = [
+        Paragraph("<b>CIHAZ<br/>NO</b>", tiny_bold_style),
+        Paragraph("<b>KATEGORI / CINSI</b>", tiny_bold_style),
+        Paragraph("<b>SERI NO</b>", tiny_bold_style),
+        Paragraph("<b>MARKA</b>", tiny_bold_style),
+        Paragraph(f"<b>{document_data['asset_profile']['last_service_label'].upper()}</b>", tiny_bold_style),
+    ]
+    if document_data["asset_profile"].get("show_hydrostatic"):
+        header_row_2.append(Paragraph("<b>HIDROSTATIK<br/>TEST TARIHI</b>", tiny_bold_style))
+    header_row_2.append(Paragraph("<b>BULUNDUGU YER</b>", tiny_bold_style))
+    header_row_2.extend([Paragraph(f"<b>{label}</b>", tiny_style) for label in check_headers])
+
+    data_rows = [header_row_1, header_row_2]
+    for row in document_data["rows"]:
+        current = [
+            row["device_no"],
+            Paragraph(str(row["category"]), compact_style),
+            Paragraph(str(row["serial_number"]), compact_style),
+            Paragraph(str(row["manufacturer"]), compact_style),
+            Paragraph(str(row["service_date"]), compact_style),
+        ]
+        if document_data["asset_profile"].get("show_hydrostatic"):
+            current.append(Paragraph(str(row["hydrostatic_test_date"]), compact_style))
+        current.append(Paragraph(str(row["location_detail"]), compact_location_style))
+        current.extend(row["checks"])
+        data_rows.append(current)
+
+    min_rows = 12
+    while len(data_rows) < (2 + min_rows):
+        data_rows.append([""] * len(col_widths))
+
+    main_table = PdfTable(
+        data_rows,
+        repeatRows=2,
+        colWidths=col_widths,
+        rowHeights=[6 * mm, 14 * mm] + [5.3 * mm] * (len(data_rows) - 2),
+        hAlign="CENTER",
+    )
+    main_table.setStyle(
+        TableStyle([
+            ("SPAN", (0, 0), (static_col_count - 1, 0)),
+            ("SPAN", (static_col_count, 0), (-1, 0)),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+            ("BACKGROUND", (0, 0), (-1, 1), colors.HexColor("#f7f7f7")),
+            ("FONTNAME", (0, 0), (-1, 1), "VestaPDFBold"),
+            ("FONTNAME", (0, 2), (-1, -1), "VestaPDF"),
+            ("FONTSIZE", (0, 0), (-1, -1), 5),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ])
+    )
+    story.extend([main_table, Spacer(1, 1 * mm)])
+
+    note_style = styles["BodyText"].clone("special_note")
+    note_style.fontName = "VestaPDF"
+    note_style.fontSize = 5
+    note_style.leading = 6
+    for note in document_data["notes"]:
+        story.append(Paragraph(note, note_style))
+
+    footer_table = PdfTable(
+        [
+            [Paragraph("<b>ACIKLAMALAR</b>", body_style)],
+            [""],
+            [Paragraph("<b>PERIYODIK KONTROL PERSONELI</b>", tiny_bold_style), Paragraph("<b>FIRMA YETKILISI</b>", tiny_bold_style)],
+            [document_data["periodic_control_person"], document_data["company_contact"]],
+            [Paragraph("<b>ONAY</b>", body_style), document_data["approval_name"]],
+        ],
+        colWidths=[105 * mm, 105 * mm],
+        hAlign="CENTER",
+    )
+    footer_table.setStyle(
+        TableStyle([
+            ("GRID", (0, 0), (-1, -1), 0.6, colors.black),
+            ("SPAN", (0, 0), (-1, 0)),
+            ("SPAN", (0, 1), (-1, 1)),
+            ("FONTNAME", (0, 0), (-1, -1), "VestaPDF"),
+            ("FONTNAME", (0, 0), (-1, 0), "VestaPDFBold"),
+            ("FONTNAME", (0, 2), (-1, 2), "VestaPDFBold"),
+            ("FONTNAME", (0, 4), (0, 4), "VestaPDFBold"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 2),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+            ("MINROWHEIGHT", (0, 1), (-1, 1), 16 * mm),
+        ])
+    )
+    story.extend([Spacer(1, 1 * mm), footer_table])
+
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
+
+
 def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
     main_col_widths = [10 * mm, 14 * mm, 14 * mm, 19 * mm, 16 * mm, 14 * mm, 16 * mm, 24 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm]
     form_total_width = sum(main_col_widths)
@@ -4389,9 +4807,13 @@ def public_control_form_pdf(public_id: str):
 @login_required
 def category_report_pdf(public_id: str):
     extinguisher = get_extinguisher(public_id)
-    if extinguisher.get("asset_category") == "SCBA":
+    asset_category = extinguisher.get("asset_category")
+    if asset_category == "SCBA":
         document_data = build_scba_company_document_data(public_id)
         pdf_buffer = build_scba_company_form_pdf(document_data)
+    elif asset_category in SPECIAL_CATEGORY_FORM_CONFIGS:
+        document_data = build_special_category_company_document_data(public_id)
+        pdf_buffer = build_special_category_company_form_pdf(document_data)
     else:
         document_data = build_company_category_report_document_data(public_id)
         pdf_buffer = build_company_category_report_pdf(document_data)
@@ -4410,9 +4832,13 @@ def category_report_pdf(public_id: str):
 @app.route("/public/<public_id>/category-report.pdf")
 def public_category_report_pdf(public_id: str):
     extinguisher = get_extinguisher(public_id)
-    if extinguisher.get("asset_category") == "SCBA":
+    asset_category = extinguisher.get("asset_category")
+    if asset_category == "SCBA":
         document_data = build_scba_company_document_data(public_id)
         pdf_buffer = build_scba_company_form_pdf(document_data)
+    elif asset_category in SPECIAL_CATEGORY_FORM_CONFIGS:
+        document_data = build_special_category_company_document_data(public_id)
+        pdf_buffer = build_special_category_company_form_pdf(document_data)
     else:
         document_data = build_company_category_report_document_data(public_id)
         pdf_buffer = build_company_category_report_pdf(document_data)
