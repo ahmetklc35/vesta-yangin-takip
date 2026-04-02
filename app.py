@@ -2820,9 +2820,9 @@ def build_special_category_company_document_data(public_id: str) -> dict:
             for key, _label in asset_profile["monthly_control_items"]
         ]
         for candidate in [
-            (last_log or {}).get("service_date"),
-            (inspection or {}).get("inspection_date"),
             row.get("last_service_date"),
+            (inspection or {}).get("inspection_date"),
+            (last_log or {}).get("service_date"),
         ]:
             parsed = coerce_date(candidate)
             if parsed:
@@ -2841,7 +2841,18 @@ def build_special_category_company_document_data(public_id: str) -> dict:
             }
         )
 
-    control_date = max(control_date_candidates).strftime("%d.%m.%Y") if control_date_candidates else datetime.now().strftime("%d.%m.%Y")
+    preferred_dates = []
+    for row in category_assets:
+        parsed = coerce_date(row.get("last_service_date"))
+        if parsed:
+            preferred_dates.append(parsed)
+    control_date = (
+        max(preferred_dates).strftime("%d.%m.%Y")
+        if preferred_dates
+        else max(control_date_candidates).strftime("%d.%m.%Y")
+        if control_date_candidates
+        else datetime.now().strftime("%d.%m.%Y")
+    )
 
     return {
         "company_name": extinguisher["company_name"],
@@ -3049,7 +3060,7 @@ def build_special_category_company_form_pdf(document_data: dict) -> io.BytesIO:
             [Paragraph("<b>MUAYENE ADRESI</b>", body_style), document_data["company_address"], "", "", Paragraph("<b>FIRMA YETKILISI</b>", body_style), document_data["company_contact"]],
             [Paragraph("<b>PERIYODIK KONTROL METODU</b>", body_style), document_data["method_text"], "", "", "", ""],
         ],
-        colWidths=[34 * mm, 104 * mm, 2 * mm, 2 * mm, 48 * mm, 84 * mm],
+        colWidths=[34 * mm, 108 * mm, 2 * mm, 2 * mm, 52 * mm, 82 * mm],
         hAlign="CENTER",
     )
     info_table.setStyle(
