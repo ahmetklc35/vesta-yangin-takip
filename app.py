@@ -2607,7 +2607,7 @@ def build_control_form_document_data(public_id: str) -> dict:
         "company_name": company_name,
         "company_address": extinguisher.get("company_address") or "-",
         "company_contact": extinguisher.get("company_contact") or "-",
-        "control_date": datetime.now().strftime("%d.%m.%Y"),
+        "control_date": control_date,
         "inspector_name": current_user_full_name() or "-",
         "method_text": CONTROL_FORM_METHOD_TEXT,
         "rows": control_rows,
@@ -2795,13 +2795,38 @@ def build_special_category_company_document_data(public_id: str) -> dict:
         .limit(1)
     )
 
+    def coerce_date(value):
+        if not value:
+            return None
+        if isinstance(value, datetime):
+            return value.date()
+        if hasattr(value, "strftime"):
+            return value
+        try:
+            return datetime.strptime(str(value), "%Y-%m-%d").date()
+        except Exception:
+            try:
+                return datetime.strptime(str(value), "%d.%m.%Y").date()
+            except Exception:
+                return None
+
+    control_date_candidates = []
     rows = []
     for index, row in enumerate(category_assets, start=1):
         inspection = latest_inspections.get(row["id"])
+        last_log = latest_logs.get(row["id"])
         checks = [
             "V" if inspection and inspection.get(key) else "X" if inspection else "-"
             for key, _label in asset_profile["monthly_control_items"]
         ]
+        for candidate in [
+            (last_log or {}).get("service_date"),
+            (inspection or {}).get("inspection_date"),
+            row.get("last_service_date"),
+        ]:
+            parsed = coerce_date(candidate)
+            if parsed:
+                control_date_candidates.append(parsed)
         rows.append(
             {
                 "device_no": index,
@@ -2815,6 +2840,8 @@ def build_special_category_company_document_data(public_id: str) -> dict:
                 "checks": checks,
             }
         )
+
+    control_date = max(control_date_candidates).strftime("%d.%m.%Y") if control_date_candidates else datetime.now().strftime("%d.%m.%Y")
 
     return {
         "company_name": extinguisher["company_name"],
@@ -2869,17 +2896,34 @@ def build_special_category_company_form_pdf(document_data: dict) -> io.BytesIO:
 
     compact_style = styles["BodyText"].clone("special_compact")
     compact_style.fontName = "VestaPDF"
-    compact_style.fontSize = 5.4
-    compact_style.leading = 6
+    compact_style.fontSize = 5.0
+    compact_style.leading = 5.5
     compact_style.spaceBefore = 0
     compact_style.spaceAfter = 0
 
+    compact_date_style = styles["BodyText"].clone("special_compact_date")
+    compact_date_style.fontName = "VestaPDF"
+    compact_date_style.fontSize = 4.6
+    compact_date_style.leading = 5.0
+    compact_date_style.spaceBefore = 0
+    compact_date_style.spaceAfter = 0
+    compact_date_style.alignment = 1
+
+    compact_category_style = styles["BodyText"].clone("special_category")
+    compact_category_style.fontName = "VestaPDF"
+    compact_category_style.fontSize = 4.5
+    compact_category_style.leading = 4.9
+    compact_category_style.spaceBefore = 0
+    compact_category_style.spaceAfter = 0
+    compact_category_style.alignment = 1
+
     compact_location_style = styles["BodyText"].clone("special_location")
     compact_location_style.fontName = "VestaPDF"
-    compact_location_style.fontSize = 4.6
-    compact_location_style.leading = 5
+    compact_location_style.fontSize = 4.2
+    compact_location_style.leading = 4.6
     compact_location_style.spaceBefore = 0
     compact_location_style.spaceAfter = 0
+    compact_location_style.alignment = 1
 
     target_width = 280 * mm
 
@@ -3027,7 +3071,7 @@ def build_special_category_company_form_pdf(document_data: dict) -> io.BytesIO:
 
     check_headers = document_data["check_headers"]
     check_count = len(check_headers)
-    first_col_widths = [8 * mm, 18 * mm, 20 * mm, 18 * mm, 16 * mm]
+    first_col_widths = [10 * mm, 20 * mm, 20 * mm, 18 * mm, 16 * mm]
     if document_data["asset_profile"].get("show_hydrostatic"):
         first_col_widths.append(16 * mm)
     first_col_widths.append(22 * mm)
@@ -3038,7 +3082,7 @@ def build_special_category_company_form_pdf(document_data: dict) -> io.BytesIO:
     static_col_count = len(first_col_widths)
     header_row_1 = [Paragraph(f"<b>{document_data['section_title']}</b>", body_style)] + [""] * (static_col_count - 1) + [Paragraph("<b>TESPIT VE DEGERLENDIRME</b><br/><font size='6'>(V: UYGUN, X: UYGUN DEGIL, -: UYGULAMA YOK)</font>", tiny_bold_style)] + [""] * (check_count - 1)
     header_row_2 = [
-        Paragraph("<b>CIHAZ<br/>NO</b>", tiny_bold_style),
+        Paragraph("<b>CIHAZ</b><br/><b>NO</b>", tiny_bold_style),
         Paragraph("<b>KATEGORI / CINSI</b>", tiny_bold_style),
         Paragraph("<b>SERI NO</b>", tiny_bold_style),
         Paragraph("<b>MARKA</b>", tiny_bold_style),
@@ -3053,13 +3097,13 @@ def build_special_category_company_form_pdf(document_data: dict) -> io.BytesIO:
     for row in document_data["rows"]:
         current = [
             row["device_no"],
-            Paragraph(str(row["category"]), compact_style),
+            Paragraph(str(row["category"]).replace("BASINCLI HAVA KACIS SETI", "BASINCLI<br/>HAVA KACIS<br/>SETI").replace("BASINCLI HAVA SOLUNUM TUPU", "BASINCLI HAVA<br/>SOLUNUM TUPU").replace("Yangin Elbisesi", "Yangin<br/>Elbisesi").replace("Yangin Bareti", "Yangin<br/>Bareti").replace("Yangin Baltasi", "Yangin<br/>Baltasi").replace("Yangin Sondurme Dolabi", "Yangin Sondurme<br/>Dolabi").replace("Kopuklu Yangin Sondurme Dolabi", "Kopuklu Yangin<br/>Sondurme Dolabi").replace("Yangin Hidranti", "Yangin<br/>Hidranti"), compact_category_style),
             Paragraph(str(row["serial_number"]), compact_style),
             Paragraph(str(row["manufacturer"]), compact_style),
-            Paragraph(str(row["service_date"]), compact_style),
+            Paragraph(str(row["service_date"]), compact_date_style),
         ]
         if document_data["asset_profile"].get("show_hydrostatic"):
-            current.append(Paragraph(str(row["hydrostatic_test_date"]), compact_style))
+            current.append(Paragraph(str(row["hydrostatic_test_date"]), compact_date_style))
         current.append(Paragraph(str(row["location_detail"]), compact_location_style))
         current.extend(row["checks"])
         data_rows.append(current)
