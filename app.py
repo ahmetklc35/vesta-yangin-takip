@@ -54,6 +54,7 @@ from sqlalchemy import (
     insert,
     select,
     update,
+    UniqueConstraint,
 )
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
@@ -671,7 +672,7 @@ extinguishers = Table(
     metadata,
     Column("id", Integer, primary_key=True),
     Column("public_id", String(32), nullable=False, unique=True),
-    Column("serial_number", String(128), nullable=False, unique=True),
+    Column("serial_number", String(128), nullable=False),
     Column("company_id", Integer, ForeignKey("companies.id")),
     Column("company_name", String(255), nullable=False),
     Column("location_detail", String(255), nullable=False),
@@ -689,6 +690,7 @@ extinguishers = Table(
     Column("next_service_date", String(32)),
     Column("created_at", String(32), nullable=False),
     Column("updated_at", String(32), nullable=False),
+    UniqueConstraint("asset_category", "serial_number", name="uq_extinguishers_asset_category_serial_number"),
 )
 
 service_logs = Table(
@@ -919,6 +921,75 @@ def run_schema_migrations() -> None:
                     connection.execute(
                         text(f"ALTER TABLE monthly_inspections ADD COLUMN {column_name} BOOLEAN NOT NULL DEFAULT 0")
                     )
+
+            connection.execute(
+                text(
+                    "UPDATE extinguishers SET asset_category = :default_category "
+                    "WHERE asset_category IS NULL OR TRIM(asset_category) = ''"
+                ),
+                {"default_category": DEFAULT_ASSET_CATEGORY},
+            )
+            extinguisher_sql_row = connection.execute(
+                text("SELECT sql FROM sqlite_master WHERE type='table' AND name='extinguishers'")
+            ).fetchone()
+            extinguisher_sql = (extinguisher_sql_row[0] or "") if extinguisher_sql_row else ""
+            needs_serial_migration = "serial_number TEXT NOT NULL UNIQUE" in extinguisher_sql
+            if needs_serial_migration:
+                connection.execute(text("PRAGMA foreign_keys=OFF"))
+                connection.execute(
+                    text(
+                        """
+                        CREATE TABLE extinguishers_new (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            public_id TEXT NOT NULL UNIQUE,
+                            serial_number TEXT NOT NULL,
+                            company_name TEXT NOT NULL,
+                            location_detail TEXT NOT NULL,
+                            weight_kg REAL NOT NULL,
+                            extinguisher_type TEXT NOT NULL,
+                            pressure_status TEXT,
+                            notes TEXT,
+                            last_service_date TEXT,
+                            next_service_date TEXT,
+                            created_at TEXT NOT NULL,
+                            updated_at TEXT NOT NULL,
+                            fire_class TEXT,
+                            manufacturer TEXT,
+                            hydrostatic_test_date TEXT,
+                            company_address TEXT,
+                            company_contact TEXT,
+                            company_id INTEGER,
+                            asset_category TEXT NOT NULL,
+                            CONSTRAINT uq_extinguishers_asset_category_serial_number UNIQUE (asset_category, serial_number)
+                        )
+                        """
+                    )
+                )
+                connection.execute(
+                    text(
+                        """
+                        INSERT INTO extinguishers_new (
+                            id, public_id, serial_number, company_name, location_detail, weight_kg,
+                            extinguisher_type, pressure_status, notes, last_service_date, next_service_date,
+                            created_at, updated_at, fire_class, manufacturer, hydrostatic_test_date,
+                            company_address, company_contact, company_id, asset_category
+                        )
+                        SELECT
+                            id, public_id, serial_number, company_name, location_detail, weight_kg,
+                            extinguisher_type, pressure_status, notes, last_service_date, next_service_date,
+                            created_at, updated_at, fire_class, manufacturer, hydrostatic_test_date,
+                            company_address, company_contact, company_id,
+                            COALESCE(NULLIF(asset_category, ''), :default_category)
+                        FROM extinguishers
+                        """
+                    ),
+                    {"default_category": DEFAULT_ASSET_CATEGORY},
+                )
+                connection.execute(text("DROP TABLE extinguishers"))
+                connection.execute(text("ALTER TABLE extinguishers_new RENAME TO extinguishers"))
+                connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_extinguishers_public_id ON extinguishers(public_id)"))
+                connection.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_extinguishers_asset_serial ON extinguishers(asset_category, serial_number)"))
+                connection.execute(text("PRAGMA foreign_keys=ON"))
     else:
         with engine.begin() as connection:
             table_exists = connection.execute(
@@ -1009,6 +1080,45 @@ def run_schema_migrations() -> None:
                     connection.execute(
                         text(f"ALTER TABLE monthly_inspections ADD COLUMN {column_name} BOOLEAN NOT NULL DEFAULT FALSE")
                     )
+            connection.execute(
+                text(
+                    "UPDATE extinguishers SET asset_category = :default_category "
+                    "WHERE asset_category IS NULL OR BTRIM(asset_category) = ''"
+                ),
+                {"default_category": DEFAULT_ASSET_CATEGORY},
+            )
+            connection.execute(
+                text(
+                    """
+                    DO $$
+                    DECLARE
+                        constraint_name TEXT;
+                    BEGIN
+                        SELECT tc.constraint_name
+                        INTO constraint_name
+                        FROM information_schema.table_constraints tc
+                        JOIN information_schema.constraint_column_usage ccu
+                          ON tc.constraint_name = ccu.constraint_name
+                        WHERE tc.table_name = 'extinguishers'
+                          AND tc.constraint_type = 'UNIQUE'
+                          AND ccu.column_name = 'serial_number'
+                        LIMIT 1;
+
+                        IF constraint_name IS NOT NULL THEN
+                            EXECUTE 'ALTER TABLE extinguishers DROP CONSTRAINT ' || quote_ident(constraint_name);
+                        END IF;
+                    END $$;
+                    """
+                )
+            )
+            connection.execute(
+                text(
+                    """
+                    CREATE UNIQUE INDEX IF NOT EXISTS uq_extinguishers_asset_category_serial_number
+                    ON extinguishers (asset_category, serial_number)
+                    """
+                )
+            )
 
 
 def seed_companies_from_extinguishers() -> None:
@@ -1477,7 +1587,7 @@ def render_profile_record_form(group_slug: str):
                     created_at=now,
                 )
         except IntegrityError:
-            flash("Bu seri numarasi zaten kayitli.", "error")
+            flash("Bu seri numarasi bu urun grubunda zaten kayitli.", "error")
             return render_template(
                 "create_asset_profile.html",
                 form=form,
