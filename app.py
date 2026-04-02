@@ -2010,11 +2010,17 @@ def build_branded_qr(public_url: str, *, label_mode: bool = False) -> io.BytesIO
 
 def build_monthly_inspection_values(form_data, items: list[tuple[str, str]] | None = None) -> dict[str, bool]:
     source_items = items or MONTHLY_CONTROL_ITEMS
-    return {key: form_data.get(key) == "on" for key, _label in source_items}
+    values = {f"item_{index}": False for index in range(1, 14)}
+    for key, _label in source_items:
+        values[key] = form_data.get(key) == "on"
+    return values
 
 
 def build_control_form_values(form_data) -> dict[str, bool]:
-    return {key: form_data.get(key) == "on" for key, _label in CONTROL_FORM_ITEMS}
+    values = {key: False for key, _label in CONTROL_FORM_ITEMS}
+    for key, _label in CONTROL_FORM_ITEMS:
+        values[key] = form_data.get(key) == "on"
+    return values
 
 
 def save_monthly_inspection(
