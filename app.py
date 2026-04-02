@@ -2871,17 +2871,35 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
 
 
 def build_company_category_report_pdf(document_data: dict) -> io.BytesIO:
+    regular_font_path = resolve_system_font(
+        "C:/Windows/Fonts/arial.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+    )
+    bold_font_path = resolve_system_font(
+        "C:/Windows/Fonts/arialbd.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
+    )
+    if "VestaPDF" not in pdfmetrics.getRegisteredFontNames():
+        pdfmetrics.registerFont(TTFont("VestaPDF", regular_font_path))
+    if "VestaPDFBold" not in pdfmetrics.getRegisteredFontNames():
+        pdfmetrics.registerFont(TTFont("VestaPDFBold", bold_font_path))
+
     styles = getSampleStyleSheet()
     title_style = styles["Title"].clone("category_report_title")
+    title_style.fontName = "VestaPDFBold"
     title_style.fontSize = 16
     title_style.leading = 19
     title_style.textColor = colors.HexColor("#3f2319")
 
     body_style = styles["BodyText"].clone("category_report_body")
+    body_style.fontName = "VestaPDF"
     body_style.fontSize = 8
     body_style.leading = 10
 
     cell_style = styles["BodyText"].clone("category_report_cell")
+    cell_style.fontName = "VestaPDF"
     cell_style.fontSize = 7
     cell_style.leading = 8
 
@@ -2897,7 +2915,7 @@ def build_company_category_report_pdf(document_data: dict) -> io.BytesIO:
 
     story = [
         Paragraph(
-            f"{document_data['company_name']} - {document_data['asset_profile']['label']} Kategori Raporu",
+            f"{document_data['company_name']} - Firma {document_data['asset_profile']['label']} Kayıt Raporu",
             title_style,
         ),
         Spacer(1, 3 * mm),
@@ -2907,7 +2925,7 @@ def build_company_category_report_pdf(document_data: dict) -> io.BytesIO:
         [
             ["Firma", document_data["company_name"], "Urun Grubu", document_data["asset_category"]],
             ["Muayene Adresi", document_data["company_address"], "Kayit Sayisi", str(len(document_data["rows"]))],
-            ["Rapor Olusturma Tarihi", document_data["generated_at"], "Aciklama", "Bu rapor ayni firmadaki ayni kategori kayitlarini listeler."],
+            ["Rapor Olusturma Tarihi", document_data["generated_at"], "Aciklama", "Bu rapor aynı firmadaki aynı kategori kayıtlarını listeler."],
         ],
         colWidths=[34 * mm, 92 * mm, 34 * mm, 112 * mm],
     )
@@ -2917,7 +2935,9 @@ def build_company_category_report_pdf(document_data: dict) -> io.BytesIO:
                 ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#c8b2a5")),
                 ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#f1e1d9")),
                 ("BACKGROUND", (2, 0), (2, -1), colors.HexColor("#f1e1d9")),
-                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+                ("FONTNAME", (0, 0), (-1, -1), "VestaPDF"),
+                ("FONTNAME", (0, 0), (0, -1), "VestaPDFBold"),
+                ("FONTNAME", (2, 0), (2, -1), "VestaPDFBold"),
                 ("FONTSIZE", (0, 0), (-1, -1), 8),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ]
@@ -2945,7 +2965,8 @@ def build_company_category_report_pdf(document_data: dict) -> io.BytesIO:
             [
                 ("GRID", (0, 0), (-1, -1), 0.45, colors.HexColor("#c8b2a5")),
                 ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e9d6cf")),
-                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTNAME", (0, 0), (-1, 0), "VestaPDFBold"),
+                ("FONTNAME", (0, 1), (-1, -1), "VestaPDF"),
                 ("ALIGN", (0, 0), (-1, 0), "CENTER"),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("TOPPADDING", (0, 0), (-1, -1), 4),
@@ -2955,7 +2976,7 @@ def build_company_category_report_pdf(document_data: dict) -> io.BytesIO:
     )
     story.append(data_table)
     story.append(Spacer(1, 3 * mm))
-    story.append(Paragraph("Bu rapor, firma portalinda secilen kategoriye ait tum kayitlari tek dosyada sunmak icin otomatik olusturulmustur.", body_style))
+    story.append(Paragraph("Bu rapor, firma portalında seçilen kategoriye ait tüm kayıtları tek dosyada sunmak için otomatik oluşturulmuştur.", body_style))
 
     doc.build(story)
     buffer.seek(0)
