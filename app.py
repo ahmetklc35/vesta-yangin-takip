@@ -80,6 +80,13 @@ CONTROL_FORM_NOTES = [
     "NOT 3: Madde c), d), e), f) veya g) bendindeki koşullarından herhangi birinde, doldurulmayan tozlu söndürücünün kontrolü bir eksikliği ortaya çıkardığı zaman, bu söndürücü hizmetten kaldırılmalıdır.",
     "NOT 4: Bu muayene raporundaki bulgular muayene tarihindeki işletme koşulları için geçerlidir. Bu rapor 2 nüsha basılmıştır. Muayene raporu VESTA YANGIN onayı olmaksızın kopya edilemez",
 ]
+SCBA_METHOD_TEXT = "İEKSGŞY, TS ISO 11602-2, TS 862-7 EN 3-7 + A1 ve TS EN 1866-1 standartlarına göre kontrol edilmiştir."
+SCBA_NOTES = [
+    "NOT 1: Bağımsız solunum cihazı kontrolü Madde a), b), c), d), e), f) bendindeki gibi listelenmiş koşullarda, bir eksikliği ortaya çıkardığı zaman, acil düzeltici faaliyet yapılmalıdır.",
+    "NOT 2: Bağımsız solunum cihazı kontrolü Madde d), e), f) veya g) bendindeki koşullarından herhangi birinde bir eksikliği ortaya çıkardığı zaman, söndürücü uygun bakım işlemlerine VESTA YANGIN tarafından tabi tutulmalıdır.",
+    "NOT 3: Madde a), b), c), d) veya e) bendindeki koşullarından herhangi birinde, bağımsız solunum cihazı kontrolü bir eksikliği ortaya çıkardığı zaman, bu solunum cihazı hizmetten kaldırılmalıdır.",
+    "NOT 4: Bu muayene raporundaki bulgular muayene tarihindeki işletme koşulları için geçerlidir. Bu rapor 2 nüsha basılmıştır. Muayene raporu VESTA YANGIN onayı olmaksızın kopya edilemez.",
+]
 EQUIPMENT_OPTIONS = [
     "Kuru Kimyevi Toz",
     "CO2",
@@ -347,12 +354,13 @@ AXE_CONTROL_ITEMS = [
     ("item_5", "17.YB.1001.A.5 Servis etiketi ekipmana yapistirildi"),
 ]
 SCBA_CONTROL_ITEMS = [
-    ("item_1", "17.S.1001.A.1 Yuz maskesi kontrol edildi"),
-    ("item_2", "17.S.1001.A.2 Solunum valfi kontrol edildi"),
-    ("item_3", "17.S.1001.A.3 Regulator unitesi kontrol edildi"),
-    ("item_4", "17.S.1001.A.4 Kemer kontrol edildi"),
-    ("item_5", "17.S.1001.A.5 Silindir kontrol edildi"),
-    ("item_6", "17.S.1001.A.6 Servis etiketi ekipmana yapistirildi"),
+    ("item_1", "17.S.1001.A.1 Yüz Maskesi Kontrol Edildi"),
+    ("item_2", "17.S.1001.A.2 Solunum Valfi Kontrol Edildi"),
+    ("item_3", "17.S.1001.A.3 Regülatör Ünitesi Kontrol Edildi"),
+    ("item_4", "17.S.1001.A.4 Kemer Kontrol Edildi"),
+    ("item_5", "17.S.1001.A.5 Silindir Kontrol Edildi"),
+    ("item_6", "17.S.1001.A.6 NOZUL UYGUNLUĞU (PASLANMA VB.)"),
+    ("item_7", "17.S.1001.A.7 Servis Etiketi Ekipmana Yapıştırıldı"),
 ]
 EEBD_CONTROL_ITEMS = [
     ("item_1", "17.E.1001.A.1 Yuz maskesi kontrol edildi"),
@@ -2575,6 +2583,55 @@ def build_company_category_report_document_data(public_id: str) -> dict:
     }
 
 
+def build_scba_company_document_data(public_id: str) -> dict:
+    extinguisher = get_extinguisher(public_id)
+    category_assets = fetch_company_category_assets(extinguisher)
+    asset_ids = [row["id"] for row in category_assets]
+    latest_inspections: dict[int, dict] = {}
+    if asset_ids:
+        inspection_rows = fetch_all(
+            select(monthly_inspections)
+            .where(monthly_inspections.c.extinguisher_id.in_(asset_ids))
+            .order_by(
+                monthly_inspections.c.extinguisher_id,
+                desc(monthly_inspections.c.inspection_date),
+                desc(monthly_inspections.c.id),
+            )
+        )
+        for row in inspection_rows:
+            latest_inspections.setdefault(row["extinguisher_id"], row)
+
+    rows = []
+    for index, row in enumerate(category_assets, start=1):
+        inspection = latest_inspections.get(row["id"], {})
+        rows.append(
+            {
+                "device_no": index,
+                "category": row.get("fire_class") or "-",
+                "serial_number": row.get("serial_number") or "-",
+                "manufacturer": row.get("manufacturer") or "-",
+                "service_date": row.get("last_service_date") or "-",
+                "hydrostatic_test_date": row.get("hydrostatic_test_date") or "-",
+                "location_detail": row.get("location_detail") or "-",
+                "checks": [
+                    "✔" if inspection.get(key) else "X" if inspection else "─"
+                    for key, _label in SCBA_CONTROL_ITEMS
+                ],
+            }
+        )
+
+    return {
+        "company_name": extinguisher["company_name"],
+        "company_address": extinguisher.get("company_address") or "-",
+        "company_contact": extinguisher.get("company_contact") or "-",
+        "asset_category": "SCBA",
+        "control_date": datetime.now().strftime("%d.%m.%Y"),
+        "method_text": SCBA_METHOD_TEXT,
+        "rows": rows,
+        "notes": SCBA_NOTES,
+    }
+
+
 def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
     main_col_widths = [10 * mm, 14 * mm, 14 * mm, 19 * mm, 16 * mm, 14 * mm, 16 * mm, 24 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm]
     form_total_width = sum(main_col_widths)
@@ -2977,6 +3034,232 @@ def build_company_category_report_pdf(document_data: dict) -> io.BytesIO:
     story.append(data_table)
     story.append(Spacer(1, 3 * mm))
     story.append(Paragraph("Bu rapor, firma portalında seçilen kategoriye ait tüm kayıtları tek dosyada sunmak için otomatik oluşturulmuştur.", body_style))
+
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
+
+
+def build_scba_company_form_pdf(document_data: dict) -> io.BytesIO:
+    regular_font_path = resolve_system_font(
+        "C:/Windows/Fonts/arial.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+    )
+    bold_font_path = resolve_system_font(
+        "C:/Windows/Fonts/arialbd.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/dejavu/DejaVuSans-Bold.ttf",
+    )
+    if "VestaPDF" not in pdfmetrics.getRegisteredFontNames():
+        pdfmetrics.registerFont(TTFont("VestaPDF", regular_font_path))
+    if "VestaPDFBold" not in pdfmetrics.getRegisteredFontNames():
+        pdfmetrics.registerFont(TTFont("VestaPDFBold", bold_font_path))
+
+    styles = getSampleStyleSheet()
+    body_style = styles["BodyText"].clone("scba_body")
+    body_style.fontName = "VestaPDF"
+    body_style.fontSize = 7
+    body_style.leading = 8
+
+    tiny_style = styles["BodyText"].clone("scba_tiny")
+    tiny_style.fontName = "VestaPDF"
+    tiny_style.fontSize = 5
+    tiny_style.leading = 6
+
+    tiny_bold_style = styles["BodyText"].clone("scba_tiny_bold")
+    tiny_bold_style.fontName = "VestaPDFBold"
+    tiny_bold_style.fontSize = 5
+    tiny_bold_style.leading = 6
+
+    compact_style = styles["BodyText"].clone("scba_compact")
+    compact_style.fontName = "VestaPDF"
+    compact_style.fontSize = 5.6
+    compact_style.leading = 6.2
+    compact_style.spaceBefore = 0
+    compact_style.spaceAfter = 0
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(A4),
+        leftMargin=6 * mm,
+        rightMargin=6 * mm,
+        topMargin=6 * mm,
+        bottomMargin=6 * mm,
+    )
+    story = []
+
+    logo_cells = []
+    if TSE_HYB_LOGO_PATH.exists():
+        logo_cells.append(PdfImage(str(TSE_HYB_LOGO_PATH), width=17 * mm, height=17 * mm))
+    else:
+        logo_cells.append(Paragraph("<b>TSE-HYB</b>", body_style))
+    if VESTA_HEADER_LOGO_PATH.exists():
+        logo_cells.append(PdfImage(str(VESTA_HEADER_LOGO_PATH), width=13 * mm, height=16 * mm))
+    else:
+        logo_cells.append(Paragraph("<b>VESTA</b>", body_style))
+
+    logo_table = PdfTable([logo_cells], colWidths=[20 * mm, 20 * mm], rowHeights=[18 * mm])
+    logo_table.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("ALIGN", (0, 0), (-1, -1), "CENTER")]))
+
+    header_table = PdfTable(
+        [
+            [
+                logo_table,
+                Paragraph("<b>Onay: Şirket Müdürü<br/>Mustafa KİLİÇ</b>", body_style),
+                Paragraph("<b>Bölüm</b>", body_style),
+                Paragraph("<b>Revizyon No</b>", body_style),
+                Paragraph("<b>Revizyon Tarihi</b>", body_style),
+                Paragraph("<b>Sayfa</b>", body_style),
+            ],
+            ["", "", "F-17", "0", "2026-03-01", "1"],
+            [
+                Paragraph("<b>FORM</b>", body_style),
+                Paragraph("<b>Konu: BAĞIMSIZ SOLUNUM CİHAZI (SELF-CONTAINED BREATHING APPARATUS) Kontrol Formu</b>", body_style),
+                Paragraph("<b>Hazırlayan: Kalite Temsilcisi</b>", body_style),
+                "",
+                "",
+                "",
+            ],
+        ],
+        colWidths=[40 * mm, 76 * mm, 16 * mm, 24 * mm, 34 * mm, 20 * mm],
+        hAlign="CENTER",
+    )
+    header_table.setStyle(
+        TableStyle(
+            [
+                ("GRID", (0, 0), (-1, -1), 0.6, colors.black),
+                ("SPAN", (0, 0), (0, 1)),
+                ("SPAN", (1, 0), (1, 1)),
+                ("SPAN", (1, 2), (2, 2)),
+                ("SPAN", (3, 2), (5, 2)),
+                ("FONTNAME", (0, 0), (-1, -1), "VestaPDF"),
+                ("FONTNAME", (0, 0), (-1, 0), "VestaPDFBold"),
+                ("FONTNAME", (0, 2), (-1, 2), "VestaPDFBold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 7),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ALIGN", (2, 0), (-1, 1), "CENTER"),
+            ]
+        )
+    )
+    story.extend([header_table, Spacer(1, 1 * mm)])
+
+    info_table = PdfTable(
+        [
+            [Paragraph("<b>FİRMA ADI</b>", body_style), document_data["company_name"], "", "", Paragraph("<b>KONTROL TARİHİ</b>", body_style), document_data["control_date"]],
+            [Paragraph("<b>MUAYENE ADRESİ</b>", body_style), document_data["company_address"], "", "", Paragraph("<b>FİRMA YETKİLİ KİŞİ</b>", body_style), document_data["company_contact"]],
+            [Paragraph("<b>PERİYODİK KONTROL METODU</b>", body_style), Paragraph(document_data["method_text"], compact_style), "", "", "", ""],
+        ],
+        colWidths=[35 * mm, 75 * mm, 2 * mm, 2 * mm, 38 * mm, 58 * mm],
+        hAlign="CENTER",
+        rowHeights=[8 * mm, 8 * mm, 10 * mm],
+    )
+    info_table.setStyle(
+        TableStyle(
+            [
+                ("GRID", (0, 0), (-1, -1), 0.6, colors.black),
+                ("SPAN", (1, 0), (3, 0)),
+                ("SPAN", (1, 1), (3, 1)),
+                ("SPAN", (1, 2), (-1, 2)),
+                ("FONTNAME", (0, 0), (-1, -1), "VestaPDF"),
+                ("FONTNAME", (0, 0), (0, -1), "VestaPDFBold"),
+                ("FONTNAME", (4, 0), (4, 1), "VestaPDFBold"),
+                ("FONTSIZE", (0, 0), (-1, -1), 7),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("LEFTPADDING", (0, 0), (-1, -1), 2),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+            ]
+        )
+    )
+    story.extend([info_table, Spacer(1, 1 * mm)])
+
+    header_row_1 = [
+        Paragraph("<b>BAĞIMSIZ SOLUNUM CİHAZI (SELF-CONTAINED BREATHING APPARATUS) BİLGİLERİ</b>", body_style),
+        "", "", "", "", "", "", "",
+        Paragraph("<b>TESPİT VE DEĞERLENDİRME</b><br/><font size='6'>(✔: UYGUN; X: U. DEĞİL; ─: UYGULAMA YOK)</font>", tiny_bold_style),
+        "", "", "", "", "", "",
+    ]
+    header_row_2 = [
+        Paragraph("<b>CİHAZ NO</b>", tiny_bold_style),
+        Paragraph("<b>KATEGORİ / CİNSİ</b>", tiny_bold_style),
+        "",
+        Paragraph("<b>SERİ NO / KOD</b>", tiny_bold_style),
+        Paragraph("<b>MARKA</b>", tiny_bold_style),
+        Paragraph("<b>DOLUM TARİHİ</b>", tiny_bold_style),
+        Paragraph("<b>HİDROSTATİK TEST TARİHİ</b>", tiny_bold_style),
+        Paragraph("<b>BULUNDUĞU YER</b>", tiny_bold_style),
+        *[Paragraph(f"<b>{label.split(' ', 1)[1]}</b>", tiny_style) for _key, label in SCBA_CONTROL_ITEMS],
+    ]
+    data_rows = [header_row_1, header_row_2]
+    for row in document_data["rows"]:
+        data_rows.append(
+            [
+                row["device_no"],
+                Paragraph(str(row["category"]).replace(" ", "<br/>"), compact_style),
+                "",
+                Paragraph(str(row["serial_number"]), compact_style),
+                Paragraph(str(row["manufacturer"]), compact_style),
+                Paragraph(str(row["service_date"]), compact_style),
+                Paragraph(str(row["hydrostatic_test_date"]), compact_style),
+                Paragraph(str(row["location_detail"]), compact_style),
+                *row["checks"],
+            ]
+        )
+    while len(data_rows) < 16:
+        data_rows.append([""] * 15)
+
+    main_table = PdfTable(
+        data_rows,
+        repeatRows=2,
+        colWidths=[10 * mm, 17 * mm, 6 * mm, 18 * mm, 18 * mm, 16 * mm, 19 * mm, 18 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 13 * mm, 13 * mm],
+        rowHeights=[7 * mm, 18 * mm] + [6 * mm] * (len(data_rows) - 2),
+        hAlign="CENTER",
+    )
+    main_table.setStyle(
+        TableStyle(
+            [
+                ("SPAN", (0, 0), (7, 0)),
+                ("SPAN", (8, 0), (14, 0)),
+                ("SPAN", (1, 1), (2, 1)),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.black),
+                ("BACKGROUND", (0, 0), (-1, 1), colors.HexColor("#f7f7f7")),
+                ("FONTNAME", (0, 0), (-1, 1), "VestaPDFBold"),
+                ("FONTNAME", (0, 2), (-1, -1), "VestaPDF"),
+                ("FONTSIZE", (0, 0), (-1, -1), 5),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ]
+        )
+    )
+    story.extend([main_table, Spacer(1, 1 * mm)])
+
+    note_style = styles["BodyText"].clone("scba_note")
+    note_style.fontName = "VestaPDF"
+    note_style.fontSize = 5
+    note_style.leading = 6
+    notes_table = PdfTable([[Paragraph(note, note_style)] for note in document_data["notes"]], colWidths=[193 * mm], hAlign="CENTER")
+    notes_table.setStyle(TableStyle([("LEFTPADDING", (0,0), (-1,-1), 0), ("RIGHTPADDING", (0,0), (-1,-1), 0), ("TOPPADDING", (0,0), (-1,-1), 0), ("BOTTOMPADDING", (0,0), (-1,-1), 0)]))
+    story.append(notes_table)
+
+    story.append(Spacer(1, 8 * mm))
+    story.append(header_table)
+    story.append(Spacer(1, 2 * mm))
+    story.append(PdfTable([[Paragraph("<b>AÇIKLAMALAR</b>", body_style)]], colWidths=[193 * mm], hAlign="CENTER", rowHeights=[7 * mm]))
+    story.append(PdfTable([[""]], colWidths=[193 * mm], hAlign="CENTER", rowHeights=[28 * mm], style=TableStyle([("GRID",(0,0),(-1,-1),0.6,colors.black)])))
+    signature = PdfTable(
+        [[Paragraph("<b>PERİYODİK KONTROL PERSONELİ</b>", body_style), "", Paragraph("<b>FİRMA YETKİLİSİ</b>", body_style), ""]],
+        colWidths=[48 * mm, 48 * mm, 48 * mm, 49 * mm],
+        rowHeights=[7 * mm],
+        hAlign="CENTER",
+    )
+    signature.setStyle(TableStyle([("GRID",(0,0),(-1,-1),0.6,colors.black), ("SPAN",(0,0),(1,0)), ("SPAN",(2,0),(3,0)), ("ALIGN",(0,0),(-1,-1),"CENTER"), ("FONTNAME",(0,0),(-1,-1),"VestaPDFBold")]))
+    story.append(signature)
+    story.append(PdfTable([["ONAY"]], colWidths=[193 * mm], hAlign="CENTER", rowHeights=[26 * mm], style=TableStyle([("GRID",(0,0),(-1,-1),0.6,colors.black), ("ALIGN",(0,0),(-1,-1),"LEFT"), ("VALIGN",(0,0),(-1,-1),"TOP"), ("FONTNAME",(0,0),(-1,-1),"VestaPDFBold"), ("LEFTPADDING",(0,0),(-1,-1),4), ("TOPPADDING",(0,0),(-1,-1),4)])))
+    story.append(Spacer(1, 2 * mm))
+    notes2 = PdfTable([[Paragraph(note, note_style)] for note in document_data["notes"]], colWidths=[193 * mm], hAlign="CENTER")
+    notes2.setStyle(TableStyle([("LEFTPADDING", (0,0), (-1,-1), 0), ("RIGHTPADDING", (0,0), (-1,-1), 0), ("TOPPADDING", (0,0), (-1,-1), 0), ("BOTTOMPADDING", (0,0), (-1,-1), 0)]))
+    story.append(notes2)
 
     doc.build(story)
     buffer.seek(0)
@@ -4039,8 +4322,13 @@ def public_control_form_pdf(public_id: str):
 @app.route("/extinguishers/<public_id>/category-report.pdf")
 @login_required
 def category_report_pdf(public_id: str):
-    document_data = build_company_category_report_document_data(public_id)
-    pdf_buffer = build_company_category_report_pdf(document_data)
+    extinguisher = get_extinguisher(public_id)
+    if extinguisher.get("asset_category") == "SCBA":
+        document_data = build_scba_company_document_data(public_id)
+        pdf_buffer = build_scba_company_form_pdf(document_data)
+    else:
+        document_data = build_company_category_report_document_data(public_id)
+        pdf_buffer = build_company_category_report_pdf(document_data)
     filename = (
         f"{build_company_filename(document_data['company_name'])}-"
         f"{build_company_filename(document_data['asset_category'])}-kategori-raporu.pdf"
@@ -4055,8 +4343,13 @@ def category_report_pdf(public_id: str):
 
 @app.route("/public/<public_id>/category-report.pdf")
 def public_category_report_pdf(public_id: str):
-    document_data = build_company_category_report_document_data(public_id)
-    pdf_buffer = build_company_category_report_pdf(document_data)
+    extinguisher = get_extinguisher(public_id)
+    if extinguisher.get("asset_category") == "SCBA":
+        document_data = build_scba_company_document_data(public_id)
+        pdf_buffer = build_scba_company_form_pdf(document_data)
+    else:
+        document_data = build_company_category_report_document_data(public_id)
+        pdf_buffer = build_company_category_report_pdf(document_data)
     filename = (
         f"{build_company_filename(document_data['company_name'])}-"
         f"{build_company_filename(document_data['asset_category'])}-kategori-raporu.pdf"
