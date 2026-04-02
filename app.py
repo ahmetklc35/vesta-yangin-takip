@@ -3049,7 +3049,7 @@ def build_special_category_company_form_pdf(document_data: dict) -> io.BytesIO:
             [Paragraph("<b>MUAYENE ADRESI</b>", body_style), document_data["company_address"], "", "", Paragraph("<b>FIRMA YETKILISI</b>", body_style), document_data["company_contact"]],
             [Paragraph("<b>PERIYODIK KONTROL METODU</b>", body_style), document_data["method_text"], "", "", "", ""],
         ],
-        colWidths=[34 * mm, 110 * mm, 2 * mm, 2 * mm, 40 * mm, 92 * mm],
+        colWidths=[34 * mm, 104 * mm, 2 * mm, 2 * mm, 48 * mm, 84 * mm],
         hAlign="CENTER",
     )
     info_table.setStyle(
@@ -3071,7 +3071,7 @@ def build_special_category_company_form_pdf(document_data: dict) -> io.BytesIO:
 
     check_headers = document_data["check_headers"]
     check_count = len(check_headers)
-    first_col_widths = [10 * mm, 20 * mm, 20 * mm, 18 * mm, 16 * mm]
+    first_col_widths = [12 * mm, 18 * mm, 20 * mm, 18 * mm, 16 * mm]
     if document_data["asset_profile"].get("show_hydrostatic"):
         first_col_widths.append(16 * mm)
     first_col_widths.append(22 * mm)
@@ -3082,7 +3082,7 @@ def build_special_category_company_form_pdf(document_data: dict) -> io.BytesIO:
     static_col_count = len(first_col_widths)
     header_row_1 = [Paragraph(f"<b>{document_data['section_title']}</b>", body_style)] + [""] * (static_col_count - 1) + [Paragraph("<b>TESPIT VE DEGERLENDIRME</b><br/><font size='6'>(V: UYGUN, X: UYGUN DEGIL, -: UYGULAMA YOK)</font>", tiny_bold_style)] + [""] * (check_count - 1)
     header_row_2 = [
-        Paragraph("<b>CIHAZ</b><br/><b>NO</b>", tiny_bold_style),
+        Paragraph("<b>CIHAZ NO</b>", tiny_bold_style),
         Paragraph("<b>KATEGORI / CINSI</b>", tiny_bold_style),
         Paragraph("<b>SERI NO</b>", tiny_bold_style),
         Paragraph("<b>MARKA</b>", tiny_bold_style),
