@@ -1092,21 +1092,38 @@ def run_schema_migrations() -> None:
                     """
                     DO $$
                     DECLARE
-                        constraint_name TEXT;
+                        drop_sql TEXT;
                     BEGIN
-                        SELECT tc.constraint_name
-                        INTO constraint_name
-                        FROM information_schema.table_constraints tc
-                        JOIN information_schema.constraint_column_usage ccu
-                          ON tc.constraint_name = ccu.constraint_name
-                        WHERE tc.table_name = 'extinguishers'
-                          AND tc.constraint_type = 'UNIQUE'
-                          AND ccu.column_name = 'serial_number'
-                        LIMIT 1;
+                        FOR drop_sql IN
+                            SELECT 'ALTER TABLE extinguishers DROP CONSTRAINT ' || quote_ident(c.conname)
+                            FROM pg_constraint c
+                            JOIN pg_class t ON t.oid = c.conrelid
+                            JOIN pg_namespace n ON n.oid = t.relnamespace
+                            WHERE t.relname = 'extinguishers'
+                              AND n.nspname = current_schema()
+                              AND c.contype = 'u'
+                              AND (
+                                SELECT string_agg(att.attname, ',' ORDER BY att.attname)
+                                FROM unnest(c.conkey) AS colnum
+                                JOIN pg_attribute att
+                                  ON att.attrelid = c.conrelid
+                                 AND att.attnum = colnum
+                              ) = 'serial_number'
+                        LOOP
+                            EXECUTE drop_sql;
+                        END LOOP;
 
-                        IF constraint_name IS NOT NULL THEN
-                            EXECUTE 'ALTER TABLE extinguishers DROP CONSTRAINT ' || quote_ident(constraint_name);
-                        END IF;
+                        FOR drop_sql IN
+                            SELECT 'DROP INDEX IF EXISTS ' || quote_ident(indexname)
+                            FROM pg_indexes
+                            WHERE schemaname = current_schema()
+                              AND tablename = 'extinguishers'
+                              AND indexdef ILIKE '%UNIQUE%'
+                              AND indexdef ILIKE '%(serial_number)%'
+                              AND indexdef NOT ILIKE '%(asset_category, serial_number)%'
+                        LOOP
+                            EXECUTE drop_sql;
+                        END LOOP;
                     END $$;
                     """
                 )
@@ -1538,6 +1555,20 @@ def render_profile_record_form(group_slug: str):
         public_id = uuid.uuid4().hex[:12]
         inspection_values = build_monthly_inspection_values(request.form, asset_profile["monthly_control_items"])
         control_values = build_control_form_values({})
+        existing_same_category = fetch_one(
+            select(extinguishers.c.id)
+            .where(extinguishers.c.asset_category == group["label"])
+            .where(extinguishers.c.serial_number == form["serial_number"])
+        )
+        if existing_same_category:
+            flash("Bu seri numarasi bu urun grubunda zaten kayitli.", "error")
+            return render_template(
+                "create_asset_profile.html",
+                form=form,
+                companies=company_choices,
+                asset_profile=asset_profile,
+                group=group,
+            )
 
         try:
             with engine.begin() as connection:
@@ -1586,8 +1617,12 @@ def render_profile_record_form(group_slug: str):
                     control_values=control_values,
                     created_at=now,
                 )
-        except IntegrityError:
-            flash("Bu seri numarasi bu urun grubunda zaten kayitli.", "error")
+        except IntegrityError as exc:
+            error_text = str(getattr(exc, "orig", exc))
+            if "serial_number" in error_text.lower():
+                flash("Bu seri numarasi bu urun grubunda zaten kayitli.", "error")
+            else:
+                flash(f"Kayit sirasinda veritabani hatasi olustu: {error_text[:180]}", "error")
             return render_template(
                 "create_asset_profile.html",
                 form=form,
