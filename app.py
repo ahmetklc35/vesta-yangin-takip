@@ -1256,6 +1256,9 @@ def protect_private_routes():
         "logout",
         "public_detail",
         "public_control_form_pdf",
+        "public_category_report_pdf",
+        "public_electrical_report_pdf",
+        "public_electrical_report_preview",
         "public_company_portal",
         "public_company_assets",
         "health",
@@ -2515,6 +2518,63 @@ def build_control_form_document_data(public_id: str) -> dict:
     }
 
 
+def fetch_company_category_assets(extinguisher: dict) -> list[dict]:
+    statement = (
+        select(extinguishers)
+        .where(extinguishers.c.asset_category == (extinguisher.get("asset_category") or DEFAULT_ASSET_CATEGORY))
+        .order_by(extinguishers.c.location_detail, extinguishers.c.serial_number)
+    )
+    if extinguisher.get("company_id"):
+        statement = statement.where(extinguishers.c.company_id == extinguisher["company_id"])
+    else:
+        statement = statement.where(extinguishers.c.company_name == extinguisher["company_name"])
+    return fetch_all(statement)
+
+
+def build_company_category_report_document_data(public_id: str) -> dict:
+    extinguisher = get_extinguisher(public_id)
+    asset_profile = get_asset_profile(extinguisher.get("asset_category"))
+    category_assets = fetch_company_category_assets(extinguisher)
+
+    columns = [
+        {"label": "Seri No", "key": "serial_number", "width": 20 * mm},
+        {"label": asset_profile["type_label"], "key": "extinguisher_type", "width": 26 * mm},
+        {"label": asset_profile["class_label"], "key": "fire_class", "width": 24 * mm},
+        {"label": asset_profile["brand_label"], "key": "manufacturer", "width": 24 * mm},
+        {"label": "Bulundugu Yer", "key": "location_detail", "width": 34 * mm},
+        {"label": asset_profile["owner_label"], "key": "company_contact", "width": 24 * mm},
+        {"label": asset_profile["last_service_label"], "key": "last_service_date", "width": 20 * mm},
+        {"label": asset_profile["next_service_label"], "key": "next_service_date", "width": 20 * mm},
+    ]
+    if asset_profile["show_weight"]:
+        columns.insert(5, {"label": "Kg", "key": "weight_kg", "width": 12 * mm})
+    if asset_profile["show_pressure"]:
+        columns.append({"label": "Basinç", "key": "pressure_status", "width": 18 * mm})
+    if asset_profile["show_hydrostatic"]:
+        columns.append({"label": "Hidrostatik Test", "key": "hydrostatic_test_date", "width": 20 * mm})
+
+    rows = []
+    for asset in category_assets:
+        row = {}
+        for column in columns:
+            value = asset.get(column["key"])
+            if column["key"] == "weight_kg":
+                row[column["key"]] = f"{value:.1f}" if isinstance(value, (int, float)) else "-"
+            else:
+                row[column["key"]] = value or "-"
+        rows.append(row)
+
+    return {
+        "company_name": extinguisher["company_name"],
+        "company_address": extinguisher.get("company_address") or "-",
+        "asset_category": extinguisher.get("asset_category") or DEFAULT_ASSET_CATEGORY,
+        "asset_profile": asset_profile,
+        "generated_at": datetime.now().strftime("%d.%m.%Y %H:%M"),
+        "columns": columns,
+        "rows": rows,
+    }
+
+
 def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
     main_col_widths = [10 * mm, 14 * mm, 14 * mm, 19 * mm, 16 * mm, 14 * mm, 16 * mm, 24 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm, 11 * mm]
     form_total_width = sum(main_col_widths)
@@ -2804,6 +2864,98 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
         )
     )
     story.append(notes_table)
+
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
+
+
+def build_company_category_report_pdf(document_data: dict) -> io.BytesIO:
+    styles = getSampleStyleSheet()
+    title_style = styles["Title"].clone("category_report_title")
+    title_style.fontSize = 16
+    title_style.leading = 19
+    title_style.textColor = colors.HexColor("#3f2319")
+
+    body_style = styles["BodyText"].clone("category_report_body")
+    body_style.fontSize = 8
+    body_style.leading = 10
+
+    cell_style = styles["BodyText"].clone("category_report_cell")
+    cell_style.fontSize = 7
+    cell_style.leading = 8
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=landscape(A4),
+        leftMargin=8 * mm,
+        rightMargin=8 * mm,
+        topMargin=8 * mm,
+        bottomMargin=8 * mm,
+    )
+
+    story = [
+        Paragraph(
+            f"{document_data['company_name']} - {document_data['asset_profile']['label']} Kategori Raporu",
+            title_style,
+        ),
+        Spacer(1, 3 * mm),
+    ]
+
+    info_table = PdfTable(
+        [
+            ["Firma", document_data["company_name"], "Urun Grubu", document_data["asset_category"]],
+            ["Muayene Adresi", document_data["company_address"], "Kayit Sayisi", str(len(document_data["rows"]))],
+            ["Rapor Olusturma Tarihi", document_data["generated_at"], "Aciklama", "Bu rapor ayni firmadaki ayni kategori kayitlarini listeler."],
+        ],
+        colWidths=[34 * mm, 92 * mm, 34 * mm, 112 * mm],
+    )
+    info_table.setStyle(
+        TableStyle(
+            [
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#c8b2a5")),
+                ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#f1e1d9")),
+                ("BACKGROUND", (2, 0), (2, -1), colors.HexColor("#f1e1d9")),
+                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+                ("FONTSIZE", (0, 0), (-1, -1), 8),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ]
+        )
+    )
+    story.extend([info_table, Spacer(1, 4 * mm)])
+
+    headers = [Paragraph(f"<b>{column['label']}</b>", cell_style) for column in document_data["columns"]]
+    table_rows = [headers]
+    for row in document_data["rows"]:
+        table_rows.append(
+            [
+                Paragraph(str(row.get(column["key"], "-")), cell_style)
+                for column in document_data["columns"]
+            ]
+        )
+
+    data_table = PdfTable(
+        table_rows,
+        repeatRows=1,
+        colWidths=[column["width"] for column in document_data["columns"]],
+    )
+    data_table.setStyle(
+        TableStyle(
+            [
+                ("GRID", (0, 0), (-1, -1), 0.45, colors.HexColor("#c8b2a5")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e9d6cf")),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ]
+        )
+    )
+    story.append(data_table)
+    story.append(Spacer(1, 3 * mm))
+    story.append(Paragraph("Bu rapor, firma portalinda secilen kategoriye ait tum kayitlari tek dosyada sunmak icin otomatik olusturulmustur.", body_style))
 
     doc.build(story)
     buffer.seek(0)
@@ -3855,6 +4007,39 @@ def public_control_form_pdf(public_id: str):
     document_data = build_control_form_document_data(public_id)
     pdf_buffer = build_control_form_pdf_reportlab(document_data)
     filename = f"{build_company_filename(document_data['company_name'])}-kontrol-formu.pdf"
+    return send_file(
+        pdf_buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=filename,
+    )
+
+
+@app.route("/extinguishers/<public_id>/category-report.pdf")
+@login_required
+def category_report_pdf(public_id: str):
+    document_data = build_company_category_report_document_data(public_id)
+    pdf_buffer = build_company_category_report_pdf(document_data)
+    filename = (
+        f"{build_company_filename(document_data['company_name'])}-"
+        f"{build_company_filename(document_data['asset_category'])}-kategori-raporu.pdf"
+    )
+    return send_file(
+        pdf_buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=filename,
+    )
+
+
+@app.route("/public/<public_id>/category-report.pdf")
+def public_category_report_pdf(public_id: str):
+    document_data = build_company_category_report_document_data(public_id)
+    pdf_buffer = build_company_category_report_pdf(document_data)
+    filename = (
+        f"{build_company_filename(document_data['company_name'])}-"
+        f"{build_company_filename(document_data['asset_category'])}-kategori-raporu.pdf"
+    )
     return send_file(
         pdf_buffer,
         mimetype="application/pdf",
