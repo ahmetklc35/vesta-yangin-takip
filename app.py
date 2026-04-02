@@ -2881,6 +2881,60 @@ def build_special_category_company_form_pdf(document_data: dict) -> io.BytesIO:
     compact_location_style.spaceBefore = 0
     compact_location_style.spaceAfter = 0
 
+    target_width = 280 * mm
+
+    def split_check_header(label: str) -> str:
+        parts = label.split(" ", 1)
+        clean = parts[1] if len(parts) > 1 else label
+        replacements = {
+            "Yuz Maskesi": "Yuz<br/>Maskesi",
+            "Solunum Valfi": "Solunum<br/>Valfi",
+            "Regulator Unitesi": "Regulator<br/>Unitesi",
+            "Servis Etiketi Ekipmana Yapistirildi": "Servis<br/>Etiketi<br/>Ekipmana<br/>Yapistirildi",
+            "Servis etiketi ekipmana yapistirildi": "Servis<br/>Etiketi<br/>Ekipmana<br/>Yapistirildi",
+            "Servis Etiketi Ekipmana Yapıştırıldı": "Servis<br/>Etiketi<br/>Ekipmana<br/>Yapistirildi",
+            "Valfi Kontrol Edildi": "Valfi<br/>Kontrol<br/>Edildi",
+            "Silindir Kontrol Edildi": "Silindir<br/>Kontrol<br/>Edildi",
+            "Gorsel Kumas Kontrol yapildi": "Gorsel<br/>Kumas<br/>Kontrolu",
+            "Fonksiyonel Fermuar, Cirt cirtlar ve Dugmeler kontrol edildi": "Fermuar,<br/>Cirt Cirt<br/>ve Dugmeler",
+            "Yansitici Bantlar Kontrol Edildi": "Yansitici<br/>Bantlar",
+            "Elbiselerin Temizligi Kontrol Edildi": "Elbise<br/>Temizligi",
+            "Ic Astarin Durumu, Yalitim Ozelligi ve Dikisler Kontrol Edildi": "Ic Astar,<br/>Yalitim ve<br/>Dikisler",
+            "Dis kisimda gorsel kontrol yapildi": "Dis Kisimda<br/>Gorsel<br/>Kontrol",
+            "Ic kisimda gorsel kontrol yapildi": "Ic Kisimda<br/>Gorsel<br/>Kontrol",
+            "Ayar mekanizmasinda kontrol yapildi": "Ayar<br/>Mekanizmasi",
+            "Vizor ve goz korumasinda kontrol yapildi": "Vizor ve<br/>Goz<br/>Koruma",
+            "Boyun koruyucu kontrolu yapildi": "Boyun<br/>Koruyucu",
+            "Baltanin ahsap veya yalitkan sapi kontrol edildi": "Sap<br/>Kontrolu",
+            "Metal kismi kontrol edildi": "Metal Kisim",
+            "Agiz kismi kontrol edildi": "Agiz Kismi",
+            "Bulundugu yerde ulasilabilir durumda mi": "Ulasilabilir<br/>Durumda",
+            "Erisebilirlik Kontrol Edildi (Dolap onu acik mi, istif veya engel malz. var mi)": "Erisebilirlik",
+            "Levhalar Kontrol Edildi (Yangin dolabi isareti ve talimati mevcut mu)": "Levhalar",
+            "Kapak ve Kilit Kontrolu Yapildi (Kapak rahat aciliyor mu, kilit saglam mi)": "Kapak ve<br/>Kilit",
+            "Dolap Dis Yuzey Kontrol Edildi (Paslanma veya boya kabarmasi var mi)": "Dis Yuzey",
+            "Makara Kontrol Edildi (Kolayca acilabiliyor mu)": "Makara",
+            "Hortum Kontrol Edildi (Catlama, kirilma, sertlesme veya kacak var mi)": "Hortum",
+            "Baglanti Rekorlari Kontrol Edildi (Hortum vana ve lans baglantilari siki mi)": "Baglanti<br/>Rekorlari",
+            "Dolap ici ve disi temizlik kontrolu yapildi": "Dolap Ici<br/>Temizlik",
+            "Vana kontrol edildi (Vana kolu rahat donuyor mu, kacak veya sizdirma var mi)": "Vana",
+            "Basinc Kontrol Edildi (Statik ve dinamik basinc degerleri uygun mu) (min.4 bar)": "Basinc",
+            "Lans Kontrol Edildi (Jet/Spray/Kapali konumlari islevsel mi)": "Lans",
+            "Kopuk Doluluk Orani Kontrol Edildi (Seviye gostergesi kontrolu)": "Kopuk<br/>Doluluk",
+            "Kopuk Oranlayici Ayarlari Kontrol Edildi (Mix ayari dogru yuzde mi %1,%3 veya %6)": "Oranlayici<br/>Ayarlari",
+            "Vana kontrol edildi (Ana su giris vanasi ve kopuk vanasi islevsel mi)": "Vana",
+            "Basinc Kontrol Edildi (Sistem calisma basinci kopuk olusumu icin yeterli mi) (min.5-6 bar)": "Basinc",
+            "Kopuk Lans Kontrol Edildi (Kopuk yapici ozel lans saglam mi)": "Kopuk<br/>Lans",
+            "Erisebilirlik Kontrol Edildi (Hidrant cevresinde arac, malzeme engeli var mi)": "Erisebilirlik",
+            "Gorunurlugu kontrol edildi (Hidrantin kirmizi boyasi canli mi, yonlendirme levhalari var mi)": "Gorunurluk",
+            "Kapak Kontrolu Yapildi (Cikis agzindaki kor tapalar/kapaklar takili mi, zincirleri saglam mi)": "Kapak",
+            "Genel Dis Yuzey Kontrol Yapildi (Govdede catlak, korozyon veya darbe izi var mi)": "Dis Yuzey",
+            "Acma kapama mili kontrol edildi (Hidrant anahtari ile mil rahatca donuyor mu)": "Acma Kapama<br/>Mili",
+            "Vana Sizdirmazligi Kontrol Edildi (Hidrant kapaliyken cikis agzindan veya govde altindan su sizintisi var mi)": "Vana<br/>Sizdirmazligi",
+            "Cikis agizlari kontrol edildi (Rekor dislerinde veya tirnaklarinda asinma veya deformasyon var mi)": "Cikis<br/>Agizlari",
+        }
+        return replacements.get(clean, clean.replace(" (", "<br/>(").replace(" Kontrol Edildi", "<br/>Kontrol")).strip()
+
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -2925,7 +2979,7 @@ def build_special_category_company_form_pdf(document_data: dict) -> io.BytesIO:
                 "",
             ],
         ],
-        colWidths=[40 * mm, 76 * mm, 16 * mm, 24 * mm, 34 * mm, 20 * mm],
+        colWidths=[46 * mm, 100 * mm, 18 * mm, 22 * mm, 42 * mm, 52 * mm],
         hAlign="CENTER",
     )
     header_table.setStyle(
@@ -2951,7 +3005,7 @@ def build_special_category_company_form_pdf(document_data: dict) -> io.BytesIO:
             [Paragraph("<b>MUAYENE ADRESI</b>", body_style), document_data["company_address"], "", "", Paragraph("<b>FIRMA YETKILISI</b>", body_style), document_data["company_contact"]],
             [Paragraph("<b>PERIYODIK KONTROL METODU</b>", body_style), document_data["method_text"], "", "", "", ""],
         ],
-        colWidths=[28 * mm, 86 * mm, 2 * mm, 2 * mm, 32 * mm, 60 * mm],
+        colWidths=[34 * mm, 110 * mm, 2 * mm, 2 * mm, 40 * mm, 92 * mm],
         hAlign="CENTER",
     )
     info_table.setStyle(
@@ -2973,12 +3027,12 @@ def build_special_category_company_form_pdf(document_data: dict) -> io.BytesIO:
 
     check_headers = document_data["check_headers"]
     check_count = len(check_headers)
-    first_col_widths = [10 * mm, 24 * mm, 22 * mm, 22 * mm, 18 * mm]
+    first_col_widths = [8 * mm, 18 * mm, 20 * mm, 18 * mm, 16 * mm]
     if document_data["asset_profile"].get("show_hydrostatic"):
-        first_col_widths.append(18 * mm)
-    first_col_widths.append(28 * mm)
-    remaining_width = 285 * mm - sum(first_col_widths)
-    check_width = max(8.5 * mm, remaining_width / max(check_count, 1))
+        first_col_widths.append(16 * mm)
+    first_col_widths.append(22 * mm)
+    remaining_width = target_width - sum(first_col_widths)
+    check_width = max(7.2 * mm, remaining_width / max(check_count, 1))
     col_widths = first_col_widths + [check_width] * check_count
 
     static_col_count = len(first_col_widths)
@@ -2993,7 +3047,7 @@ def build_special_category_company_form_pdf(document_data: dict) -> io.BytesIO:
     if document_data["asset_profile"].get("show_hydrostatic"):
         header_row_2.append(Paragraph("<b>HIDROSTATIK<br/>TEST TARIHI</b>", tiny_bold_style))
     header_row_2.append(Paragraph("<b>BULUNDUGU YER</b>", tiny_bold_style))
-    header_row_2.extend([Paragraph(f"<b>{label}</b>", tiny_style) for label in check_headers])
+    header_row_2.extend([Paragraph(f"<b>{split_check_header(label)}</b>", tiny_style) for label in check_headers])
 
     data_rows = [header_row_1, header_row_2]
     for row in document_data["rows"]:
@@ -3018,7 +3072,7 @@ def build_special_category_company_form_pdf(document_data: dict) -> io.BytesIO:
         data_rows,
         repeatRows=2,
         colWidths=col_widths,
-        rowHeights=[6 * mm, 14 * mm] + [5.3 * mm] * (len(data_rows) - 2),
+        rowHeights=[6 * mm, 18 * mm] + [5.1 * mm] * (len(data_rows) - 2),
         hAlign="CENTER",
     )
     main_table.setStyle(
@@ -3051,7 +3105,7 @@ def build_special_category_company_form_pdf(document_data: dict) -> io.BytesIO:
             [document_data["periodic_control_person"], document_data["company_contact"]],
             [Paragraph("<b>ONAY</b>", body_style), document_data["approval_name"]],
         ],
-        colWidths=[105 * mm, 105 * mm],
+        colWidths=[target_width / 2, target_width / 2],
         hAlign="CENTER",
     )
     footer_table.setStyle(
