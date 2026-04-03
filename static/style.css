@@ -918,6 +918,11 @@ tbody tr:nth-child(odd) td {
   gap: 18px;
 }
 
+.customer-workspace-single {
+  display: grid;
+  gap: 18px;
+}
+
 .customer-select-form {
   display: grid;
   gap: 14px;
@@ -1140,7 +1145,8 @@ tbody tr:nth-child(odd) td {
 
   .customer-layout,
   .customer-layout.customer-layout-wide,
-  .customer-workspace {
+  .customer-workspace,
+  .customer-workspace-single {
     gap: 16px;
   }
 

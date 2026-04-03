@@ -4659,6 +4659,12 @@ def company_management():
     )
 
 
+@app.route("/companies/new", methods=["GET"])
+@admin_required
+def new_company():
+    return render_template("company_create.html")
+
+
 @app.route("/companies/create", methods=["POST"])
 @admin_required
 def create_company():
@@ -4670,7 +4676,7 @@ def create_company():
     raw_slug = request.form.get("slug", "").strip()
     if not name or not address:
         flash("Firma adi ve adres gerekli.", "error")
-        return redirect(url_for("company_management"))
+        return redirect(url_for("new_company"))
 
     now = datetime.now().isoformat(timespec="seconds")
     try:
@@ -4690,7 +4696,7 @@ def create_company():
             )
     except IntegrityError:
         flash("Bu firma zaten mevcut.", "error")
-        return redirect(url_for("company_management"))
+        return redirect(url_for("new_company"))
 
     flash("Musteri kaydi olusturuldu.", "success")
     company_id = result.inserted_primary_key[0] if result.inserted_primary_key else None

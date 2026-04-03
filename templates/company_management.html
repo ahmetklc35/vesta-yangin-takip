@@ -19,55 +19,16 @@
     </div>
   </section>
 
-  <section class="customer-layout customer-layout-wide">
-    {% if session.get('is_admin') %}
-      <aside class="card customer-create-card" id="musteri-ekle">
-        <div class="section-head">
-          <div>
-            <h2>Musteri Ekle</h2>
-            <p class="muted">Yeni musteri, yetkili ve iletisim bilgilerini buradan kaydet.</p>
-          </div>
-        </div>
-
-        <form method="post" action="{{ url_for('create_company') }}" class="grid-form customer-create-form">
-          <label>
-            Firma adi
-            <input type="text" name="name" required>
-          </label>
-          <label>
-            Link sonu
-            <input type="text" name="slug" placeholder="ornek-firma">
-          </label>
-          <label>
-            Yetkili kisi
-            <input type="text" name="contact_name" required>
-          </label>
-          <label>
-            Telefon
-            <input type="text" name="phone" required>
-          </label>
-          <label class="full">
-            E-posta
-            <input type="email" name="email" required>
-          </label>
-          <label class="full">
-            Muayene adresi
-            <input type="text" name="address" required>
-          </label>
-          <div class="full form-actions">
-            <button type="submit" class="button">Musteri Ekle</button>
-          </div>
-        </form>
-      </aside>
-    {% endif %}
-
-    <section class="customer-workspace">
+  <section class="customer-workspace customer-workspace-single">
       <article class="card customer-select-card">
         <div class="section-head">
           <div>
             <h2>Musteri Sec</h2>
             <p class="muted">Acilir listeden musteri sec, bilgiler ve cihazlar asagida gelsin.</p>
           </div>
+          {% if session.get('is_admin') %}
+            <a class="button tertiary" href="{{ url_for('new_company') }}">Musteri Ekle</a>
+          {% endif %}
         </div>
 
         <form method="get" action="{{ url_for('company_management') }}" class="customer-select-form">
@@ -248,7 +209,6 @@
           <p class="muted">Acilir listeden bir musteri secince detay karti ve cihaz listesi burada gorunecek.</p>
         </article>
       {% endif %}
-    </section>
   </section>
 
   <script>

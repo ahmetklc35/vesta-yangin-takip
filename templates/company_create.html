@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="customer-hero card">
+    <div>
+      <p class="eyebrow">Musteri Yonetimi</p>
+      <h1>Musteri Ekle</h1>
+      <p class="muted">Yeni musteri, yetkili ve iletisim bilgilerini tek bir formdan kaydet.</p>
+    </div>
+  </section>
+
+  <section class="card customer-create-page" id="musteri-ekle">
+    <div class="section-head">
+      <div>
+        <h2>Yeni Musteri Bilgileri</h2>
+        <p class="muted">Firma temel bilgilerini gir, sistem portal linkini olustursun.</p>
+      </div>
+      <a class="button tertiary" href="{{ url_for('company_management') }}">Musterilerimize Don</a>
+    </div>
+
+    <form method="post" action="{{ url_for('create_company') }}" class="grid-form customer-create-form">
+      <label>
+        Firma adi
+        <input type="text" name="name" required>
+      </label>
+      <label>
+        Link sonu
+        <input type="text" name="slug" placeholder="ornek-firma">
+      </label>
+      <label>
+        Yetkili kisi
+        <input type="text" name="contact_name" required>
+      </label>
+      <label>
+        Telefon
+        <input type="text" name="phone" required>
+      </label>
+      <label class="full">
+        E-posta
+        <input type="email" name="email" required>
+      </label>
+      <label class="full">
+        Muayene adresi
+        <input type="text" name="address" required>
+      </label>
+      <div class="full form-actions">
+        <button type="submit" class="button">Musteri Ekle</button>
+      </div>
+    </form>
+  </section>
+{% endblock %}

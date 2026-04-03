@@ -29,7 +29,7 @@
             <div class="nav-dropdown-menu">
               <a href="{{ url_for('company_management') }}">Musterilerimiz</a>
               {% if session.get('is_admin') %}
-                <a href="{{ url_for('company_management') }}#musteri-ekle">Musteri Ekle</a>
+                <a href="{{ url_for('new_company') }}">Musteri Ekle</a>
               {% endif %}
             </div>
           </div>
