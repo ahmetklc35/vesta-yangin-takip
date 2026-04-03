@@ -24,14 +24,16 @@
         <nav>
           <span class="user-pill">{{ session.get('full_name', 'Kullanici') }}</span>
           <a href="{{ url_for('profile') }}">Profil</a>
-          {% if session.get('is_admin') %}
-            <div class="nav-dropdown">
-              <a href="{{ url_for('company_management') }}" class="nav-dropdown-trigger">Musteriler</a>
-              <div class="nav-dropdown-menu">
-                <a href="{{ url_for('company_management') }}">Musterilerimiz</a>
+          <div class="nav-dropdown">
+            <a href="{{ url_for('company_management') }}" class="nav-dropdown-trigger">Musteriler</a>
+            <div class="nav-dropdown-menu">
+              <a href="{{ url_for('company_management') }}">Musterilerimiz</a>
+              {% if session.get('is_admin') %}
                 <a href="{{ url_for('company_management') }}#musteri-ekle">Musteri Ekle</a>
-              </div>
+              {% endif %}
             </div>
+          </div>
+          {% if session.get('is_admin') %}
             <a href="{{ url_for('user_management') }}">Kullanicilar</a>
           {% endif %}
           <a href="{{ url_for('record_group_picker') }}">Yeni Kayit</a>

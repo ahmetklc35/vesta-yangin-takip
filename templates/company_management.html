@@ -20,44 +20,46 @@
   </section>
 
   <section class="customer-layout customer-layout-wide">
-    <aside class="card customer-create-card" id="musteri-ekle">
-      <div class="section-head">
-        <div>
-          <h2>Musteri Ekle</h2>
-          <p class="muted">Yeni musteri, yetkili ve iletisim bilgilerini buradan kaydet.</p>
+    {% if session.get('is_admin') %}
+      <aside class="card customer-create-card" id="musteri-ekle">
+        <div class="section-head">
+          <div>
+            <h2>Musteri Ekle</h2>
+            <p class="muted">Yeni musteri, yetkili ve iletisim bilgilerini buradan kaydet.</p>
+          </div>
         </div>
-      </div>
 
-      <form method="post" action="{{ url_for('create_company') }}" class="grid-form customer-create-form">
-        <label>
-          Firma adi
-          <input type="text" name="name" required>
-        </label>
-        <label>
-          Link sonu
-          <input type="text" name="slug" placeholder="ornek-firma">
-        </label>
-        <label>
-          Yetkili kisi
-          <input type="text" name="contact_name" required>
-        </label>
-        <label>
-          Telefon
-          <input type="text" name="phone" required>
-        </label>
-        <label class="full">
-          E-posta
-          <input type="email" name="email" required>
-        </label>
-        <label class="full">
-          Muayene adresi
-          <input type="text" name="address" required>
-        </label>
-        <div class="full form-actions">
-          <button type="submit" class="button">Musteri Ekle</button>
-        </div>
-      </form>
-    </aside>
+        <form method="post" action="{{ url_for('create_company') }}" class="grid-form customer-create-form">
+          <label>
+            Firma adi
+            <input type="text" name="name" required>
+          </label>
+          <label>
+            Link sonu
+            <input type="text" name="slug" placeholder="ornek-firma">
+          </label>
+          <label>
+            Yetkili kisi
+            <input type="text" name="contact_name" required>
+          </label>
+          <label>
+            Telefon
+            <input type="text" name="phone" required>
+          </label>
+          <label class="full">
+            E-posta
+            <input type="email" name="email" required>
+          </label>
+          <label class="full">
+            Muayene adresi
+            <input type="text" name="address" required>
+          </label>
+          <div class="full form-actions">
+            <button type="submit" class="button">Musteri Ekle</button>
+          </div>
+        </form>
+      </aside>
+    {% endif %}
 
     <section class="customer-workspace">
       <article class="card customer-select-card">
@@ -101,38 +103,40 @@
             <div class="full"><strong>Firma Portali</strong><span>{{ url_for('public_company_portal', company_slug=selected_company.slug, _external=True) }}</span></div>
           </div>
 
-          <details class="customer-edit-toggle">
-            <summary>Musteri Bilgilerini Guncelle</summary>
-            <form method="post" action="{{ url_for('update_company', company_id=selected_company.id) }}" class="grid-form customer-edit-form">
-              <label>
-                Firma adi
-                <input type="text" name="name" value="{{ selected_company.name }}" required>
-              </label>
-              <label>
-                Link sonu
-                <input type="text" name="slug" value="{{ selected_company.slug }}" required>
-              </label>
-              <label>
-                Yetkili kisi
-                <input type="text" name="contact_name" value="{{ selected_company.contact_name }}" required>
-              </label>
-              <label>
-                Telefon
-                <input type="text" name="phone" value="{{ selected_company.phone }}" required>
-              </label>
-              <label class="full">
-                E-posta
-                <input type="email" name="email" value="{{ selected_company.email }}" required>
-              </label>
-              <label class="full">
-                Muayene adresi
-                <input type="text" name="address" value="{{ selected_company.address }}" required>
-              </label>
-              <div class="full form-actions customer-card-actions">
-                <button type="submit" class="button secondary">Guncelle</button>
-              </div>
-            </form>
-          </details>
+          {% if session.get('is_admin') %}
+            <details class="customer-edit-toggle">
+              <summary>Musteri Bilgilerini Guncelle</summary>
+              <form method="post" action="{{ url_for('update_company', company_id=selected_company.id) }}" class="grid-form customer-edit-form">
+                <label>
+                  Firma adi
+                  <input type="text" name="name" value="{{ selected_company.name }}" required>
+                </label>
+                <label>
+                  Link sonu
+                  <input type="text" name="slug" value="{{ selected_company.slug }}" required>
+                </label>
+                <label>
+                  Yetkili kisi
+                  <input type="text" name="contact_name" value="{{ selected_company.contact_name }}" required>
+                </label>
+                <label>
+                  Telefon
+                  <input type="text" name="phone" value="{{ selected_company.phone }}" required>
+                </label>
+                <label class="full">
+                  E-posta
+                  <input type="email" name="email" value="{{ selected_company.email }}" required>
+                </label>
+                <label class="full">
+                  Muayene adresi
+                  <input type="text" name="address" value="{{ selected_company.address }}" required>
+                </label>
+                <div class="full form-actions customer-card-actions">
+                  <button type="submit" class="button secondary">Guncelle</button>
+                </div>
+              </form>
+            </details>
+          {% endif %}
         </article>
 
         <article class="card customer-assets-card">

@@ -4600,7 +4600,7 @@ def toggle_user_active(user_id: int):
 
 
 @app.route("/companies", methods=["GET"])
-@admin_required
+@login_required
 def company_management():
     company_rows = get_company_choices()
     selected_company_id = request.args.get("company_id", type=int)
