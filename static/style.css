@@ -848,6 +848,98 @@ tbody tr:nth-child(odd) td {
   margin-top: 6px;
 }
 
+.customer-hero {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 22px;
+}
+
+.customer-hero h1 {
+  margin-bottom: 10px;
+}
+
+.customer-hero-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  gap: 14px;
+  width: min(100%, 360px);
+}
+
+.customer-stat {
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: var(--surface-strong);
+  border: 1px solid rgba(161, 119, 87, 0.14);
+  box-shadow: var(--soft-shadow);
+}
+
+.customer-stat strong {
+  display: block;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.8rem;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.customer-stat span {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.customer-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.customer-create-card {
+  position: sticky;
+  top: 24px;
+}
+
+.customer-list {
+  display: grid;
+  gap: 18px;
+}
+
+.customer-list-head {
+  margin-bottom: 2px;
+}
+
+.customer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.customer-card {
+  display: grid;
+  gap: 18px;
+}
+
+.customer-card-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.customer-card-head h3 {
+  margin-bottom: 6px;
+}
+
+.customer-card-actions {
+  justify-content: flex-end;
+}
+
+.empty-card {
+  display: grid;
+  gap: 10px;
+}
+
 .stats.compact {
   margin: 0;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -864,6 +956,22 @@ tbody tr:nth-child(odd) td {
   .portal-categories,
   .stats.compact {
     grid-template-columns: 1fr;
+  }
+
+  .customer-hero {
+    grid-template-columns: 1fr;
+    display: grid;
+    align-items: start;
+  }
+
+  .customer-hero-stats,
+  .customer-layout,
+  .customer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-create-card {
+    position: static;
   }
 }
 

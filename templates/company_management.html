@@ -1,65 +1,103 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <section class="card form-card" id="musteri-ekle">
-    <div class="section-head">
-      <div>
-        <h1>Musteriler</h1>
-        <p class="muted">Musteri ve adres kaydini bir kere gir. Sonra form ekraninda sadece musteriyi secelim.</p>
+  <section class="customer-hero card">
+    <div>
+      <p class="eyebrow">Musteri Yonetimi</p>
+      <h1>Musteriler</h1>
+      <p class="muted">Musteriyi bir kere kaydet, sonra kayit ekranlarinda sadece sec. Portal linki, adres ve guncelleme akisi tek yerde dursun.</p>
+    </div>
+    <div class="customer-hero-stats">
+      <div class="customer-stat">
+        <strong>{{ companies|length }}</strong>
+        <span>Toplam Musteri</span>
+      </div>
+      <div class="customer-stat">
+        <strong>1</strong>
+        <span>Merkezi Yonetim</span>
       </div>
     </div>
-
-    <form method="post" action="{{ url_for('create_company') }}" class="grid-form">
-      <label>
-        Firma adi
-        <input type="text" name="name" required>
-      </label>
-      <label>
-        Link sonu
-        <input type="text" name="slug" placeholder="ornek-firma">
-      </label>
-      <label class="full">
-        Muayene adresi
-        <input type="text" name="address" required>
-      </label>
-      <div class="full form-actions">
-        <button type="submit" class="button">Musteri Ekle</button>
-      </div>
-    </form>
   </section>
 
-  <section class="card">
-    <div class="section-head">
-      <h2>Musterilerimiz</h2>
-      <span>{{ companies|length }} adet</span>
-    </div>
+  <section class="customer-layout">
+    <aside class="card customer-create-card" id="musteri-ekle">
+      <div class="section-head">
+        <div>
+          <h2>Musteri Ekle</h2>
+          <p class="muted">Yeni firma, adres ve portal link sonunu buradan tanimla.</p>
+        </div>
+      </div>
 
-    <div class="stack-list">
-      {% for company in companies %}
-        <form method="post" action="{{ url_for('update_company', company_id=company.id) }}" class="grid-form company-edit-form">
-          <label>
-            Firma adi
-            <input type="text" name="name" value="{{ company.name }}" required>
-          </label>
-          <label>
-            Link sonu
-            <input type="text" name="slug" value="{{ company.slug }}" required>
-          </label>
-          <label class="full">
-            Muayene adresi
-            <input type="text" name="address" value="{{ company.address }}" required>
-          </label>
-          <label class="full">
-            Firma portali linki
-            <input type="text" value="{{ url_for('public_company_portal', company_slug=company.slug, _external=True) }}" readonly>
-          </label>
-          <div class="full form-actions">
-            <button type="submit" class="button button-secondary">Guncelle</button>
-          </div>
-        </form>
+      <form method="post" action="{{ url_for('create_company') }}" class="grid-form customer-create-form">
+        <label>
+          Firma adi
+          <input type="text" name="name" required>
+        </label>
+        <label>
+          Link sonu
+          <input type="text" name="slug" placeholder="ornek-firma">
+        </label>
+        <label class="full">
+          Muayene adresi
+          <input type="text" name="address" required>
+        </label>
+        <div class="full form-actions">
+          <button type="submit" class="button">Musteri Ekle</button>
+        </div>
+      </form>
+    </aside>
+
+    <section class="customer-list">
+      <div class="section-head customer-list-head">
+        <div>
+          <h2>Musterilerimiz</h2>
+          <p class="muted">Portal linklerini yonet, adresleri guncelle ve link sonlarini duzenle.</p>
+        </div>
+        <span>{{ companies|length }} adet</span>
+      </div>
+
+      {% if companies %}
+        <div class="customer-grid">
+          {% for company in companies %}
+            <article class="card customer-card">
+              <div class="customer-card-head">
+                <div>
+                  <h3>{{ company.name }}</h3>
+                  <p class="muted">Portal: /firma/{{ company.slug }}</p>
+                </div>
+                <a class="button tertiary" href="{{ url_for('public_company_portal', company_slug=company.slug) }}" target="_blank" rel="noopener">Portali Ac</a>
+              </div>
+
+              <form method="post" action="{{ url_for('update_company', company_id=company.id) }}" class="grid-form customer-edit-form">
+                <label>
+                  Firma adi
+                  <input type="text" name="name" value="{{ company.name }}" required>
+                </label>
+                <label>
+                  Link sonu
+                  <input type="text" name="slug" value="{{ company.slug }}" required>
+                </label>
+                <label class="full">
+                  Muayene adresi
+                  <input type="text" name="address" value="{{ company.address }}" required>
+                </label>
+                <label class="full">
+                  Firma portali linki
+                  <input type="text" value="{{ url_for('public_company_portal', company_slug=company.slug, _external=True) }}" readonly>
+                </label>
+                <div class="full form-actions customer-card-actions">
+                  <button type="submit" class="button secondary">Guncelle</button>
+                </div>
+              </form>
+            </article>
+          {% endfor %}
+        </div>
       {% else %}
-        <p class="muted">Henuz musteri kaydi yok.</p>
-      {% endfor %}
-    </div>
+        <article class="card empty-card">
+          <h3>Henuz musteri yok</h3>
+          <p class="muted">Ilk musteriyi ekledikten sonra portal linkleri ve guncelleme kartlari burada gorunecek.</p>
+        </article>
+      {% endif %}
+    </section>
   </section>
 {% endblock %}
