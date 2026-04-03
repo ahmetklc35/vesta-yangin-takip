@@ -160,7 +160,12 @@
             </label>
             <label>
               Marka
-              <input id="asset-brand-filter" type="text" placeholder="Ornek: Drager">
+              <select id="asset-brand-filter">
+                <option value="">Hepsi</option>
+                {% for brand in brand_options %}
+                  <option value="{{ brand }}">{{ brand }}</option>
+                {% endfor %}
+              </select>
             </label>
             <label>
               Konum
@@ -168,11 +173,21 @@
             </label>
             <label>
               Kontrol Gunu
-              <input id="asset-last-date-filter" type="date">
+              <select id="asset-last-date-filter">
+                <option value="">Hepsi</option>
+                {% for date_value in last_date_options %}
+                  <option value="{{ date_value }}">{{ date_value }}</option>
+                {% endfor %}
+              </select>
             </label>
             <label>
               Gelecek Kontrol
-              <input id="asset-next-date-filter" type="date">
+              <select id="asset-next-date-filter">
+                <option value="">Hepsi</option>
+                {% for date_value in next_date_options %}
+                  <option value="{{ date_value }}">{{ date_value }}</option>
+                {% endfor %}
+              </select>
             </label>
           </div>
 

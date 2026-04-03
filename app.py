@@ -4444,6 +4444,9 @@ def company_management():
     company_rows = get_company_choices()
     selected_company_id = request.args.get("company_id", type=int)
     selected_company = None
+    brand_options = []
+    last_date_options = []
+    next_date_options = []
     if company_rows:
         selected_company = next((row for row in company_rows if row["id"] == selected_company_id), company_rows[0])
     company_assets = []
@@ -4453,12 +4456,36 @@ def company_management():
             .where(extinguishers.c.company_id == selected_company["id"])
             .order_by(extinguishers.c.asset_category, extinguishers.c.location_detail, extinguishers.c.serial_number)
         )
+        brand_options = sorted(
+            {
+                (asset["manufacturer"] or "").strip()
+                for asset in company_assets
+                if (asset["manufacturer"] or "").strip()
+            }
+        )
+        last_date_options = sorted(
+            {
+                str(asset["last_service_date"])
+                for asset in company_assets
+                if asset["last_service_date"]
+            }
+        )
+        next_date_options = sorted(
+            {
+                str(asset["next_service_date"])
+                for asset in company_assets
+                if asset["next_service_date"]
+            }
+        )
     return render_template(
         "company_management.html",
         companies=company_rows,
         selected_company=selected_company,
         company_assets=company_assets,
         asset_categories=get_asset_category_choices(),
+        brand_options=brand_options,
+        last_date_options=last_date_options,
+        next_date_options=next_date_options,
     )
 
 
