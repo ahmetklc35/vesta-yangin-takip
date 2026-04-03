@@ -139,9 +139,9 @@
           <div class="section-head customer-list-head">
             <div>
               <h2>Cihaz Listesi</h2>
-              <p class="muted">Asagidan arama veya kategori secimi ile filtreleyebilirsin.</p>
+              <p class="muted">Asagidan arama, kategori, marka, konum ve tarih filtreleri ile listeyi daraltabilirsin.</p>
             </div>
-            <span>{{ company_assets|length }} kayit</span>
+            <span id="customer-results-count">{{ company_assets|length }} kayit</span>
           </div>
 
           <div class="customer-filter-bar">
@@ -157,6 +157,22 @@
                   <option value="{{ category.label }}">{{ category.label }}</option>
                 {% endfor %}
               </select>
+            </label>
+            <label>
+              Marka
+              <input id="asset-brand-filter" type="text" placeholder="Ornek: Drager">
+            </label>
+            <label>
+              Konum
+              <input id="asset-location-filter" type="text" placeholder="Ornek: Acil mudahale odasi">
+            </label>
+            <label>
+              Kontrol Gunu
+              <input id="asset-last-date-filter" type="date">
+            </label>
+            <label>
+              Gelecek Kontrol
+              <input id="asset-next-date-filter" type="date">
             </label>
           </div>
 
@@ -177,8 +193,12 @@
               <tbody id="customer-assets-body">
                 {% for asset in company_assets %}
                   <tr
-                    data-search="{{ (asset.serial_number ~ ' ' ~ (asset.extinguisher_type or '') ~ ' ' ~ (asset.manufacturer or '') ~ ' ' ~ (asset.location_detail or ''))|lower }}"
+                    data-search="{{ (asset.serial_number ~ ' ' ~ (asset.extinguisher_type or '') ~ ' ' ~ (asset.manufacturer or '') ~ ' ' ~ (asset.location_detail or '') ~ ' ' ~ (asset.asset_category or ''))|lower }}"
                     data-category="{{ asset.asset_category or 'Yangin Sondurme Cihazi' }}"
+                    data-brand="{{ (asset.manufacturer or '')|lower }}"
+                    data-location="{{ (asset.location_detail or '')|lower }}"
+                    data-last-date="{{ asset.last_service_date or '' }}"
+                    data-next-date="{{ asset.next_service_date or '' }}"
                   >
                     <td>{{ asset.serial_number }}</td>
                     <td>{{ asset.asset_category or "Yangin Sondurme Cihazi" }}</td>
@@ -210,22 +230,51 @@
   <script>
     const assetSearch = document.getElementById("asset-search");
     const assetCategoryFilter = document.getElementById("asset-category-filter");
+    const assetBrandFilter = document.getElementById("asset-brand-filter");
+    const assetLocationFilter = document.getElementById("asset-location-filter");
+    const assetLastDateFilter = document.getElementById("asset-last-date-filter");
+    const assetNextDateFilter = document.getElementById("asset-next-date-filter");
+    const customerResultsCount = document.getElementById("customer-results-count");
     const assetRows = Array.from(document.querySelectorAll("#customer-assets-body tr[data-search]"));
 
     function filterCustomerAssets() {
       const searchValue = (assetSearch?.value || "").toLowerCase().trim();
       const categoryValue = assetCategoryFilter?.value || "";
+      const brandValue = (assetBrandFilter?.value || "").toLowerCase().trim();
+      const locationValue = (assetLocationFilter?.value || "").toLowerCase().trim();
+      const lastDateValue = assetLastDateFilter?.value || "";
+      const nextDateValue = assetNextDateFilter?.value || "";
+      let visibleCount = 0;
 
       assetRows.forEach((row) => {
         const searchText = row.dataset.search || "";
         const categoryText = row.dataset.category || "";
+        const brandText = row.dataset.brand || "";
+        const locationText = row.dataset.location || "";
+        const lastDateText = row.dataset.lastDate || "";
+        const nextDateText = row.dataset.nextDate || "";
         const matchesSearch = !searchValue || searchText.includes(searchValue);
         const matchesCategory = !categoryValue || categoryText === categoryValue;
-        row.style.display = matchesSearch && matchesCategory ? "" : "none";
+        const matchesBrand = !brandValue || brandText.includes(brandValue);
+        const matchesLocation = !locationValue || locationText.includes(locationValue);
+        const matchesLastDate = !lastDateValue || lastDateText === lastDateValue;
+        const matchesNextDate = !nextDateValue || nextDateText === nextDateValue;
+        const isVisible = matchesSearch && matchesCategory && matchesBrand && matchesLocation && matchesLastDate && matchesNextDate;
+
+        row.style.display = isVisible ? "" : "none";
+        if (isVisible) visibleCount += 1;
       });
+
+      if (customerResultsCount) {
+        customerResultsCount.textContent = `${visibleCount} kayit`;
+      }
     }
 
     assetSearch?.addEventListener("input", filterCustomerAssets);
     assetCategoryFilter?.addEventListener("change", filterCustomerAssets);
+    assetBrandFilter?.addEventListener("input", filterCustomerAssets);
+    assetLocationFilter?.addEventListener("input", filterCustomerAssets);
+    assetLastDateFilter?.addEventListener("change", filterCustomerAssets);
+    assetNextDateFilter?.addEventListener("change", filterCustomerAssets);
   </script>
 {% endblock %}
