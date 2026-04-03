@@ -9,6 +9,7 @@
           <p class="muted">{{ extinguisher.location_detail }}</p>
         </div>
         <div class="button-row">
+          <a class="button secondary" href="{{ url_for('extinguisher_label', public_id=extinguisher.public_id) }}" target="_blank" rel="noopener">Etiket Yazdir</a>
           <a class="button secondary" href="{{ url_for('add_service_log', public_id=extinguisher.public_id) }}">Bakim Guncelle</a>
           <a class="button secondary" href="{{ url_for('add_monthly_inspection', public_id=extinguisher.public_id) }}">Aylik Kontrol Ekle</a>
           {% if asset_profile.control_form_enabled %}
