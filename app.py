@@ -96,6 +96,18 @@ SCBA_NOTES = [
     "NOT 4: Bu muayene raporundaki bulgular muayene tarihindeki işletme koşulları için geçerlidir. Bu rapor 2 nüsha basılmıştır. Muayene raporu VESTA YANGIN onayı olmaksızın kopya edilemez.",
 ]
 SPECIAL_CATEGORY_FORM_CONFIGS = {
+    "SCBA": {
+        "form_code": "F-17",
+        "subject": "BAGIMSIZ SOLUNUM CIHAZI (SELF-CONTAINED BREATHING APPARATUS) Kontrol Formu",
+        "section_title": "BAGIMSIZ SOLUNUM CIHAZI (SELF-CONTAINED BREATHING APPARATUS) BILGILERI",
+        "method_text": "IEKSGSY, TS ISO 11602-2, TS 862-7 EN 3-7 + A1 ve TS EN 1866-1 standartlarina gore kontrol edilmistir.",
+        "notes": [
+            "NOT 1: Bagimsiz solunum cihazi kontrolu Madde a), b), c), d), e), f) bendindeki gibi listelenmis kosullarda, bir eksikligi ortaya cikardigi zaman, acil duzeltici faaliyet uygulanmalidir.",
+            "NOT 2: Bagimsiz solunum cihazi kontrolu Madde d), e), f) veya g) bendindeki kosullardan herhangi birinde bir eksiklik ortaya cikardigi zaman, cihaz VESTA YANGIN tarafindan bakima alinmalidir.",
+            "NOT 3: Madde a), b), c), d) veya e) bendindeki kosullardan herhangi birinde bir eksiklik ortaya cikardigi zaman, bu cihaz hizmetten kaldirilmalidir.",
+            "NOT 4: Bu muayene raporundaki bulgular muayene tarihindeki isletme kosullari icin gecerlidir. Bu rapor 2 nusha basilmistir. Muayene raporu VESTA YANGIN onayi olmaksizin kopya edilemez.",
+        ],
+    },
     "EEBD": {
         "form_code": "F-18",
         "subject": "ACIL KACIS SETI (EMERGENCY ESCAPE BREATHING DEVICE SET) Kontrol Formu",
@@ -5164,10 +5176,7 @@ def build_category_report_bundle(public_id: str) -> tuple[dict, io.BytesIO]:
     extinguisher = get_extinguisher(public_id)
     asset_category = extinguisher.get("asset_category")
     try:
-        if asset_category == "SCBA":
-            document_data = build_scba_company_document_data(public_id)
-            pdf_buffer = build_scba_company_form_pdf(document_data)
-        elif asset_category in SPECIAL_CATEGORY_FORM_CONFIGS:
+        if asset_category in SPECIAL_CATEGORY_FORM_CONFIGS:
             document_data = build_special_category_company_document_data(public_id)
             pdf_buffer = build_special_category_company_form_pdf(document_data)
         else:
