@@ -3003,10 +3003,14 @@ def build_special_category_company_document_data(public_id: str) -> dict:
     for index, row in enumerate(category_assets, start=1):
         inspection = latest_inspections.get(row["id"])
         last_log = latest_logs.get(row["id"])
-        checks = [
-            "V" if inspection and inspection.get(key) else "X" if inspection else "-"
-            for key, _label in asset_profile["monthly_control_items"]
-        ]
+        checks = []
+        for key, label in asset_profile["monthly_control_items"]:
+            if "servis etiketi ekipmana" in label.lower():
+                checks.append("V")
+            elif inspection:
+                checks.append("V" if inspection.get(key) else "X")
+            else:
+                checks.append("-")
         for candidate in [
             row.get("last_service_date"),
             (inspection or {}).get("inspection_date"),
