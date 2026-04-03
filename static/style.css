@@ -1057,6 +1057,61 @@ tbody tr:nth-child(odd) td {
 }
 
 @media (max-width: 720px) {
+  .shell {
+    width: min(100%, calc(100% - 20px));
+  }
+
+  .topbar .shell {
+    display: grid;
+    gap: 14px;
+    justify-content: stretch;
+    padding: 14px 0;
+  }
+
+  .brand {
+    justify-self: start;
+  }
+
+  .topbar nav {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .topbar nav a,
+  .topbar .user-pill,
+  .nav-dropdown {
+    min-height: 36px;
+  }
+
+  .topbar nav a,
+  .topbar .user-pill,
+  .nav-dropdown-trigger {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+
+  .nav-dropdown-menu {
+    left: 0;
+    right: auto;
+    min-width: 180px;
+  }
+
+  main.shell {
+    padding: 20px 0 34px;
+  }
+
+  .customer-hero.card,
+  .customer-select-card.card,
+  .customer-detail-card.card,
+  .customer-assets-card.card,
+  .customer-create-card.card,
+  .empty-card.card {
+    padding: 20px 16px;
+    border-radius: 22px;
+  }
+
   .public-brand {
     position: static;
     width: 88px;
@@ -1083,12 +1138,103 @@ tbody tr:nth-child(odd) td {
     grid-template-columns: 1fr;
   }
 
+  .customer-layout,
+  .customer-layout.customer-layout-wide,
+  .customer-workspace {
+    gap: 16px;
+  }
+
   .customer-create-card {
     position: static;
+  }
+
+  .customer-card-head,
+  .customer-hero {
+    gap: 16px;
+  }
+
+  .customer-card-head {
+    display: grid;
+  }
+
+  .customer-card-head .button {
+    width: 100%;
+  }
+
+  .customer-info-grid div {
+    padding: 14px 15px;
+  }
+
+  .customer-filter-bar label {
+    gap: 6px;
+  }
+
+  .customer-table-wrap {
+    margin: 0 -2px;
+  }
+
+  .customer-device-table {
+    min-width: 720px;
+  }
+
+  .customer-device-table th,
+  .customer-device-table td {
+    padding: 10px 12px;
+    font-size: 0.9rem;
   }
 }
 
 @media (max-width: 640px) {
+  .topbar nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .topbar nav a,
+  .topbar .user-pill,
+  .nav-dropdown {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .nav-dropdown-trigger {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .brand-copy strong {
+    font-size: 0.95rem;
+  }
+
+  .brand-copy small {
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+  }
+
+  .customer-hero h1,
+  .customer-detail-card h2,
+  .customer-select-card h2,
+  .customer-assets-card h2,
+  .customer-create-card h2 {
+    overflow-wrap: anywhere;
+  }
+
+  .customer-hero h1 {
+    font-size: clamp(1.85rem, 9vw, 2.6rem);
+    line-height: 0.95;
+  }
+
+  .customer-stat {
+    padding: 14px 16px;
+  }
+
+  .customer-select-form select,
+  .customer-filter-bar select,
+  .customer-filter-bar input {
+    min-height: 44px;
+  }
+
   .shell.public-shell {
     width: 100%;
     padding: 16px 12px 28px;
