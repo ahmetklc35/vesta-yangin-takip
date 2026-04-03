@@ -4,7 +4,7 @@
   <section class="hero">
     <div class="hero-copy">
       <p class="eyebrow">QR tabanli bakim takibi</p>
-      <h1>Tum yangin tuplerini tek ekranda yonet</h1>
+      <h1>Tum yangin ekipmanlarini tek ekranda yonet</h1>
       <p class="lede">
         Ilk kayitta firma, konum, kg ve tip bilgilerini gir. Sistem QR kodu uretsin.
         Sonraki bakimlarda kaydi guncelle; musteri QR okutunca son kontrole ulassin.
@@ -17,7 +17,7 @@
     </div>
     <div class="hero-actions">
       <a class="button" href="{{ url_for('record_group_picker') }}">Yeni Kayit</a>
-      <a class="button secondary" href="{{ url_for('export_extinguishers') }}">Excel Tup Listesi</a>
+      <a class="button secondary" href="{{ url_for('export_extinguishers') }}">Excel Ekipman Listesi</a>
       <a class="button secondary" href="{{ url_for('export_service_logs') }}">Excel Bakim Gecmisi</a>
     </div>
   </section>
@@ -26,7 +26,7 @@
     <article class="dashboard-stat">
       <span>Toplam Kayit</span>
       <strong>{{ extinguishers|length }}</strong>
-      <small>Sistemde aktif takip edilen tup</small>
+      <small>Sistemde aktif takip edilen ekipman</small>
     </article>
     <article class="dashboard-stat">
       <span>QR Erisimi</span>
@@ -82,7 +82,7 @@
 
   <section class="card data-card">
     <div class="section-head">
-      <h2>Kayitli Tupler</h2>
+      <h2>Kayitli Ekipmanlar</h2>
       <span class="count-pill">{{ extinguishers|length }} adet</span>
     </div>
 
