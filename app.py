@@ -4445,6 +4445,7 @@ def company_management():
     selected_company_id = request.args.get("company_id", type=int)
     selected_company = None
     brand_options = []
+    location_options = []
     last_date_options = []
     next_date_options = []
     if company_rows:
@@ -4461,6 +4462,13 @@ def company_management():
                 (asset["manufacturer"] or "").strip()
                 for asset in company_assets
                 if (asset["manufacturer"] or "").strip()
+            }
+        )
+        location_options = sorted(
+            {
+                (asset["location_detail"] or "").strip()
+                for asset in company_assets
+                if (asset["location_detail"] or "").strip()
             }
         )
         last_date_options = sorted(
@@ -4484,6 +4492,7 @@ def company_management():
         company_assets=company_assets,
         asset_categories=get_asset_category_choices(),
         brand_options=brand_options,
+        location_options=location_options,
         last_date_options=last_date_options,
         next_date_options=next_date_options,
     )

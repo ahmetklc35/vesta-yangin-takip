@@ -169,7 +169,12 @@
             </label>
             <label>
               Konum
-              <input id="asset-location-filter" type="text" placeholder="Ornek: Acil mudahale odasi">
+              <select id="asset-location-filter">
+                <option value="">Hepsi</option>
+                {% for location in location_options %}
+                  <option value="{{ location }}">{{ location }}</option>
+                {% endfor %}
+              </select>
             </label>
             <label>
               Kontrol Gunu
