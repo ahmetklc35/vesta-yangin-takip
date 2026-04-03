@@ -762,6 +762,8 @@ companies = Table(
     Column("name", String(255), nullable=False, unique=True),
     Column("address", String(255), nullable=False),
     Column("contact_name", String(255), nullable=False),
+    Column("phone", String(64), nullable=False, default="-"),
+    Column("email", String(255), nullable=False, default="-"),
     Column("created_at", String(32), nullable=False),
     Column("updated_at", String(32), nullable=False),
 )
@@ -979,6 +981,8 @@ def run_schema_migrations() -> None:
                             name VARCHAR(255) NOT NULL UNIQUE,
                             address VARCHAR(255) NOT NULL,
                             contact_name VARCHAR(255) NOT NULL,
+                            phone VARCHAR(64) NOT NULL DEFAULT '-',
+                            email VARCHAR(255) NOT NULL DEFAULT '-',
                             created_at VARCHAR(32) NOT NULL,
                             updated_at VARCHAR(32) NOT NULL
                         )
@@ -1011,6 +1015,10 @@ def run_schema_migrations() -> None:
                 connection.execute(text("ALTER TABLE companies ADD COLUMN public_id TEXT"))
             if "slug" not in company_columns:
                 connection.execute(text("ALTER TABLE companies ADD COLUMN slug TEXT"))
+            if "phone" not in company_columns:
+                connection.execute(text("ALTER TABLE companies ADD COLUMN phone TEXT NOT NULL DEFAULT '-'"))
+            if "email" not in company_columns:
+                connection.execute(text("ALTER TABLE companies ADD COLUMN email TEXT NOT NULL DEFAULT '-'"))
 
             inspection_columns = {
                 row[1] for row in connection.execute(text("PRAGMA table_info(monthly_inspections)")).fetchall()
@@ -1111,6 +1119,8 @@ def run_schema_migrations() -> None:
                             name VARCHAR(255) NOT NULL UNIQUE,
                             address VARCHAR(255) NOT NULL,
                             contact_name VARCHAR(255) NOT NULL,
+                            phone VARCHAR(64) NOT NULL DEFAULT '-',
+                            email VARCHAR(255) NOT NULL DEFAULT '-',
                             created_at VARCHAR(32) NOT NULL,
                             updated_at VARCHAR(32) NOT NULL
                         )
@@ -1165,6 +1175,28 @@ def run_schema_migrations() -> None:
             ).fetchone()
             if result is None:
                 connection.execute(text("ALTER TABLE companies ADD COLUMN slug TEXT"))
+            result = connection.execute(
+                text(
+                    """
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = 'companies' AND column_name = 'phone'
+                    """
+                )
+            ).fetchone()
+            if result is None:
+                connection.execute(text("ALTER TABLE companies ADD COLUMN phone TEXT NOT NULL DEFAULT '-'"))
+            result = connection.execute(
+                text(
+                    """
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = 'companies' AND column_name = 'email'
+                    """
+                )
+            ).fetchone()
+            if result is None:
+                connection.execute(text("ALTER TABLE companies ADD COLUMN email TEXT NOT NULL DEFAULT '-'"))
             for column_name in ["check_a", "check_b", "check_c", "check_d", "check_e", "check_f", "check_g"]:
                 result = connection.execute(
                     text(
@@ -4410,7 +4442,24 @@ def toggle_user_active(user_id: int):
 @admin_required
 def company_management():
     company_rows = get_company_choices()
-    return render_template("company_management.html", companies=company_rows)
+    selected_company_id = request.args.get("company_id", type=int)
+    selected_company = None
+    if company_rows:
+        selected_company = next((row for row in company_rows if row["id"] == selected_company_id), company_rows[0])
+    company_assets = []
+    if selected_company:
+        company_assets = fetch_all(
+            select(extinguishers)
+            .where(extinguishers.c.company_id == selected_company["id"])
+            .order_by(extinguishers.c.asset_category, extinguishers.c.location_detail, extinguishers.c.serial_number)
+        )
+    return render_template(
+        "company_management.html",
+        companies=company_rows,
+        selected_company=selected_company,
+        company_assets=company_assets,
+        asset_categories=get_asset_category_choices(),
+    )
 
 
 @app.route("/companies/create", methods=["POST"])
@@ -4418,6 +4467,9 @@ def company_management():
 def create_company():
     name = request.form.get("name", "").strip()
     address = request.form.get("address", "").strip()
+    contact_name = request.form.get("contact_name", "").strip() or "-"
+    phone = request.form.get("phone", "").strip() or "-"
+    email = request.form.get("email", "").strip() or "-"
     raw_slug = request.form.get("slug", "").strip()
     if not name or not address:
         flash("Firma adi ve adres gerekli.", "error")
@@ -4426,13 +4478,15 @@ def create_company():
     now = datetime.now().isoformat(timespec="seconds")
     try:
         with engine.begin() as connection:
-            connection.execute(
+            result = connection.execute(
                 insert(companies).values(
                     public_id=uuid.uuid4().hex[:12],
                     slug=resolve_company_slug(connection, raw_slug, name),
                     name=name,
                     address=address,
-                    contact_name="-",
+                    contact_name=contact_name,
+                    phone=phone,
+                    email=email,
                     created_at=now,
                     updated_at=now,
                 )
@@ -4441,8 +4495,9 @@ def create_company():
         flash("Bu firma zaten mevcut.", "error")
         return redirect(url_for("company_management"))
 
-    flash("Cari kaydi olusturuldu.", "success")
-    return redirect(url_for("company_management"))
+    flash("Musteri kaydi olusturuldu.", "success")
+    company_id = result.inserted_primary_key[0] if result.inserted_primary_key else None
+    return redirect(url_for("company_management", company_id=company_id) if company_id else url_for("company_management"))
 
 
 @app.route("/companies/<int:company_id>/update", methods=["POST"])
@@ -4451,6 +4506,9 @@ def update_company(company_id: int):
     company = get_company(company_id)
     name = request.form.get("name", "").strip()
     address = request.form.get("address", "").strip()
+    contact_name = request.form.get("contact_name", "").strip() or "-"
+    phone = request.form.get("phone", "").strip() or "-"
+    email = request.form.get("email", "").strip() or "-"
     raw_slug = request.form.get("slug", "").strip()
     if not name or not address:
         flash("Firma adi ve adres gerekli.", "error")
@@ -4468,7 +4526,9 @@ def update_company(company_id: int):
                     slug=slug,
                     name=name,
                     address=address,
-                    contact_name=company.get("contact_name") or "-",
+                    contact_name=contact_name,
+                    phone=phone,
+                    email=email,
                     updated_at=now,
                 )
             )
@@ -4486,7 +4546,7 @@ def update_company(company_id: int):
         return redirect(url_for("company_management"))
 
     flash(f"{company['name']} guncellendi.", "success")
-    return redirect(url_for("company_management"))
+    return redirect(url_for("company_management", company_id=company_id))
 
 
 @app.route("/")

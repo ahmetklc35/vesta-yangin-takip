@@ -5,7 +5,7 @@
     <div>
       <p class="eyebrow">Musteri Yonetimi</p>
       <h1>Musteriler</h1>
-      <p class="muted">Musteriyi bir kere kaydet, sonra kayit ekranlarinda sadece sec. Portal linki, adres ve guncelleme akisi tek yerde dursun.</p>
+      <p class="muted">Musteriyi sec, tum iletisim bilgilerini gor ve alttaki cihaz listesinde filtreleme yap.</p>
     </div>
     <div class="customer-hero-stats">
       <div class="customer-stat">
@@ -13,18 +13,18 @@
         <span>Toplam Musteri</span>
       </div>
       <div class="customer-stat">
-        <strong>1</strong>
-        <span>Merkezi Yonetim</span>
+        <strong>{{ company_assets|length if selected_company else 0 }}</strong>
+        <span>Secili Musteri Cihazi</span>
       </div>
     </div>
   </section>
 
-  <section class="customer-layout">
+  <section class="customer-layout customer-layout-wide">
     <aside class="card customer-create-card" id="musteri-ekle">
       <div class="section-head">
         <div>
           <h2>Musteri Ekle</h2>
-          <p class="muted">Yeni firma, adres ve portal link sonunu buradan tanimla.</p>
+          <p class="muted">Yeni musteri, yetkili ve iletisim bilgilerini buradan kaydet.</p>
         </div>
       </div>
 
@@ -37,6 +37,18 @@
           Link sonu
           <input type="text" name="slug" placeholder="ornek-firma">
         </label>
+        <label>
+          Yetkili kisi
+          <input type="text" name="contact_name" required>
+        </label>
+        <label>
+          Telefon
+          <input type="text" name="phone" required>
+        </label>
+        <label class="full">
+          E-posta
+          <input type="email" name="email" required>
+        </label>
         <label class="full">
           Muayene adresi
           <input type="text" name="address" required>
@@ -47,57 +59,173 @@
       </form>
     </aside>
 
-    <section class="customer-list">
-      <div class="section-head customer-list-head">
-        <div>
-          <h2>Musterilerimiz</h2>
-          <p class="muted">Portal linklerini yonet, adresleri guncelle ve link sonlarini duzenle.</p>
+    <section class="customer-workspace">
+      <article class="card customer-select-card">
+        <div class="section-head">
+          <div>
+            <h2>Musteri Sec</h2>
+            <p class="muted">Acilir listeden musteri sec, bilgiler ve cihazlar asagida gelsin.</p>
+          </div>
         </div>
-        <span>{{ companies|length }} adet</span>
-      </div>
 
-      {% if companies %}
-        <div class="customer-grid">
-          {% for company in companies %}
-            <article class="card customer-card">
-              <div class="customer-card-head">
-                <div>
-                  <h3>{{ company.name }}</h3>
-                  <p class="muted">Portal: /firma/{{ company.slug }}</p>
-                </div>
-                <a class="button tertiary" href="{{ url_for('public_company_portal', company_slug=company.slug) }}" target="_blank" rel="noopener">Portali Ac</a>
+        <form method="get" action="{{ url_for('company_management') }}" class="customer-select-form">
+          <label class="full">
+            Musterilerimiz
+            <select name="company_id" onchange="this.form.submit()">
+              {% for company in companies %}
+                <option value="{{ company.id }}" {% if selected_company and company.id == selected_company.id %}selected{% endif %}>
+                  {{ company.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </label>
+        </form>
+      </article>
+
+      {% if selected_company %}
+        <article class="card customer-detail-card">
+          <div class="customer-card-head">
+            <div>
+              <h2>{{ selected_company.name }}</h2>
+              <p class="muted">Portal: /firma/{{ selected_company.slug }}</p>
+            </div>
+            <a class="button tertiary" href="{{ url_for('public_company_portal', company_slug=selected_company.slug) }}" target="_blank" rel="noopener">Portali Ac</a>
+          </div>
+
+          <div class="customer-info-grid">
+            <div><strong>Yetkili Kisi</strong><span>{{ selected_company.contact_name or "-" }}</span></div>
+            <div><strong>Telefon</strong><span>{{ selected_company.phone or "-" }}</span></div>
+            <div><strong>E-posta</strong><span>{{ selected_company.email or "-" }}</span></div>
+            <div><strong>Link Sonu</strong><span>{{ selected_company.slug }}</span></div>
+            <div class="full"><strong>Muayene Adresi</strong><span>{{ selected_company.address }}</span></div>
+            <div class="full"><strong>Firma Portali</strong><span>{{ url_for('public_company_portal', company_slug=selected_company.slug, _external=True) }}</span></div>
+          </div>
+
+          <details class="customer-edit-toggle">
+            <summary>Musteri Bilgilerini Guncelle</summary>
+            <form method="post" action="{{ url_for('update_company', company_id=selected_company.id) }}" class="grid-form customer-edit-form">
+              <label>
+                Firma adi
+                <input type="text" name="name" value="{{ selected_company.name }}" required>
+              </label>
+              <label>
+                Link sonu
+                <input type="text" name="slug" value="{{ selected_company.slug }}" required>
+              </label>
+              <label>
+                Yetkili kisi
+                <input type="text" name="contact_name" value="{{ selected_company.contact_name }}" required>
+              </label>
+              <label>
+                Telefon
+                <input type="text" name="phone" value="{{ selected_company.phone }}" required>
+              </label>
+              <label class="full">
+                E-posta
+                <input type="email" name="email" value="{{ selected_company.email }}" required>
+              </label>
+              <label class="full">
+                Muayene adresi
+                <input type="text" name="address" value="{{ selected_company.address }}" required>
+              </label>
+              <div class="full form-actions customer-card-actions">
+                <button type="submit" class="button secondary">Guncelle</button>
               </div>
+            </form>
+          </details>
+        </article>
 
-              <form method="post" action="{{ url_for('update_company', company_id=company.id) }}" class="grid-form customer-edit-form">
-                <label>
-                  Firma adi
-                  <input type="text" name="name" value="{{ company.name }}" required>
-                </label>
-                <label>
-                  Link sonu
-                  <input type="text" name="slug" value="{{ company.slug }}" required>
-                </label>
-                <label class="full">
-                  Muayene adresi
-                  <input type="text" name="address" value="{{ company.address }}" required>
-                </label>
-                <label class="full">
-                  Firma portali linki
-                  <input type="text" value="{{ url_for('public_company_portal', company_slug=company.slug, _external=True) }}" readonly>
-                </label>
-                <div class="full form-actions customer-card-actions">
-                  <button type="submit" class="button secondary">Guncelle</button>
-                </div>
-              </form>
-            </article>
-          {% endfor %}
-        </div>
+        <article class="card customer-assets-card">
+          <div class="section-head customer-list-head">
+            <div>
+              <h2>Cihaz Listesi</h2>
+              <p class="muted">Asagidan arama veya kategori secimi ile filtreleyebilirsin.</p>
+            </div>
+            <span>{{ company_assets|length }} kayit</span>
+          </div>
+
+          <div class="customer-filter-bar">
+            <label>
+              Ara
+              <input id="asset-search" type="text" placeholder="Seri no, marka, konum...">
+            </label>
+            <label>
+              Urun grubu
+              <select id="asset-category-filter">
+                <option value="">Hepsi</option>
+                {% for category in asset_categories %}
+                  <option value="{{ category.label }}">{{ category.label }}</option>
+                {% endfor %}
+              </select>
+            </label>
+          </div>
+
+          <div class="table-wrap customer-table-wrap">
+            <table class="customer-device-table">
+              <thead>
+                <tr>
+                  <th>Seri No</th>
+                  <th>Urun Grubu</th>
+                  <th>Tip</th>
+                  <th>Marka</th>
+                  <th>Konum</th>
+                  <th>Son Kontrol</th>
+                  <th>Sonraki Kontrol</th>
+                  <th>Detay</th>
+                </tr>
+              </thead>
+              <tbody id="customer-assets-body">
+                {% for asset in company_assets %}
+                  <tr
+                    data-search="{{ (asset.serial_number ~ ' ' ~ (asset.extinguisher_type or '') ~ ' ' ~ (asset.manufacturer or '') ~ ' ' ~ (asset.location_detail or ''))|lower }}"
+                    data-category="{{ asset.asset_category or 'Yangin Sondurme Cihazi' }}"
+                  >
+                    <td>{{ asset.serial_number }}</td>
+                    <td>{{ asset.asset_category or "Yangin Sondurme Cihazi" }}</td>
+                    <td>{{ asset.extinguisher_type }}</td>
+                    <td>{{ asset.manufacturer or "-" }}</td>
+                    <td>{{ asset.location_detail }}</td>
+                    <td>{{ asset.last_service_date or "-" }}</td>
+                    <td>{{ asset.next_service_date or "-" }}</td>
+                    <td><a class="button tertiary" href="{{ url_for('extinguisher_detail', public_id=asset.public_id) }}">Detay</a></td>
+                  </tr>
+                {% else %}
+                  <tr>
+                    <td colspan="8" class="muted">Bu musteride henuz kayit yok.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </article>
       {% else %}
         <article class="card empty-card">
-          <h3>Henuz musteri yok</h3>
-          <p class="muted">Ilk musteriyi ekledikten sonra portal linkleri ve guncelleme kartlari burada gorunecek.</p>
+          <h3>Musteri secilmedi</h3>
+          <p class="muted">Acilir listeden bir musteri secince detay karti ve cihaz listesi burada gorunecek.</p>
         </article>
       {% endif %}
     </section>
   </section>
+
+  <script>
+    const assetSearch = document.getElementById("asset-search");
+    const assetCategoryFilter = document.getElementById("asset-category-filter");
+    const assetRows = Array.from(document.querySelectorAll("#customer-assets-body tr[data-search]"));
+
+    function filterCustomerAssets() {
+      const searchValue = (assetSearch?.value || "").toLowerCase().trim();
+      const categoryValue = assetCategoryFilter?.value || "";
+
+      assetRows.forEach((row) => {
+        const searchText = row.dataset.search || "";
+        const categoryText = row.dataset.category || "";
+        const matchesSearch = !searchValue || searchText.includes(searchValue);
+        const matchesCategory = !categoryValue || categoryText === categoryValue;
+        row.style.display = matchesSearch && matchesCategory ? "" : "none";
+      });
+    }
+
+    assetSearch?.addEventListener("input", filterCustomerAssets);
+    assetCategoryFilter?.addEventListener("change", filterCustomerAssets);
+  </script>
 {% endblock %}

@@ -895,9 +895,111 @@ tbody tr:nth-child(odd) td {
   align-items: start;
 }
 
+.customer-layout.customer-layout-wide {
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+}
+
 .customer-create-card {
   position: sticky;
   top: 24px;
+}
+
+.customer-workspace {
+  display: grid;
+  gap: 18px;
+}
+
+.customer-select-form {
+  display: grid;
+  gap: 14px;
+}
+
+.customer-detail-card {
+  display: grid;
+  gap: 18px;
+}
+
+.customer-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.customer-info-grid div {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--surface-strong);
+  border: 1px solid rgba(161, 119, 87, 0.14);
+}
+
+.customer-info-grid .full {
+  grid-column: 1 / -1;
+}
+
+.customer-info-grid strong {
+  font-size: 0.86rem;
+}
+
+.customer-info-grid span {
+  color: var(--muted);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.customer-edit-toggle {
+  border: 1px dashed rgba(161, 119, 87, 0.35);
+  border-radius: 20px;
+  padding: 14px 16px 4px;
+}
+
+.customer-edit-toggle summary {
+  cursor: pointer;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.customer-assets-card {
+  display: grid;
+  gap: 16px;
+}
+
+.customer-filter-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 14px;
+}
+
+.customer-filter-bar label {
+  display: grid;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.customer-table-wrap {
+  overflow-x: auto;
+}
+
+.customer-device-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 920px;
+}
+
+.customer-device-table th,
+.customer-device-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(161, 119, 87, 0.18);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.customer-device-table th {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .customer-list {
@@ -966,7 +1068,9 @@ tbody tr:nth-child(odd) td {
 
   .customer-hero-stats,
   .customer-layout,
-  .customer-grid {
+  .customer-grid,
+  .customer-info-grid,
+  .customer-filter-bar {
     grid-template-columns: 1fr;
   }
 
