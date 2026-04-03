@@ -1629,6 +1629,7 @@ def render_profile_record_form(group_slug: str):
     asset_profile = get_asset_profile(group["label"])
 
     if request.method == "POST":
+        submit_action = request.form.get("submit_action", "save_print")
         form = parse_required_form(request.form)
         form["technician_name"] = form.get("technician_name") or current_user_full_name()
         form["asset_category"] = group["label"]
@@ -1765,8 +1766,12 @@ def render_profile_record_form(group_slug: str):
                 group=group,
             )
 
-        flash(f"{group['label']} kaydedildi.", "success")
-        return redirect(url_for("extinguisher_detail", public_id=public_id))
+        if submit_action == "save":
+            flash(f"{group['label']} kaydedildi.", "success")
+            return redirect(url_for("extinguisher_detail", public_id=public_id))
+
+        flash(f"{group['label']} kaydedildi. Etiket yazdirmaya yonlendirildiniz.", "success")
+        return redirect(url_for("extinguisher_label", public_id=public_id))
 
     return render_template(
         "create_asset_profile.html",
@@ -4709,6 +4714,7 @@ def create_extinguisher():
     company_choices = get_company_choices()
     asset_categories = get_asset_category_choices()
     if request.method == "POST":
+        submit_action = request.form.get("submit_action", "save_print")
         form = parse_required_form(request.form)
         form["technician_name"] = form.get("technician_name") or current_user_full_name()
         try:
@@ -4830,8 +4836,12 @@ def create_extinguisher():
                 asset_categories=asset_categories,
             )
 
-        flash("Tup kaydedildi ve QR olusturuldu.", "success")
-        return redirect(url_for("extinguisher_detail", public_id=public_id))
+        if submit_action == "save":
+            flash("Tup kaydedildi.", "success")
+            return redirect(url_for("extinguisher_detail", public_id=public_id))
+
+        flash("Tup kaydedildi. Etiket yazdirmaya yonlendirildiniz.", "success")
+        return redirect(url_for("extinguisher_label", public_id=public_id))
 
     return render_template(
         "create_extinguisher.html",

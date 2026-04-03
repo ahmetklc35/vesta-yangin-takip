@@ -472,6 +472,15 @@ tbody tr:nth-child(odd) td {
   justify-content: flex-end;
 }
 
+.dual-submit-actions,
+.secondary-submit-row {
+  justify-content: center;
+}
+
+.secondary-submit-row {
+  margin-top: -6px;
+}
+
 .stacked-field {
   display: grid;
   gap: 0.65rem;

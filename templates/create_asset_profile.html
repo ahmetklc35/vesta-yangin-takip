@@ -98,8 +98,11 @@
         <textarea name="notes" rows="3">{{ form.get('notes', '') }}</textarea>
       </label>
 
-      <div class="full form-actions">
-        <button type="submit" class="button">Kaydet</button>
+      <div class="full form-actions dual-submit-actions">
+        <button type="submit" name="submit_action" value="save_print" class="button">Kaydet ve Yazdir</button>
+      </div>
+      <div class="full form-actions secondary-submit-row">
+        <button type="submit" name="submit_action" value="save" class="button secondary">Kaydet</button>
       </div>
     </form>
   </section>
