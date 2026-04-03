@@ -5160,20 +5160,31 @@ def public_control_form_pdf(public_id: str):
     )
 
 
+def build_category_report_bundle(public_id: str) -> tuple[dict, io.BytesIO]:
+    extinguisher = get_extinguisher(public_id)
+    asset_category = extinguisher.get("asset_category")
+    try:
+        if asset_category == "SCBA":
+            document_data = build_scba_company_document_data(public_id)
+            pdf_buffer = build_scba_company_form_pdf(document_data)
+        elif asset_category in SPECIAL_CATEGORY_FORM_CONFIGS:
+            document_data = build_special_category_company_document_data(public_id)
+            pdf_buffer = build_special_category_company_form_pdf(document_data)
+        else:
+            document_data = build_company_category_report_document_data(public_id)
+            pdf_buffer = build_company_category_report_pdf(document_data)
+        return document_data, pdf_buffer
+    except Exception as exc:
+        print(f"[category-report-fallback] {asset_category} {public_id}: {exc}")
+        document_data = build_company_category_report_document_data(public_id)
+        pdf_buffer = build_company_category_report_pdf(document_data)
+        return document_data, pdf_buffer
+
+
 @app.route("/extinguishers/<public_id>/category-report.pdf")
 @login_required
 def category_report_pdf(public_id: str):
-    extinguisher = get_extinguisher(public_id)
-    asset_category = extinguisher.get("asset_category")
-    if asset_category == "SCBA":
-        document_data = build_scba_company_document_data(public_id)
-        pdf_buffer = build_scba_company_form_pdf(document_data)
-    elif asset_category in SPECIAL_CATEGORY_FORM_CONFIGS:
-        document_data = build_special_category_company_document_data(public_id)
-        pdf_buffer = build_special_category_company_form_pdf(document_data)
-    else:
-        document_data = build_company_category_report_document_data(public_id)
-        pdf_buffer = build_company_category_report_pdf(document_data)
+    document_data, pdf_buffer = build_category_report_bundle(public_id)
     filename = (
         f"{build_company_filename(document_data['company_name'])}-"
         f"{build_company_filename(document_data['asset_category'])}-kategori-raporu.pdf"
@@ -5188,17 +5199,7 @@ def category_report_pdf(public_id: str):
 
 @app.route("/public/<public_id>/category-report.pdf")
 def public_category_report_pdf(public_id: str):
-    extinguisher = get_extinguisher(public_id)
-    asset_category = extinguisher.get("asset_category")
-    if asset_category == "SCBA":
-        document_data = build_scba_company_document_data(public_id)
-        pdf_buffer = build_scba_company_form_pdf(document_data)
-    elif asset_category in SPECIAL_CATEGORY_FORM_CONFIGS:
-        document_data = build_special_category_company_document_data(public_id)
-        pdf_buffer = build_special_category_company_form_pdf(document_data)
-    else:
-        document_data = build_company_category_report_document_data(public_id)
-        pdf_buffer = build_company_category_report_pdf(document_data)
+    document_data, pdf_buffer = build_category_report_bundle(public_id)
     filename = (
         f"{build_company_filename(document_data['company_name'])}-"
         f"{build_company_filename(document_data['asset_category'])}-kategori-raporu.pdf"
