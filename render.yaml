@@ -18,6 +18,18 @@ services:
           property: connectionString
       - key: PLAYWRIGHT_BROWSERS_PATH
         value: "0"
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: ALERT_WINDOW_DAYS
+        value: "7"
 
 databases:
   - name: vesta-yangin-db

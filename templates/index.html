@@ -40,6 +40,46 @@
     </article>
   </section>
 
+  <section class="card data-card due-alert-card">
+    <div class="section-head">
+      <h2>7 Gun Icindeki Yaklasan Kontroller</h2>
+      <span class="count-pill">{{ due_soon_assets|length }} adet</span>
+    </div>
+
+    {% if due_soon_assets %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Firma</th>
+              <th>Seri No</th>
+              <th>Urun Grubu</th>
+              <th>Konum</th>
+              <th>Sonraki Kontrol</th>
+              <th>Kalan Gun</th>
+              <th>E-posta</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for asset in due_soon_assets %}
+              <tr>
+                <td>{{ asset.company_name }}</td>
+                <td>{{ asset.serial_number }}</td>
+                <td>{{ asset.asset_category or "-" }}</td>
+                <td>{{ asset.location_detail or "-" }}</td>
+                <td>{{ asset.next_service_date or "-" }}</td>
+                <td>{{ asset.days_left }}</td>
+                <td>{{ asset.company_email or "-" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>Onumuzdeki 7 gun icinde kontrol tarihi gelen kayit yok.</p>
+    {% endif %}
+  </section>
+
   <section class="card data-card">
     <div class="section-head">
       <h2>Kayitli Tupler</h2>

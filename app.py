@@ -3,12 +3,14 @@ from __future__ import annotations
 import io
 import json
 import os
+import smtplib
 import tempfile
 import re
 import unicodedata
 import uuid
 import base64
-from datetime import datetime
+from datetime import datetime, timedelta
+from email.message import EmailMessage
 from pathlib import Path
 from functools import wraps
 
@@ -73,6 +75,12 @@ CONTROL_FORM_TEMPLATE_PATH = BASE_DIR / "assets" / "control-form-template.pdf"
 CONTROL_FORM_TEMPLATE_IMAGE_PATH = BASE_DIR / "assets" / "control-form-template.png"
 CONTROL_FORM_EXCEL_TEMPLATE_PATH = BASE_DIR / "assets" / "control-form-template.xlsx"
 ELECTRICAL_REPORT_TEMPLATE_PATH = BASE_DIR / "assets" / "electrical-installation-template.pdf"
+SMTP_HOST = os.environ.get("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+SMTP_USERNAME = os.environ.get("SMTP_USERNAME", "")
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+SMTP_FROM = os.environ.get("SMTP_FROM", SMTP_USERNAME)
+ALERT_WINDOW_DAYS = int(os.environ.get("ALERT_WINDOW_DAYS", "7"))
 CONTROL_FORM_METHOD_TEXT = "İEKSGŞY, TS ISO 11602-2, TS 862-7 EN 3-7 + A1 ve TS EN 1866-1 standartlarına göre kontrol edilmiştir."
 CONTROL_FORM_NOTES = [
     "NOT 1: Yangın söndürücünün kontrolü Madde a) ve b) bendindeki gibi listelenmiş koşullarda, bir eksikliği ortaya çıkardığı zaman, acil düzeltici faaliyet yapılmalıdır.",
@@ -838,7 +846,138 @@ monthly_inspections = Table(
     Column("created_at", String(32), nullable=False),
 )
 
+notification_logs = Table(
+    "notification_logs",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("extinguisher_id", Integer, ForeignKey("extinguishers.id"), nullable=False),
+    Column("notification_type", String(64), nullable=False),
+    Column("target_date", String(32), nullable=False),
+    Column("recipient_email", String(255), nullable=False),
+    Column("created_at", String(32), nullable=False),
+    UniqueConstraint("extinguisher_id", "notification_type", "target_date", name="uq_notification_once_per_target"),
+)
+
 metadata.create_all(engine)
+
+
+def coerce_date(value):
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if hasattr(value, "strftime"):
+        return value
+    try:
+        return datetime.strptime(str(value), "%Y-%m-%d").date()
+    except Exception:
+        try:
+            return datetime.strptime(str(value), "%d.%m.%Y").date()
+        except Exception:
+            return None
+
+
+def is_real_email(value: str | None) -> bool:
+    email = (value or "").strip()
+    return bool(email and email != "-" and "@" in email)
+
+
+def send_email_message(subject: str, body: str, recipient: str) -> bool:
+    if not (SMTP_USERNAME and SMTP_PASSWORD and SMTP_FROM and recipient):
+        return False
+
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = SMTP_FROM
+    message["To"] = recipient
+    message.set_content(body)
+
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as smtp:
+        smtp.starttls()
+        smtp.login(SMTP_USERNAME, SMTP_PASSWORD)
+        smtp.send_message(message)
+    return True
+
+
+def get_due_soon_assets(window_days: int = ALERT_WINDOW_DAYS) -> list[dict]:
+    today = datetime.now().date()
+    deadline = today + timedelta(days=window_days)
+    rows = fetch_all(
+        select(
+            extinguishers,
+            companies.c.email.label("company_email"),
+            companies.c.contact_name.label("company_contact_name"),
+        )
+        .select_from(extinguishers.join(companies, extinguishers.c.company_id == companies.c.id))
+        .where(extinguishers.c.next_service_date.is_not(None))
+        .order_by(extinguishers.c.next_service_date.asc(), extinguishers.c.company_name.asc())
+    )
+    due_assets = []
+    for row in rows:
+        target_date = coerce_date(row.get("next_service_date"))
+        if not target_date:
+            continue
+        if not (today <= target_date <= deadline):
+            continue
+        enriched = dict(row)
+        enriched["days_left"] = (target_date - today).days
+        enriched["target_date"] = target_date.isoformat()
+        due_assets.append(enriched)
+    return due_assets
+
+
+def process_due_soon_notifications(window_days: int = ALERT_WINDOW_DAYS) -> list[dict]:
+    due_assets = get_due_soon_assets(window_days)
+    if not due_assets:
+        return []
+
+    now = datetime.now().isoformat(timespec="seconds")
+    with engine.begin() as connection:
+        for asset in due_assets:
+            recipient = (asset.get("company_email") or "").strip()
+            if not is_real_email(recipient):
+                continue
+
+            notification_type = f"next_service_{window_days}_days"
+            existing = connection.execute(
+                select(notification_logs.c.id)
+                .where(notification_logs.c.extinguisher_id == asset["id"])
+                .where(notification_logs.c.notification_type == notification_type)
+                .where(notification_logs.c.target_date == asset["target_date"])
+                .limit(1)
+            ).fetchone()
+            if existing:
+                continue
+
+            subject = f"Vesta Yangin - Yaklasan kontrol bildirimi ({asset['serial_number']})"
+            body = (
+                f"Merhaba {asset.get('company_contact_name') or asset.get('company_contact') or 'Yetkili'},\n\n"
+                f"{asset.get('company_name')} firmasina ait {asset.get('asset_category') or 'ekipman'} kaydinin "
+                f"sonraki kontrol tarihi {asset.get('next_service_date')} olarak gorunuyor.\n"
+                f"Cihaz seri no: {asset.get('serial_number')}\n"
+                f"Bulundugu yer: {asset.get('location_detail') or '-'}\n"
+                f"Kalan sure: {asset['days_left']} gun\n\n"
+                "Kontrol planlamasi icin bizimle iletisime gecebilirsiniz.\n\n"
+                "Vesta Yangin"
+            )
+
+            try:
+                sent = send_email_message(subject, body, recipient)
+            except Exception:
+                sent = False
+
+            if sent:
+                connection.execute(
+                    insert(notification_logs).values(
+                        extinguisher_id=asset["id"],
+                        notification_type=notification_type,
+                        target_date=asset["target_date"],
+                        recipient_email=recipient,
+                        created_at=now,
+                    )
+                )
+
+    return due_assets
 
 
 def ensure_monthly_inspection_columns() -> None:
@@ -4298,7 +4437,8 @@ def login():
 
 @app.route("/health")
 def health():
-    return {"status": "ok"}, 200
+    due_assets = process_due_soon_notifications()
+    return {"status": "ok", "due_soon": len(due_assets)}, 200
 
 
 @app.route("/logout")
@@ -4593,6 +4733,7 @@ def update_company(company_id: int):
 @app.route("/")
 @login_required
 def index():
+    due_soon_assets = get_due_soon_assets()
     latest_log_date = (
         select(service_logs.c.service_date)
         .where(service_logs.c.extinguisher_id == extinguishers.c.id)
@@ -4604,7 +4745,7 @@ def index():
         select(extinguishers, latest_log_date.label("latest_log_date"))
         .order_by(desc(extinguishers.c.updated_at))
     )
-    return render_template("index.html", extinguishers=fetch_all(statement))
+    return render_template("index.html", extinguishers=fetch_all(statement), due_soon_assets=due_soon_assets)
 
 
 @app.route("/export/extinguishers.xlsx")
