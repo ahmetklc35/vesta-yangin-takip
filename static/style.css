@@ -112,7 +112,7 @@ a {
 }
 
 .brand-copy strong {
-  font-family: "Fraunces", serif;
+  font-family: "Space Grotesk", sans-serif;
   font-size: 1.05rem;
   letter-spacing: 0.01em;
   color: white;
@@ -254,8 +254,8 @@ p {
 
 h1,
 h2 {
-  font-family: "Fraunces", serif;
-  letter-spacing: -0.035em;
+  font-family: "Space Grotesk", sans-serif;
+  letter-spacing: -0.03em;
 }
 
 h1 {
