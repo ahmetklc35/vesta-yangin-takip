@@ -396,22 +396,6 @@ h2 {
   z-index: 0;
 }
 
-.dashboard-hero::after {
-  content: "";
-  position: absolute;
-  right: 18px;
-  bottom: -8px;
-  width: 420px;
-  height: 420px;
-  background:
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
-    url("/static/vesta-form-amblem.png") center/contain no-repeat;
-  opacity: 0.2;
-  filter: saturate(0.15) brightness(1.45);
-  z-index: 0;
-  pointer-events: none;
-}
-
 .dashboard-hero-copy,
 .dashboard-command {
   position: relative;
@@ -1391,14 +1375,6 @@ tbody tr:nth-child(odd) td {
 }
 
 @media (max-width: 640px) {
-  .dashboard-hero::after {
-    width: 230px;
-    height: 230px;
-    right: -8px;
-    bottom: -8px;
-    opacity: 0.16;
-  }
-
   .dashboard-command {
     padding: 0 14px 14px;
   }
