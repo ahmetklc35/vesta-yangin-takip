@@ -2307,7 +2307,10 @@ def build_monthly_inspection_values(form_data, items: list[tuple[str, str]] | No
     source_items = items or MONTHLY_CONTROL_ITEMS
     values = {f"item_{index}": False for index in range(1, 15)}
     for key, _label in source_items:
-        values[key] = form_data.get(key) == "on"
+        if "servis etiketi ekipmana" in _label.lower():
+            values[key] = True
+        else:
+            values[key] = form_data.get(key) == "on"
     return values
 
 
@@ -2348,7 +2351,7 @@ def with_monthly_control_labels(rows: list[dict], items: list[tuple[str, str]] |
         checks = []
         passed_count = 0
         for key, label in source_items:
-            passed = bool(row.get(key))
+            passed = True if "servis etiketi ekipmana" in label.lower() else bool(row.get(key))
             if passed:
                 passed_count += 1
             checks.append({"key": key, "label": label, "passed": passed})
@@ -2388,7 +2391,12 @@ def build_monthly_table(rows: list[dict], items: list[tuple[str, str]] | None = 
         cells = []
         for key, label in source_items:
             code = label.split(" ", 1)[0]
-            value = None if source is None else bool(source.get(key))
+            if source is None:
+                value = None
+            elif "servis etiketi ekipmana" in label.lower():
+                value = True
+            else:
+                value = bool(source.get(key))
             cells.append({"code": code, "value": value})
         month_rows.append(
             {

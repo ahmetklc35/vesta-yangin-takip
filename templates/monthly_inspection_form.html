@@ -24,7 +24,7 @@
         <div class="checklist-grid">
           {% for key, label in monthly_control_items %}
             <label class="check-item">
-              <input type="checkbox" name="{{ key }}" {% if form.get(key) %}checked{% endif %}>
+              <input type="checkbox" name="{{ key }}" {% if form.get(key) or 'servis etiketi ekipmana' in label|lower %}checked{% endif %}>
               <span>{{ label }}</span>
             </label>
           {% endfor %}
