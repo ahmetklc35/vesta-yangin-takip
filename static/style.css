@@ -388,15 +388,15 @@ h2 {
 .dashboard-hero::after {
   content: "";
   position: absolute;
-  right: 24px;
-  bottom: -18px;
-  width: 320px;
-  height: 320px;
+  right: 18px;
+  bottom: -8px;
+  width: 420px;
+  height: 420px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)),
-    url("/static/vesta-logo.png") center/contain no-repeat;
-  opacity: 0.12;
-  filter: saturate(0) brightness(1.8);
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
+    url("/static/vesta-form-amblem.png") center/contain no-repeat;
+  opacity: 0.2;
+  filter: saturate(0.15) brightness(1.45);
   z-index: 0;
   pointer-events: none;
 }
@@ -1381,11 +1381,11 @@ tbody tr:nth-child(odd) td {
 
 @media (max-width: 640px) {
   .dashboard-hero::after {
-    width: 180px;
-    height: 180px;
-    right: -10px;
-    bottom: -12px;
-    opacity: 0.1;
+    width: 230px;
+    height: 230px;
+    right: -8px;
+    bottom: -8px;
+    opacity: 0.16;
   }
 
   .dashboard-command {
