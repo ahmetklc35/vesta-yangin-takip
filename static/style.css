@@ -31,6 +31,17 @@ body {
   overflow-x: hidden;
 }
 
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: url("/static/vestaa-bg.png") center 150px / 320px auto no-repeat;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+  filter: saturate(0.92);
+}
+
 a {
   color: inherit;
 }
