@@ -30,10 +30,41 @@
         </section>
 
         {% if selected_category %}
+          {% set first_asset = selected_assets[0] if selected_assets else None %}
           <section class="note-box">
             <h2>{{ selected_category.label }}</h2>
             <p>Bu kategoriye ait {{ selected_assets|length }} kayit listeleniyor.</p>
           </section>
+
+          {% if first_asset %}
+            <section class="note-box">
+              {% if selected_category.label == "Yangin Sondurme Cihazi" %}
+                <h2>Firma Kontrol Formu</h2>
+                <p>Bu firmaya ait tum yangin sondurme cihazi kayitlarini tek PDF olarak indirebilirsiniz.</p>
+                <p>
+                  <a class="button" href="{{ url_for('public_control_form_pdf', public_id=first_asset.public_id) }}">
+                    Firmanin Tum Yangin Sondurme Cihazi Kayitlarini PDF Olarak Indir
+                  </a>
+                </p>
+              {% elif selected_category.label == "Elektrik Ic Tesisati" %}
+                <h2>Elektrik Ic Tesisati Raporu</h2>
+                <p>Bu kategori icin resmi rapor formatinda PDF indirebilirsiniz.</p>
+                <p>
+                  <a class="button" href="{{ url_for('public_electrical_report_pdf', public_id=first_asset.public_id) }}">
+                    PDF Raporunu Indir
+                  </a>
+                </p>
+              {% else %}
+                <h2>Firma {{ selected_category.label }} Kontrol Formu</h2>
+                <p>Bu firmaya ait tum {{ selected_category.label }} kayitlarini resmi kontrol formu duzeninde tek PDF olarak indirebilirsiniz.</p>
+                <p>
+                  <a class="button" href="{{ url_for('public_category_report_pdf', public_id=first_asset.public_id) }}">
+                    Firmanin Tum {{ selected_category.label }} Kayitlarini PDF Olarak Indir
+                  </a>
+                </p>
+              {% endif %}
+            </section>
+          {% endif %}
 
           <section class="portal-asset-list">
             {% for asset in selected_assets %}
