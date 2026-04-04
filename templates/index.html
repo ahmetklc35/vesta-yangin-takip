@@ -1,127 +1,144 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <section class="hero">
-    <div class="hero-copy">
-      <p class="eyebrow">QR tabanli bakim takibi</p>
-      <h1>Tum yangin ekipmanlarini tek ekranda yonet</h1>
-      <p class="lede">
-        Ilk kayitta firma, konum, kg ve tip bilgilerini gir. Sistem QR kodu uretsin.
-        Sonraki bakimlarda kaydi guncelle; musteri QR okutunca son kontrole ulassin.
-      </p>
-      <div class="hero-meta">
-        <div class="hero-chip">Canli QR erisimi</div>
-        <div class="hero-chip">Aylik kontrol takibi</div>
-        <div class="hero-chip">Excel disa aktarma</div>
+  <div class="dashboard-page">
+    <section class="hero dashboard-hero">
+      <div class="dashboard-hero-copy">
+        <p class="eyebrow">Vesta Yonetim Paneli</p>
+        <h1>Tum yangin ekipmanlarini tek merkezden yonet</h1>
+        <p class="lede">
+          Musteri kaydindan etikete, bakimdan firma portallarina kadar tum akisi tek yerde tut.
+          Ekipman hareketini anlik izle, kontrol tarihini kacirma.
+        </p>
+        <div class="hero-meta dashboard-meta">
+          <div class="hero-chip">QR ile musteri erisimi</div>
+          <div class="hero-chip">Kategori bazli kontrol formlari</div>
+          <div class="hero-chip">Etiket ve Excel ciktilari</div>
+        </div>
       </div>
-    </div>
-    <div class="hero-actions">
-      <a class="button" href="{{ url_for('record_group_picker') }}">Yeni Kayit</a>
-      <a class="button secondary" href="{{ url_for('export_extinguishers') }}">Excel Ekipman Listesi</a>
-      <a class="button secondary" href="{{ url_for('export_service_logs') }}">Excel Bakim Gecmisi</a>
-    </div>
-  </section>
 
-  <section class="dashboard-strip">
-    <article class="dashboard-stat">
-      <span>Toplam Kayit</span>
-      <strong>{{ extinguishers|length }}</strong>
-      <small>Sistemde aktif takip edilen ekipman</small>
-    </article>
-    <article class="dashboard-stat">
-      <span>QR Erisimi</span>
-      <strong>Canli</strong>
-      <small>Musteri telefonundan acilan sayfa</small>
-    </article>
-    <article class="dashboard-stat">
-      <span>Bakim Akisi</span>
-      <strong>Tek Ekran</strong>
-      <small>Kayit, aylik kontrol ve etiket bir arada</small>
-    </article>
-  </section>
+      <div class="dashboard-command">
+        <div class="dashboard-command-panel">
+          <span class="dashboard-command-label">Hizli Islem</span>
+          <a class="button dashboard-primary-action" href="{{ url_for('record_group_picker') }}">Yeni Kayit</a>
+          <a class="button secondary" href="{{ url_for('export_extinguishers') }}">Excel Ekipman Listesi</a>
+          <a class="button secondary" href="{{ url_for('export_service_logs') }}">Excel Bakim Gecmisi</a>
+        </div>
+        <div class="dashboard-signal-card">
+          <span>Takip Durumu</span>
+          <strong>{{ due_soon_assets|length }}</strong>
+          <small>7 gun icinde yaklasan kontrol</small>
+        </div>
+      </div>
+    </section>
 
-  <section class="card data-card due-alert-card">
-    <div class="section-head">
-      <h2>7 Gun Icindeki Yaklasan Kontroller</h2>
-      <span class="count-pill">{{ due_soon_assets|length }} adet</span>
-    </div>
+    <section class="dashboard-strip dashboard-strip-bold">
+      <article class="dashboard-stat dashboard-stat-accent">
+        <span>Toplam Kayit</span>
+        <strong>{{ extinguishers|length }}</strong>
+        <small>Sistemde aktif takip edilen ekipman</small>
+      </article>
+      <article class="dashboard-stat">
+        <span>QR Erisimi</span>
+        <strong>Canli</strong>
+        <small>Musteri telefonundan acilan sayfa</small>
+      </article>
+      <article class="dashboard-stat">
+        <span>Bakim Akisi</span>
+        <strong>Tek Merkez</strong>
+        <small>Kayit, aylik kontrol ve etiket bir arada</small>
+      </article>
+    </section>
 
-    {% if due_soon_assets %}
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Firma</th>
-              <th>Seri No</th>
-              <th>Urun Grubu</th>
-              <th>Konum</th>
-              <th>Sonraki Kontrol</th>
-              <th>Kalan Gun</th>
-              <th>E-posta</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for asset in due_soon_assets %}
+    <section class="card data-card due-alert-card dashboard-table-card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Takip Masasi</p>
+          <h2>7 Gun Icindeki Yaklasan Kontroller</h2>
+        </div>
+        <span class="count-pill">{{ due_soon_assets|length }} adet</span>
+      </div>
+
+      {% if due_soon_assets %}
+        <div class="table-wrap">
+          <table>
+            <thead>
               <tr>
-                <td>{{ asset.company_name }}</td>
-                <td>{{ asset.serial_number }}</td>
-                <td>{{ asset.asset_category or "-" }}</td>
-                <td>{{ asset.location_detail or "-" }}</td>
-                <td>{{ asset.next_service_date or "-" }}</td>
-                <td>{{ asset.days_left }}</td>
-                <td>{{ asset.company_email or "-" }}</td>
+                <th>Firma</th>
+                <th>Seri No</th>
+                <th>Urun Grubu</th>
+                <th>Konum</th>
+                <th>Sonraki Kontrol</th>
+                <th>Kalan Gun</th>
+                <th>E-posta</th>
               </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {% for asset in due_soon_assets %}
+                <tr>
+                  <td>{{ asset.company_name }}</td>
+                  <td>{{ asset.serial_number }}</td>
+                  <td>{{ asset.asset_category or "-" }}</td>
+                  <td>{{ asset.location_detail or "-" }}</td>
+                  <td>{{ asset.next_service_date or "-" }}</td>
+                  <td>{{ asset.days_left }}</td>
+                  <td>{{ asset.company_email or "-" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p>Onumuzdeki 7 gun icinde kontrol tarihi gelen kayit yok.</p>
+      {% endif %}
+    </section>
+
+    <section class="card data-card dashboard-table-card">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Ana Liste</p>
+          <h2>Kayitli Ekipmanlar</h2>
+        </div>
+        <span class="count-pill">{{ extinguishers|length }} adet</span>
       </div>
-    {% else %}
-      <p>Onumuzdeki 7 gun icinde kontrol tarihi gelen kayit yok.</p>
-    {% endif %}
-  </section>
 
-  <section class="card data-card">
-    <div class="section-head">
-      <h2>Kayitli Ekipmanlar</h2>
-      <span class="count-pill">{{ extinguishers|length }} adet</span>
-    </div>
-
-    {% if extinguishers %}
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Seri No</th>
-              <th>Firma</th>
-              <th>Konum</th>
-              <th>Kg</th>
-              <th>Tip</th>
-              <th>Son Bakim</th>
-              <th>Islemler</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for extinguisher in extinguishers %}
+      {% if extinguishers %}
+        <div class="table-wrap">
+          <table>
+            <thead>
               <tr>
-                <td>{{ extinguisher.serial_number }}</td>
-                <td>{{ extinguisher.company_name }}</td>
-                <td>{{ extinguisher.location_detail }}</td>
-                <td>{{ extinguisher.weight_kg }}</td>
-                <td>{{ extinguisher.extinguisher_type }}</td>
-                <td>{{ extinguisher.latest_log_date or "-" }}</td>
-                <td class="actions">
-                  <a href="{{ url_for('extinguisher_detail', public_id=extinguisher.public_id) }}">Detay</a>
-                  <a href="{{ url_for('add_service_log', public_id=extinguisher.public_id) }}">Bakim Ekle</a>
-                  <a href="{{ url_for('extinguisher_qr', public_id=extinguisher.public_id) }}">QR</a>
-                  <a href="{{ url_for('extinguisher_label', public_id=extinguisher.public_id) }}">Etiket</a>
-                </td>
+                <th>Seri No</th>
+                <th>Firma</th>
+                <th>Konum</th>
+                <th>Kg</th>
+                <th>Tip</th>
+                <th>Son Bakim</th>
+                <th>Islemler</th>
               </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    {% else %}
-      <p>Henuz kayit yok.</p>
-    {% endif %}
-  </section>
+            </thead>
+            <tbody>
+              {% for extinguisher in extinguishers %}
+                <tr>
+                  <td>{{ extinguisher.serial_number }}</td>
+                  <td>{{ extinguisher.company_name }}</td>
+                  <td>{{ extinguisher.location_detail }}</td>
+                  <td>{{ extinguisher.weight_kg }}</td>
+                  <td>{{ extinguisher.extinguisher_type }}</td>
+                  <td>{{ extinguisher.latest_log_date or "-" }}</td>
+                  <td class="actions">
+                    <a href="{{ url_for('extinguisher_detail', public_id=extinguisher.public_id) }}">Detay</a>
+                    <a href="{{ url_for('add_service_log', public_id=extinguisher.public_id) }}">Bakim Ekle</a>
+                    <a href="{{ url_for('extinguisher_qr', public_id=extinguisher.public_id) }}">QR</a>
+                    <a href="{{ url_for('extinguisher_label', public_id=extinguisher.public_id) }}">Etiket</a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p>Henuz kayit yok.</p>
+      {% endif %}
+    </section>
+  </div>
 {% endblock %}
