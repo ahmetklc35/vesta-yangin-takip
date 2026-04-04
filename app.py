@@ -498,6 +498,7 @@ CABINET_CONTROL_ITEMS = [
     ("item_9", "17.YD.1001.A.9 Vana kontrol edildi (Vana kolu rahat donuyor mu, kacak veya sizdirma var mi)"),
     ("item_10", "17.YD.1001.A.10 Basinc Kontrol Edildi (Statik ve dinamik basinc degerleri uygun mu) (min.4 bar)"),
     ("item_11", "17.YD.1001.A.11 Lans Kontrol Edildi (Jet/Spray/Kapali konumlari islevsel mi)"),
+    ("item_12", "17.YD.1001.A.12 Servis etiketi ekipmana yapistirildi"),
 ]
 FOAM_CABINET_CONTROL_ITEMS = [
     ("item_1", "17.KYD.1001.A.1 Erisebilirlik Kontrol Edildi (Dolap onu acik mi, istif veya engel malz. var mi)"),
@@ -513,6 +514,7 @@ FOAM_CABINET_CONTROL_ITEMS = [
     ("item_11", "17.KYD.1001.A.11 Vana kontrol edildi (Ana su giris vanasi ve kopuk vanasi islevsel mi)"),
     ("item_12", "17.KYD.1001.A.12 Basinc Kontrol Edildi (Sistem calisma basinci kopuk olusumu icin yeterli mi) (min.5-6 bar)"),
     ("item_13", "17.KYD.1001.A.13 Kopuk Lans Kontrol Edildi (Kopuk yapici ozel lans saglam mi)"),
+    ("item_14", "17.KYD.1001.A.14 Servis etiketi ekipmana yapistirildi"),
 ]
 HYDRANT_CONTROL_ITEMS = [
     ("item_1", "17.H.1001.A.1 Erisebilirlik Kontrol Edildi (Hidrant cevresinde arac, malzeme engeli var mi)"),
@@ -523,6 +525,7 @@ HYDRANT_CONTROL_ITEMS = [
     ("item_6", "17.H.1001.A.6 Acma kapama mili kontrol edildi (Hidrant anahtari ile mil rahatca donuyor mu)"),
     ("item_7", "17.H.1001.A.7 Vana Sizdirmazligi Kontrol Edildi (Hidrant kapaliyken cikis agzindan veya govde altindan su sizintisi var mi)"),
     ("item_8", "17.H.1001.A.8 Cikis agizlari kontrol edildi (Rekor dislerinde veya tirnaklarinda asinma veya deformasyon var mi)"),
+    ("item_9", "17.H.1001.A.9 Servis etiketi ekipmana yapistirildi"),
 ]
 ASSET_PROFILES = {
     "Yangin Sondurme Cihazi": {
@@ -847,6 +850,7 @@ monthly_inspections = Table(
     Column("item_11", Boolean, nullable=False, default=False),
     Column("item_12", Boolean, nullable=False, default=False),
     Column("item_13", Boolean, nullable=False, default=False),
+    Column("item_14", Boolean, nullable=False, default=False),
     Column("check_a", Boolean, nullable=False, default=False),
     Column("check_b", Boolean, nullable=False, default=False),
     Column("check_c", Boolean, nullable=False, default=False),
@@ -1001,6 +1005,7 @@ def ensure_monthly_inspection_columns() -> None:
         "item_11",
         "item_12",
         "item_13",
+        "item_14",
     ]
     with engine.begin() as connection:
         if engine.dialect.name == "sqlite":
@@ -2300,7 +2305,7 @@ def build_branded_qr(public_url: str, *, label_mode: bool = False) -> io.BytesIO
 
 def build_monthly_inspection_values(form_data, items: list[tuple[str, str]] | None = None) -> dict[str, bool]:
     source_items = items or MONTHLY_CONTROL_ITEMS
-    values = {f"item_{index}": False for index in range(1, 14)}
+    values = {f"item_{index}": False for index in range(1, 15)}
     for key, _label in source_items:
         values[key] = form_data.get(key) == "on"
     return values
