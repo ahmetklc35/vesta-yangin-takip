@@ -35,8 +35,8 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: url("/static/vestaa-bg.png") center 120px / 520px auto no-repeat;
-  opacity: 0.16;
+  background: url("/static/vestaa-bg.png") right 54px top 96px / 250px auto no-repeat;
+  opacity: 0.14;
   pointer-events: none;
   z-index: 0;
   filter: saturate(1.05) contrast(1.05);
