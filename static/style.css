@@ -388,16 +388,17 @@ h2 {
 .dashboard-hero::after {
   content: "";
   position: absolute;
-  inset: 26px 26px auto auto;
-  width: 150px;
-  height: 150px;
-  border-radius: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  right: 24px;
+  bottom: -18px;
+  width: 320px;
+  height: 320px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0));
-  transform: rotate(10deg);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)),
+    url("/static/vesta-logo.png") center/contain no-repeat;
+  opacity: 0.12;
+  filter: saturate(0) brightness(1.8);
   z-index: 0;
+  pointer-events: none;
 }
 
 .dashboard-hero-copy,
@@ -1380,10 +1381,11 @@ tbody tr:nth-child(odd) td {
 
 @media (max-width: 640px) {
   .dashboard-hero::after {
-    width: 110px;
-    height: 110px;
-    top: 16px;
-    right: 16px;
+    width: 180px;
+    height: 180px;
+    right: -10px;
+    bottom: -12px;
+    opacity: 0.1;
   }
 
   .dashboard-command {
