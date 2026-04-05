@@ -1635,6 +1635,200 @@ def build_electrical_final_conclusion(status: str | None) -> str:
     return f"Periyodik kontrol tarihi itibari ile mevcut sartlar altinda kullanimi {suffix}"
 
 
+def build_electrical_structured_notes(form: dict[str, str]) -> dict[str, str]:
+    final_conclusion_status = form.get("final_conclusion_status", "")
+    return {
+        "isg_katip_id": form.get("isg_katip_id", ""),
+        "sgk_number": form.get("sgk_number", ""),
+        "control_method": form.get("control_method", ""),
+        "project_exists": form.get("project_exists", ""),
+        "single_line_schema": form.get("single_line_schema", ""),
+        "control_reason": form.get("control_reason", ""),
+        "grounder_type": form.get("grounder_type", ""),
+        "structure_type": form.get("structure_type", ""),
+        "last_control_date": form.get("last_control_date", ""),
+        "phase_conductor_type": form.get("phase_conductor_type", ""),
+        "ground_resistance": form.get("ground_resistance", ""),
+        "additional_ground_details": form.get("additional_ground_details", ""),
+        "system_ground_conductor": form.get("system_ground_conductor", ""),
+        "equipotential_conductor": form.get("equipotential_conductor", ""),
+        "supply_characteristics": form.get("supply_characteristics", ""),
+        "main_rcd_nominal": form.get("main_rcd_nominal", ""),
+        "main_switch_characteristics": form.get("main_switch_characteristics", ""),
+        "main_rcd_test": form.get("main_rcd_test", ""),
+        "major_installation_change": form.get("major_installation_change", ""),
+        "spd_used": form.get("spd_used", ""),
+        "direct_contact_protections": form.get("direct_contact_protections", ""),
+        "previous_control_label": form.get("previous_control_label", ""),
+        "findings": form.get("findings", ""),
+        "thermal_camera_1": form.get("thermal_camera_1", ""),
+        "thermal_camera_2": form.get("thermal_camera_2", ""),
+        "thermal_calibration_1": form.get("thermal_calibration_1", ""),
+        "thermal_calibration_2": form.get("thermal_calibration_2", ""),
+        "thermal_validity_1": form.get("thermal_validity_1", ""),
+        "thermal_validity_2": form.get("thermal_validity_2", ""),
+        "thermal_serial_1": form.get("thermal_serial_1", ""),
+        "thermal_serial_2": form.get("thermal_serial_2", ""),
+        "thermal_calibration_no_1": form.get("thermal_calibration_no_1", ""),
+        "thermal_calibration_no_2": form.get("thermal_calibration_no_2", ""),
+        "measurement_device_1": form.get("measurement_device_1", ""),
+        "measurement_device_2": form.get("measurement_device_2", ""),
+        "measurement_calibration_1": form.get("measurement_calibration_1", ""),
+        "measurement_calibration_2": form.get("measurement_calibration_2", ""),
+        "measurement_validity_1": form.get("measurement_validity_1", ""),
+        "measurement_validity_2": form.get("measurement_validity_2", ""),
+        "measurement_serial_1": form.get("measurement_serial_1", ""),
+        "measurement_serial_2": form.get("measurement_serial_2", ""),
+        "measurement_calibration_no_1": form.get("measurement_calibration_no_1", ""),
+        "measurement_calibration_no_2": form.get("measurement_calibration_no_2", ""),
+        "control_criteria_notes": form.get("control_criteria_notes", ""),
+        "measurement_method": form.get("measurement_method", ""),
+        "thermal_photo_date": form.get("thermal_photo_date", ""),
+        "thermal_photo_number": form.get("thermal_photo_number", ""),
+        "thermal_loose_contact_heating": form.get("thermal_loose_contact_heating", ""),
+        "thermal_overload_heating": form.get("thermal_overload_heating", ""),
+        "section_61_notes": form.get("section_61_notes", ""),
+        "section_62_notes": form.get("section_62_notes", ""),
+        "section_63_notes": form.get("section_63_notes", ""),
+        "fault_notes": form.get("fault_notes", ""),
+        "equipment_photos_notes": form.get("equipment_photos_notes", ""),
+        "general_notes": form.get("general_notes", ""),
+        "final_conclusion_status": final_conclusion_status,
+        "final_conclusion": build_electrical_final_conclusion(final_conclusion_status),
+        "authorized_person_name": form.get("authorized_person_name", ""),
+        "authorized_person_job": form.get("authorized_person_job", ""),
+        "authorized_person_registry": form.get("authorized_person_registry", ""),
+        "copy_count": form.get("copy_count", ""),
+    }
+
+
+def build_electrical_note_lines(structured_notes: dict[str, str]) -> list[str]:
+    return [
+        f"ISG-KATIP Sozlesme ID: {structured_notes['isg_katip_id'] or '-'}",
+        f"SGK Sicil Numarasi: {structured_notes['sgk_number'] or '-'}",
+        f"Periyodik Kontrol Metodu ve Kapsami: {structured_notes['control_method'] or '-'}",
+        f"Tesise ait proje var mi: {structured_notes['project_exists'] or '-'}",
+        f"Tek hat semasi var mi: {structured_notes['single_line_schema'] or '-'}",
+        f"Kontrol nedeni: {structured_notes['control_reason'] or '-'}",
+        f"Topraklayici tipi: {structured_notes['grounder_type'] or '-'}",
+        f"Yapi cinsi: {structured_notes['structure_type'] or '-'}",
+        f"Son kontrol tarihi: {structured_notes['last_control_date'] or '-'}",
+        f"Faz iletkenlerinin sayisi ve tipi: {structured_notes['phase_conductor_type'] or '-'}",
+        f"Temel topraklama direnci: {structured_notes['ground_resistance'] or '-'}",
+        f"Ilave topraklama elektrotu detaylari: {structured_notes['additional_ground_details'] or '-'}",
+        f"Sistem topraklama iletkeni ve kesiti: {structured_notes['system_ground_conductor'] or '-'}",
+        f"Ana espotansiyel iletkeni ve kesiti: {structured_notes['equipotential_conductor'] or '-'}",
+        f"Besleme kaynagi karakteristikleri: {structured_notes['supply_characteristics'] or '-'}",
+        f"Ana RCD anma akimi: {structured_notes['main_rcd_nominal'] or '-'}",
+        f"Ana kesici karakteristikleri: {structured_notes['main_switch_characteristics'] or '-'}",
+        f"Ana RCD test akimi ve suresi: {structured_notes['main_rcd_test'] or '-'}",
+        f"Tesisatta kapsamli degisiklik var mi (>%20): {structured_notes['major_installation_change'] or '-'}",
+        f"Asiri gerilim koruma cihazlari kullanilmis mi: {structured_notes['spd_used'] or '-'}",
+        f"Dogrudan dokunmaya karsi koruma onlemleri: {structured_notes['direct_contact_protections'] or '-'}",
+        f"Bir onceki periyodik kontrol etiketi var mi: {structured_notes['previous_control_label'] or '-'}",
+        f"Tespit edilen bilgiler: {structured_notes['findings'] or '-'}",
+        f"Termal Kamera 1: {structured_notes['thermal_camera_1'] or '-'} / Seri: {structured_notes['thermal_serial_1'] or '-'} / Kal.No: {structured_notes['thermal_calibration_no_1'] or '-'}",
+        f"Termal Kamera 2: {structured_notes['thermal_camera_2'] or '-'} / Seri: {structured_notes['thermal_serial_2'] or '-'} / Kal.No: {structured_notes['thermal_calibration_no_2'] or '-'}",
+        f"Olcum Aleti 1: {structured_notes['measurement_device_1'] or '-'} / Seri: {structured_notes['measurement_serial_1'] or '-'} / Kal.No: {structured_notes['measurement_calibration_no_1'] or '-'}",
+        f"Olcum Aleti 2: {structured_notes['measurement_device_2'] or '-'} / Seri: {structured_notes['measurement_serial_2'] or '-'} / Kal.No: {structured_notes['measurement_calibration_no_2'] or '-'}",
+        f"Kontrol Kriterleri ve Testler: {structured_notes['control_criteria_notes'] or '-'}",
+        f"Olcum ve Dogrulama Metodu: {structured_notes['measurement_method'] or '-'}",
+        f"Termal fotograf tarihi: {structured_notes['thermal_photo_date'] or '-'}",
+        f"Termal fotograf no: {structured_notes['thermal_photo_number'] or '-'}",
+        f"Kontak gevsakligi isinmasi: {structured_notes['thermal_loose_contact_heating'] or '-'}",
+        f"Asiri yuk isinmasi: {structured_notes['thermal_overload_heating'] or '-'}",
+        f"6.1 Notlari: {structured_notes['section_61_notes'] or '-'}",
+        f"6.2 Notlari: {structured_notes['section_62_notes'] or '-'}",
+        f"6.3 Notlari: {structured_notes['section_63_notes'] or '-'}",
+        f"Kusur Aciklamalari: {structured_notes['fault_notes'] or '-'}",
+        f"Ekipman Fotograflari: {structured_notes['equipment_photos_notes'] or '-'}",
+        f"Genel Notlar: {structured_notes['general_notes'] or '-'}",
+        f"Sonuc Durumu: {structured_notes['final_conclusion_status'] or '-'}",
+        f"Sonuc ve Kanaat: {structured_notes['final_conclusion'] or '-'}",
+        f"Yetkili Kisi: {structured_notes['authorized_person_name'] or '-'} / Meslek: {structured_notes['authorized_person_job'] or '-'} / Kayit No: {structured_notes['authorized_person_registry'] or '-'}",
+        f"Nusha Sayisi: {structured_notes['copy_count'] or '-'}",
+    ]
+
+
+def build_electrical_form_state(extinguisher: dict, latest_log: dict | None = None) -> dict[str, str]:
+    notes = parse_structured_notes(extinguisher.get("notes"))
+    summary = parse_electrical_operation_summary(latest_log.get("operation_summary") if latest_log else "")
+    return {
+        "company_id": str(extinguisher.get("company_id") or ""),
+        "report_number": extinguisher.get("serial_number") or "",
+        "company_address": extinguisher.get("company_address") or "",
+        "report_date": extinguisher.get("last_service_date") or "",
+        "isg_katip_id": notes.get("ISG-KATIP Sozlesme ID", "") or notes.get("isg_katip_id", ""),
+        "control_start": summary.get("control_start", ""),
+        "control_end": summary.get("control_end", ""),
+        "sgk_number": notes.get("SGK Sicil Numarasi", "") or notes.get("sgk_number", ""),
+        "next_service_date": extinguisher.get("next_service_date") or "",
+        "control_method": notes.get("Periyodik Kontrol Metodu ve Kapsami", "") or notes.get("control_method", ""),
+        "energy_provider": extinguisher.get("manufacturer") or "",
+        "grid_type": extinguisher.get("fire_class") or "",
+        "grid_voltage": notes.get("Sebeke gerilimi", "") or notes.get("grid_voltage", ""),
+        "project_exists": notes.get("Tesise ait proje var mi", "") or notes.get("project_exists", ""),
+        "single_line_schema": notes.get("Tek hat semasi var mi", "") or notes.get("single_line_schema", ""),
+        "control_reason": notes.get("Kontrol nedeni", "") or notes.get("control_reason", ""),
+        "grounder_type": notes.get("Topraklayici tipi", "") or notes.get("grounder_type", ""),
+        "structure_type": notes.get("Yapi cinsi", "") or notes.get("structure_type", ""),
+        "equipment_usage_purpose": summary.get("equipment_usage_purpose", ""),
+        "last_control_date": notes.get("Son kontrol tarihi", "") or notes.get("last_control_date", ""),
+        "phase_conductor_type": notes.get("Faz iletkenlerinin sayisi ve tipi", "") or notes.get("phase_conductor_type", ""),
+        "ground_resistance": notes.get("Temel topraklama direnci", "") or notes.get("ground_resistance", ""),
+        "additional_ground_details": notes.get("Ilave topraklama elektrotu detaylari", "") or notes.get("additional_ground_details", ""),
+        "system_ground_conductor": notes.get("Sistem topraklama iletkeni ve kesiti", "") or notes.get("system_ground_conductor", ""),
+        "equipotential_conductor": notes.get("Ana espotansiyel iletkeni ve kesiti", "") or notes.get("equipotential_conductor", ""),
+        "supply_characteristics": notes.get("Besleme kaynagi karakteristikleri", "") or notes.get("supply_characteristics", ""),
+        "main_rcd_nominal": notes.get("Ana RCD anma akimi", "") or notes.get("main_rcd_nominal", ""),
+        "main_switch_characteristics": notes.get("Ana kesici karakteristikleri", "") or notes.get("main_switch_characteristics", ""),
+        "main_rcd_test": notes.get("Ana RCD test akimi ve suresi", "") or notes.get("main_rcd_test", ""),
+        "major_installation_change": notes.get("Tesisatta kapsamli degisiklik var mi (>%20)", "") or notes.get("major_installation_change", ""),
+        "spd_used": notes.get("Asiri gerilim koruma cihazlari kullanilmis mi", "") or notes.get("spd_used", ""),
+        "direct_contact_protections": notes.get("Dogrudan dokunmaya karsi koruma onlemleri", "") or notes.get("direct_contact_protections", ""),
+        "previous_control_label": notes.get("Bir onceki periyodik kontrol etiketi var mi", "") or notes.get("previous_control_label", ""),
+        "findings": notes.get("Tespit edilen bilgiler", "") or notes.get("findings", ""),
+        "thermal_camera_1": notes.get("thermal_camera_1", ""),
+        "thermal_camera_2": notes.get("thermal_camera_2", ""),
+        "thermal_calibration_1": notes.get("thermal_calibration_1", ""),
+        "thermal_calibration_2": notes.get("thermal_calibration_2", ""),
+        "thermal_validity_1": notes.get("thermal_validity_1", ""),
+        "thermal_validity_2": notes.get("thermal_validity_2", ""),
+        "thermal_serial_1": notes.get("thermal_serial_1", ""),
+        "thermal_serial_2": notes.get("thermal_serial_2", ""),
+        "thermal_calibration_no_1": notes.get("thermal_calibration_no_1", ""),
+        "thermal_calibration_no_2": notes.get("thermal_calibration_no_2", ""),
+        "measurement_device_1": notes.get("measurement_device_1", ""),
+        "measurement_device_2": notes.get("measurement_device_2", ""),
+        "measurement_calibration_1": notes.get("measurement_calibration_1", ""),
+        "measurement_calibration_2": notes.get("measurement_calibration_2", ""),
+        "measurement_validity_1": notes.get("measurement_validity_1", ""),
+        "measurement_validity_2": notes.get("measurement_validity_2", ""),
+        "measurement_serial_1": notes.get("measurement_serial_1", ""),
+        "measurement_serial_2": notes.get("measurement_serial_2", ""),
+        "measurement_calibration_no_1": notes.get("measurement_calibration_no_1", ""),
+        "measurement_calibration_no_2": notes.get("measurement_calibration_no_2", ""),
+        "control_criteria_notes": notes.get("Kontrol Kriterleri ve Testler", "") or notes.get("control_criteria_notes", ""),
+        "measurement_method": notes.get("Olcum ve Dogrulama Metodu", "") or notes.get("measurement_method", ""),
+        "thermal_photo_date": notes.get("Termal fotograf tarihi", "") or notes.get("thermal_photo_date", ""),
+        "thermal_photo_number": notes.get("Termal fotograf no", "") or notes.get("thermal_photo_number", ""),
+        "thermal_loose_contact_heating": notes.get("Kontak gevsakligi isinmasi", "") or notes.get("thermal_loose_contact_heating", ""),
+        "thermal_overload_heating": notes.get("Asiri yuk isinmasi", "") or notes.get("thermal_overload_heating", ""),
+        "section_61_notes": notes.get("6.1 Notlari", "") or notes.get("section_61_notes", ""),
+        "section_62_notes": notes.get("6.2 Notlari", "") or notes.get("section_62_notes", ""),
+        "section_63_notes": notes.get("6.3 Notlari", "") or notes.get("section_63_notes", ""),
+        "fault_notes": notes.get("Kusur Aciklamalari", "") or notes.get("fault_notes", ""),
+        "equipment_photos_notes": notes.get("Ekipman Fotograflari", "") or notes.get("equipment_photos_notes", ""),
+        "general_notes": notes.get("Genel Notlar", "") or notes.get("general_notes", ""),
+        "final_conclusion_status": notes.get("Sonuc Durumu", "") or notes.get("final_conclusion_status", ""),
+        "authorized_person_name": notes.get("authorized_person_name", ""),
+        "authorized_person_job": notes.get("authorized_person_job", ""),
+        "authorized_person_registry": notes.get("authorized_person_registry", ""),
+        "copy_count": notes.get("Nusha Sayisi", "") or notes.get("copy_count", ""),
+        "technician_name": current_user_full_name(),
+    }
+
+
 def get_extinguisher(public_id: str) -> dict:
     extinguisher = fetch_one(
         select(extinguishers).where(extinguishers.c.public_id == public_id)
@@ -1753,6 +1947,15 @@ def get_registration_group(group_slug: str) -> dict:
     if group is None:
         abort(404)
     return group
+
+
+def get_registration_group_by_label(group_label: str | None) -> dict | None:
+    if not group_label:
+        return None
+    for group in REGISTRATION_GROUPS:
+        if group["label"] == group_label:
+            return group
+    return None
 
 
 def get_asset_profile(asset_category: str | None) -> dict:
@@ -5059,6 +5262,419 @@ def record_group_entry(group_slug: str):
     return render_template(
         "record_group_placeholder.html",
         group=group,
+    )
+
+
+@app.route("/extinguishers/<public_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_extinguisher_record(public_id: str):
+    extinguisher = get_extinguisher(public_id)
+    category = extinguisher.get("asset_category") or DEFAULT_ASSET_CATEGORY
+    asset_profile = get_asset_profile(category)
+    company_choices = get_company_choices()
+    latest_log = fetch_one(
+        select(service_logs)
+        .where(service_logs.c.extinguisher_id == extinguisher["id"])
+        .order_by(desc(service_logs.c.service_date), desc(service_logs.c.id))
+        .limit(1)
+    )
+    latest_inspection = fetch_one(
+        select(monthly_inspections)
+        .where(monthly_inspections.c.extinguisher_id == extinguisher["id"])
+        .order_by(desc(monthly_inspections.c.inspection_date), desc(monthly_inspections.c.id))
+        .limit(1)
+    )
+
+    if category == "Elektrik Ic Tesisati":
+        group = get_registration_group("elektrik-ic-tesisati")
+        if request.method == "POST":
+            form = parse_required_form(request.form)
+            form["technician_name"] = current_user_full_name()
+            form["report_number"] = extinguisher["serial_number"]
+            try:
+                form, selected_company = sync_company_payload_from_selection(form)
+            except ValueError as exc:
+                flash(str(exc), "error")
+                return render_template(
+                    "create_electrical_installation.html",
+                    form=form,
+                    companies=company_choices,
+                    group=group,
+                    asset_profile=asset_profile,
+                    form_title=f"{group['label']} Kaydini Duzenle",
+                    form_description="Bu ekranda mevcut elektrik ic tesisati kaydini guncelleyebilirsin.",
+                    submit_label="Kaydi Guncelle",
+                )
+
+            required_fields = {
+                "company_id": "Cari secimi",
+                "company_address": "Periyodik kontrol adresi",
+                "report_date": "Rapor tarihi",
+                "control_start": "Periyodik kontrol baslangic tarihi ve saati",
+                "control_end": "Periyodik kontrol bitis tarihi ve saati",
+                "next_service_date": "Bir sonraki periyodik kontrol tarihi",
+                "energy_provider": "Enerji saglayan kurulus",
+                "grid_type": "Sebeke tipi",
+                "grid_voltage": "Sebeke gerilimi",
+                "equipment_usage_purpose": "Ekipmanin kullanim amaci",
+                "final_conclusion_status": "Sonuc ve kanaat",
+            }
+            missing = [label for key, label in required_fields.items() if not form.get(key)]
+            if missing:
+                flash(f"Eksik alanlar: {', '.join(missing)}", "error")
+                return render_template(
+                    "create_electrical_installation.html",
+                    form=form,
+                    companies=company_choices,
+                    group=group,
+                    asset_profile=asset_profile,
+                    form_title=f"{group['label']} Kaydini Duzenle",
+                    form_description="Bu ekranda mevcut elektrik ic tesisati kaydini guncelleyebilirsin.",
+                    submit_label="Kaydi Guncelle",
+                )
+
+            structured_notes = build_electrical_structured_notes(form)
+            note_lines = ["Elektrik Ic Tesisati Tam Form Baslangic Kaydi", *build_electrical_note_lines(structured_notes)]
+            now = datetime.now().isoformat(timespec="seconds")
+            with engine.begin() as connection:
+                connection.execute(
+                    update(extinguishers)
+                    .where(extinguishers.c.id == extinguisher["id"])
+                    .values(
+                        company_id=selected_company["id"],
+                        company_name=form["company_name"],
+                        company_address=form["company_address"],
+                        company_contact=form["report_number"],
+                        asset_category=group["label"],
+                        location_detail=form["company_address"],
+                        weight_kg=0.0,
+                        extinguisher_type="Elektrik Ic Tesisati",
+                        fire_class=form["grid_type"],
+                        manufacturer=form["energy_provider"],
+                        hydrostatic_test_date=None,
+                        pressure_status=None,
+                        notes="\n".join(note_lines),
+                        last_service_date=form["report_date"],
+                        next_service_date=form["next_service_date"],
+                        updated_at=now,
+                    )
+                )
+            flash("Kayit guncellendi.", "success")
+            return redirect(url_for("extinguisher_detail", public_id=public_id))
+
+        return render_template(
+            "create_electrical_installation.html",
+            form=build_electrical_form_state(extinguisher, latest_log),
+            companies=company_choices,
+            group=group,
+            asset_profile=asset_profile,
+            form_title=f"{group['label']} Kaydini Duzenle",
+            form_description="Bu ekranda mevcut elektrik ic tesisati kaydini guncelleyebilirsin.",
+            submit_label="Kaydi Guncelle",
+        )
+
+    if category == DEFAULT_ASSET_CATEGORY:
+        asset_categories = [get_asset_category(label=category) or {"label": category}]
+        if request.method == "POST":
+            form = parse_required_form(request.form)
+            form["technician_name"] = current_user_full_name()
+            form["asset_category"] = category
+            try:
+                form, selected_company = sync_company_payload_from_selection(form)
+            except ValueError as exc:
+                flash(str(exc), "error")
+                return render_template(
+                    "create_extinguisher.html",
+                    form=form,
+                    monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                    equipment_options=EQUIPMENT_OPTIONS,
+                    equipment_presets=EQUIPMENT_PRESETS,
+                    companies=company_choices,
+                    asset_categories=asset_categories,
+                    form_title="Kaydi Duzenle",
+                    form_badge="Mevcut YSC kaydini guncelle",
+                    primary_submit_label="Kaydi Guncelle",
+                    show_secondary_submit=False,
+                )
+            required_fields = {
+                "serial_number": "Seri numarasi",
+                "company_id": "Cari secimi",
+                "location_detail": "Firma ici konum",
+                "weight_kg": "Kg bilgisi",
+                "extinguisher_type": "Tup tipi",
+                "fire_class": "YSC sinifi",
+                "manufacturer": "YSC uretici",
+                "last_service_date": "Son bakim tarihi",
+                "hydrostatic_test_date": "Hidrostatik test tarihi",
+                "next_service_date": "Sonraki bakim tarihi",
+            }
+            missing = [label for key, label in required_fields.items() if not form.get(key)]
+            if missing:
+                flash(f"Eksik alanlar: {', '.join(missing)}", "error")
+                return render_template(
+                    "create_extinguisher.html",
+                    form=form,
+                    monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                    equipment_options=EQUIPMENT_OPTIONS,
+                    equipment_presets=EQUIPMENT_PRESETS,
+                    companies=company_choices,
+                    asset_categories=asset_categories,
+                    form_title="Kaydi Duzenle",
+                    form_badge="Mevcut YSC kaydini guncelle",
+                    primary_submit_label="Kaydi Guncelle",
+                    show_secondary_submit=False,
+                )
+            try:
+                weight_kg = parse_float(form["weight_kg"], "Kg")
+            except ValueError as exc:
+                flash(str(exc), "error")
+                return render_template(
+                    "create_extinguisher.html",
+                    form=form,
+                    monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                    equipment_options=EQUIPMENT_OPTIONS,
+                    equipment_presets=EQUIPMENT_PRESETS,
+                    companies=company_choices,
+                    asset_categories=asset_categories,
+                    form_title="Kaydi Duzenle",
+                    form_badge="Mevcut YSC kaydini guncelle",
+                    primary_submit_label="Kaydi Guncelle",
+                    show_secondary_submit=False,
+                )
+            existing_same_category = fetch_one(
+                select(extinguishers.c.id)
+                .where(extinguishers.c.asset_category == category)
+                .where(extinguishers.c.serial_number == form["serial_number"])
+                .where(extinguishers.c.id != extinguisher["id"])
+            )
+            if existing_same_category:
+                flash("Bu seri numarasi bu urun grubunda zaten kayitli.", "error")
+                return render_template(
+                    "create_extinguisher.html",
+                    form=form,
+                    monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                    equipment_options=EQUIPMENT_OPTIONS,
+                    equipment_presets=EQUIPMENT_PRESETS,
+                    companies=company_choices,
+                    asset_categories=asset_categories,
+                    form_title="Kaydi Duzenle",
+                    form_badge="Mevcut YSC kaydini guncelle",
+                    primary_submit_label="Kaydi Guncelle",
+                    show_secondary_submit=False,
+                )
+            now = datetime.now().isoformat(timespec="seconds")
+            with engine.begin() as connection:
+                connection.execute(
+                    update(extinguishers)
+                    .where(extinguishers.c.id == extinguisher["id"])
+                    .values(
+                        serial_number=form["serial_number"],
+                        company_id=selected_company["id"],
+                        company_name=form["company_name"],
+                        company_address=form["company_address"],
+                        company_contact=form.get("company_contact"),
+                        asset_category=category,
+                        location_detail=form["location_detail"],
+                        weight_kg=weight_kg,
+                        extinguisher_type=form["extinguisher_type"],
+                        fire_class=form["fire_class"],
+                        manufacturer=form["manufacturer"],
+                        hydrostatic_test_date=form["hydrostatic_test_date"],
+                        pressure_status=form.get("pressure_status"),
+                        notes=form.get("notes"),
+                        last_service_date=form["last_service_date"],
+                        next_service_date=form["next_service_date"],
+                        updated_at=now,
+                    )
+                )
+            flash("Kayit guncellendi.", "success")
+            return redirect(url_for("extinguisher_detail", public_id=public_id))
+
+        form = {
+            "serial_number": extinguisher.get("serial_number") or "",
+            "company_id": str(extinguisher.get("company_id") or ""),
+            "asset_category": category,
+            "company_address": extinguisher.get("company_address") or "",
+            "company_contact": extinguisher.get("company_contact") or "",
+            "location_detail": extinguisher.get("location_detail") or "",
+            "weight_kg": str(extinguisher.get("weight_kg") or ""),
+            "extinguisher_type": extinguisher.get("extinguisher_type") or "",
+            "pressure_status": extinguisher.get("pressure_status") or "",
+            "fire_class": extinguisher.get("fire_class") or "",
+            "manufacturer": extinguisher.get("manufacturer") or "",
+            "last_service_date": extinguisher.get("last_service_date") or "",
+            "hydrostatic_test_date": extinguisher.get("hydrostatic_test_date") or "",
+            "next_service_date": extinguisher.get("next_service_date") or "",
+            "technician_name": current_user_full_name(),
+            "operation_summary": (latest_log or {}).get("operation_summary") or "",
+            "notes": extinguisher.get("notes") or "",
+        }
+        if latest_inspection:
+            for key, _label in MONTHLY_CONTROL_ITEMS:
+                form[key] = bool(latest_inspection.get(key))
+            for key, _label in CONTROL_FORM_ITEMS:
+                form[key] = bool(latest_inspection.get(key))
+
+        return render_template(
+            "create_extinguisher.html",
+            form=form,
+            monthly_control_items=MONTHLY_CONTROL_ITEMS,
+            equipment_options=EQUIPMENT_OPTIONS,
+            equipment_presets=EQUIPMENT_PRESETS,
+            companies=company_choices,
+            asset_categories=asset_categories,
+            form_title="Kaydi Duzenle",
+            form_badge="Mevcut YSC kaydini guncelle",
+            primary_submit_label="Kaydi Guncelle",
+            show_secondary_submit=False,
+        )
+
+    group = get_registration_group_by_label(category)
+    if group is None:
+        abort(404)
+
+    if request.method == "POST":
+        form = parse_required_form(request.form)
+        form["technician_name"] = current_user_full_name()
+        form["asset_category"] = group["label"]
+        form["extinguisher_type"] = asset_profile.get("fixed_type") or group["label"]
+        try:
+            form, selected_company = sync_company_payload_from_selection(form)
+        except ValueError as exc:
+            flash(str(exc), "error")
+            return render_template(
+                "create_asset_profile.html",
+                form=form,
+                companies=company_choices,
+                asset_profile=asset_profile,
+                group=group,
+                form_title=f"{group['label']} Kaydini Duzenle",
+                form_description="Bu kayitta yanlis girilen alanlari guncelleyebilirsin.",
+                primary_submit_label="Kaydi Guncelle",
+                show_secondary_submit=False,
+            )
+
+        required_fields = {
+            "serial_number": "Seri numarasi",
+            "company_id": "Cari secimi",
+            "company_contact": asset_profile["owner_label"],
+            "location_detail": "Bulundugu yer",
+            "fire_class": asset_profile["class_label"],
+            "manufacturer": asset_profile["brand_label"],
+            "last_service_date": asset_profile["service_input_label"],
+            "next_service_date": asset_profile["next_service_input_label"],
+        }
+        if asset_profile["show_weight"]:
+            required_fields["weight_kg"] = "Kg"
+        if asset_profile["show_hydrostatic"]:
+            required_fields["hydrostatic_test_date"] = "Hidrostatik test tarihi"
+        missing = [label for key, label in required_fields.items() if not form.get(key)]
+        if missing:
+            flash(f"Eksik alanlar: {', '.join(missing)}", "error")
+            return render_template(
+                "create_asset_profile.html",
+                form=form,
+                companies=company_choices,
+                asset_profile=asset_profile,
+                group=group,
+                form_title=f"{group['label']} Kaydini Duzenle",
+                form_description="Bu kayitta yanlis girilen alanlari guncelleyebilirsin.",
+                primary_submit_label="Kaydi Guncelle",
+                show_secondary_submit=False,
+            )
+        try:
+            weight_kg = parse_float(form["weight_kg"], "Kg") if asset_profile["show_weight"] else 0.0
+        except ValueError as exc:
+            flash(str(exc), "error")
+            return render_template(
+                "create_asset_profile.html",
+                form=form,
+                companies=company_choices,
+                asset_profile=asset_profile,
+                group=group,
+                form_title=f"{group['label']} Kaydini Duzenle",
+                form_description="Bu kayitta yanlis girilen alanlari guncelleyebilirsin.",
+                primary_submit_label="Kaydi Guncelle",
+                show_secondary_submit=False,
+            )
+        existing_same_category = fetch_one(
+            select(extinguishers.c.id)
+            .where(extinguishers.c.asset_category == group["label"])
+            .where(extinguishers.c.serial_number == form["serial_number"])
+            .where(extinguishers.c.id != extinguisher["id"])
+        )
+        if existing_same_category:
+            flash("Bu seri numarasi bu urun grubunda zaten kayitli.", "error")
+            return render_template(
+                "create_asset_profile.html",
+                form=form,
+                companies=company_choices,
+                asset_profile=asset_profile,
+                group=group,
+                form_title=f"{group['label']} Kaydini Duzenle",
+                form_description="Bu kayitta yanlis girilen alanlari guncelleyebilirsin.",
+                primary_submit_label="Kaydi Guncelle",
+                show_secondary_submit=False,
+            )
+        now = datetime.now().isoformat(timespec="seconds")
+        with engine.begin() as connection:
+            connection.execute(
+                update(extinguishers)
+                .where(extinguishers.c.id == extinguisher["id"])
+                .values(
+                    serial_number=form["serial_number"],
+                    company_id=selected_company["id"],
+                    company_name=form["company_name"],
+                    company_address=form["company_address"],
+                    company_contact=form["company_contact"],
+                    asset_category=group["label"],
+                    location_detail=form["location_detail"],
+                    weight_kg=weight_kg,
+                    extinguisher_type=form["extinguisher_type"],
+                    fire_class=form["fire_class"],
+                    manufacturer=form["manufacturer"],
+                    hydrostatic_test_date=form.get("hydrostatic_test_date") if asset_profile["show_hydrostatic"] else None,
+                    pressure_status=None,
+                    notes=form.get("notes"),
+                    last_service_date=form["last_service_date"],
+                    next_service_date=form["next_service_date"],
+                    updated_at=now,
+                )
+            )
+        flash("Kayit guncellendi.", "success")
+        return redirect(url_for("extinguisher_detail", public_id=public_id))
+
+    form = {
+        "serial_number": extinguisher.get("serial_number") or "",
+        "company_id": str(extinguisher.get("company_id") or ""),
+        "company_address": extinguisher.get("company_address") or "",
+        "company_contact": extinguisher.get("company_contact") or "",
+        "location_detail": extinguisher.get("location_detail") or "",
+        "weight_kg": str(extinguisher.get("weight_kg") or ""),
+        "last_service_date": extinguisher.get("last_service_date") or "",
+        "next_service_date": extinguisher.get("next_service_date") or "",
+        "hydrostatic_test_date": extinguisher.get("hydrostatic_test_date") or "",
+        "fire_class": extinguisher.get("fire_class") or "",
+        "manufacturer": extinguisher.get("manufacturer") or "",
+        "extinguisher_type": asset_profile.get("fixed_type") or group["label"],
+        "technician_name": current_user_full_name(),
+        "operation_summary": (latest_log or {}).get("operation_summary") or "",
+        "notes": extinguisher.get("notes") or "",
+    }
+    if latest_inspection:
+        for key, _label in asset_profile["monthly_control_items"]:
+            form[key] = bool(latest_inspection.get(key))
+
+    return render_template(
+        "create_asset_profile.html",
+        form=form,
+        companies=company_choices,
+        asset_profile=asset_profile,
+        group=group,
+        form_title=f"{group['label']} Kaydini Duzenle",
+        form_description="Bu kayitta yanlis girilen alanlari guncelleyebilirsin.",
+        primary_submit_label="Kaydi Guncelle",
+        show_secondary_submit=False,
     )
 
 

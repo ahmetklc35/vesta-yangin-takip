@@ -4,8 +4,8 @@
   <section class="card form-card">
     <div class="section-head">
       <div>
-        <h1>Yeni {{ group.label }} Kaydi</h1>
-        <p class="muted">Elektrik ic tesisati periyodik kontrol raporunun ana bloklari burada toplanir. Rapor numarasi sistem tarafinda otomatik uretilir.</p>
+        <h1>{{ form_title or ("Yeni " ~ group.label ~ " Kaydi") }}</h1>
+        <p class="muted">{{ form_description or "Elektrik ic tesisati periyodik kontrol raporunun ana bloklari burada toplanir. Rapor numarasi sistem tarafinda otomatik uretilir." }}</p>
       </div>
     </div>
 
@@ -392,7 +392,7 @@
       </label>
 
       <div class="full form-actions">
-        <button type="submit" class="button">Kaydi Olustur</button>
+        <button type="submit" class="button">{{ submit_label or "Kaydi Olustur" }}</button>
       </div>
     </form>
   </section>

@@ -3,8 +3,8 @@
 {% block content %}
   <section class="card form-card">
     <div class="section-head">
-      <h1>Yeni Tup Kaydi</h1>
-      <span>Ilk QR olusturma adimi</span>
+      <h1>{{ form_title or "Yeni Tup Kaydi" }}</h1>
+      <span>{{ form_badge or "Ilk QR olusturma adimi" }}</span>
     </div>
 
     <form method="post" class="grid-form">
@@ -126,11 +126,13 @@
         <textarea name="notes" rows="3">{{ form.get('notes', '') }}</textarea>
       </label>
       <div class="full form-actions dual-submit-actions">
-        <button type="submit" name="submit_action" value="save_print" class="button">Kaydet ve Yazdir</button>
+        <button type="submit" name="submit_action" value="save_print" class="button">{{ primary_submit_label or "Kaydet ve Yazdir" }}</button>
       </div>
-      <div class="full form-actions secondary-submit-row">
-        <button type="submit" name="submit_action" value="save" class="button secondary">Kaydet</button>
-      </div>
+      {% if show_secondary_submit is not defined or show_secondary_submit %}
+        <div class="full form-actions secondary-submit-row">
+          <button type="submit" name="submit_action" value="save" class="button secondary">{{ secondary_submit_label or "Kaydet" }}</button>
+        </div>
+      {% endif %}
     </form>
   </section>
   <script>
