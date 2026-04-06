@@ -8,11 +8,11 @@
   </head>
   <body class="label-page">
     <main class="label-shell">
-      <img
-        class="label-print-image"
-        src="{{ url_for('extinguisher_label_qr', public_id=public_id) }}"
-        alt="QR kod"
-      >
+      <section class="label-card">
+        <div class="label-qr-only">
+          <img src="{{ url_for('extinguisher_label_qr', public_id=public_id) }}" alt="QR kod">
+        </div>
+      </section>
 
       <div class="label-actions no-print">
         <p>PT-P900W icin mevcut serit 18 mm ise: Kagit boyutu `18 mm`, Uzunluk `24 mm`, Kenar Bosluklari `Yok`, Olcek `100%`, Ustbilgi/Altbilgi `Kapali`.</p>

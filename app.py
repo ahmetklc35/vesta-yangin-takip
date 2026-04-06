@@ -2430,7 +2430,7 @@ def build_branded_qr(public_url: str, *, label_mode: bool = False) -> io.BytesIO
         version=None,
         error_correction=ERROR_CORRECT_H,
         box_size=10,
-        border=1 if label_mode else 4,
+        border=2 if label_mode else 4,
     )
     qr.add_data(public_url)
     qr.make(fit=True)
@@ -2439,12 +2439,12 @@ def build_branded_qr(public_url: str, *, label_mode: bool = False) -> io.BytesIO
 
     if label_mode:
         draw_qr = ImageDraw.Draw(qr_image)
-        center_font = load_font(max(42, qr_width // 9))
+        center_font = load_font(max(104, qr_width // 4))
         v_text = "V"
         v_box = draw_qr.textbbox((0, 0), v_text, font=center_font)
         v_width = v_box[2] - v_box[0]
         v_height = v_box[3] - v_box[1]
-        v_pad = 4
+        v_pad = 10
         v_bg_w = v_width + (v_pad * 2)
         v_bg_h = v_height + (v_pad * 2)
         v_x = (qr_width - v_bg_w) // 2
@@ -2477,20 +2477,17 @@ def build_branded_qr(public_url: str, *, label_mode: bool = False) -> io.BytesIO
         qr_image.alpha_composite(logo_bg, (logo_x, logo_y))
 
     if label_mode:
-        footer_height = 52
+        footer_height = 130
         canvas = Image.new("RGBA", (qr_width, qr_height + footer_height), "white")
         canvas.paste(qr_image, (0, 0))
         draw = ImageDraw.Draw(canvas)
-        font = load_font(24)
+        font = load_font(96)
         brand_text = "Vesta"
         text_bbox = draw.textbbox((0, 0), brand_text, font=font)
         text_width = text_bbox[2] - text_bbox[0]
         text_x = (qr_width - text_width) // 2
-        text_y = qr_height + 8
+        text_y = qr_height + 14
         draw.text((text_x, text_y), brand_text, fill="black", font=font)
-
-        # Thermal label printers render much more reliably from a strict black/white image.
-        canvas = canvas.convert("L").point(lambda value: 0 if value < 180 else 255, mode="1")
     else:
         canvas = Image.new("RGBA", (qr_width, qr_height + 78), "white")
         canvas.paste(qr_image, (0, 0))

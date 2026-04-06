@@ -1583,10 +1583,6 @@ tbody tr:nth-child(odd) td {
   margin: 32px auto;
 }
 
-.label-page {
-  background: #f7f0e8;
-}
-
 .label-card {
   width: 18mm;
   height: 24mm;
@@ -1610,30 +1606,14 @@ tbody tr:nth-child(odd) td {
   margin-top: 16px;
 }
 
-.label-print-image {
-  width: 18mm;
-  height: 24mm;
-  display: block;
-  background: white;
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
-  object-fit: contain;
-}
-
 @media print {
   @page {
     size: 18mm 24mm;
     margin: 0;
   }
 
-  html,
   body {
-    width: 18mm;
-    height: 24mm;
-    margin: 0;
-    padding: 0;
     background: white;
-    overflow: hidden;
   }
 
   .no-print {
@@ -1641,47 +1621,17 @@ tbody tr:nth-child(odd) td {
   }
 
   .label-shell {
-    position: fixed;
-    top: 0;
-    left: 0;
     width: 18mm;
-    height: 24mm;
     margin: 0;
-    padding: 0;
-    overflow: hidden;
-    page-break-before: avoid;
-    page-break-after: avoid;
-  }
-
-  .label-card {
-    display: none;
-  }
-
-  .label-print-image {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 18mm;
-    height: 24mm;
-    margin: 0;
-    padding: 0;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-    object-fit: contain;
-    page-break-before: avoid;
-    page-break-after: avoid;
   }
 
   .label-card {
     width: 18mm;
     height: 24mm;
-    margin: 0;
     break-inside: avoid;
-    page-break-inside: avoid;
     border: 0;
     padding: 1mm;
     box-sizing: border-box;
-    overflow: hidden;
   }
 
   .label-qr-only img {
