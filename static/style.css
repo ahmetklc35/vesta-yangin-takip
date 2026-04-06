@@ -1641,11 +1641,16 @@ tbody tr:nth-child(odd) td {
   }
 
   .label-shell {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 18mm;
     height: 24mm;
     margin: 0;
     padding: 0;
     overflow: hidden;
+    page-break-before: avoid;
+    page-break-after: avoid;
   }
 
   .label-card {
@@ -1653,6 +1658,9 @@ tbody tr:nth-child(odd) td {
   }
 
   .label-print-image {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 18mm;
     height: 24mm;
     margin: 0;
@@ -1660,6 +1668,8 @@ tbody tr:nth-child(odd) td {
     image-rendering: pixelated;
     image-rendering: crisp-edges;
     object-fit: contain;
+    page-break-before: avoid;
+    page-break-after: avoid;
   }
 
   .label-card {
