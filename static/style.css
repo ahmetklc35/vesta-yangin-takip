@@ -1588,8 +1588,8 @@ tbody tr:nth-child(odd) td {
 }
 
 .label-card {
-  width: 36mm;
-  height: 36mm;
+  width: 18mm;
+  height: 24mm;
   background: white;
   border: 1px dashed rgba(98, 69, 49, 0.25);
   border-radius: 0;
@@ -1600,8 +1600,8 @@ tbody tr:nth-child(odd) td {
 }
 
 .label-qr-only img {
-  width: 34mm;
-  height: 34mm;
+  width: 16mm;
+  height: 22mm;
   display: block;
   object-fit: contain;
 }
@@ -1611,24 +1611,25 @@ tbody tr:nth-child(odd) td {
 }
 
 .label-print-image {
-  width: 36mm;
-  height: 36mm;
+  width: 18mm;
+  height: 24mm;
   display: block;
   background: white;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+  object-fit: contain;
 }
 
 @media print {
   @page {
-    size: 36mm 36mm;
+    size: 18mm 24mm;
     margin: 0;
   }
 
   html,
   body {
-    width: 36mm;
-    height: 36mm;
+    width: 18mm;
+    height: 24mm;
     margin: 0;
     padding: 0;
     background: white;
@@ -1640,8 +1641,8 @@ tbody tr:nth-child(odd) td {
   }
 
   .label-shell {
-    width: 36mm;
-    height: 36mm;
+    width: 18mm;
+    height: 24mm;
     margin: 0;
     padding: 0;
     overflow: hidden;
@@ -1652,17 +1653,18 @@ tbody tr:nth-child(odd) td {
   }
 
   .label-print-image {
-    width: 36mm;
-    height: 36mm;
+    width: 18mm;
+    height: 24mm;
     margin: 0;
     padding: 0;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
+    object-fit: contain;
   }
 
   .label-card {
-    width: 36mm;
-    height: 36mm;
+    width: 18mm;
+    height: 24mm;
     margin: 0;
     break-inside: avoid;
     page-break-inside: avoid;
@@ -1673,8 +1675,8 @@ tbody tr:nth-child(odd) td {
   }
 
   .label-qr-only img {
-    width: 34mm;
-    height: 34mm;
+    width: 16mm;
+    height: 22mm;
   }
 }
 

@@ -2439,12 +2439,12 @@ def build_branded_qr(public_url: str, *, label_mode: bool = False) -> io.BytesIO
 
     if label_mode:
         draw_qr = ImageDraw.Draw(qr_image)
-        center_font = load_font(max(64, qr_width // 6))
+        center_font = load_font(max(58, qr_width // 7))
         v_text = "V"
         v_box = draw_qr.textbbox((0, 0), v_text, font=center_font)
         v_width = v_box[2] - v_box[0]
         v_height = v_box[3] - v_box[1]
-        v_pad = 6
+        v_pad = 5
         v_bg_w = v_width + (v_pad * 2)
         v_bg_h = v_height + (v_pad * 2)
         v_x = (qr_width - v_bg_w) // 2
@@ -2477,20 +2477,16 @@ def build_branded_qr(public_url: str, *, label_mode: bool = False) -> io.BytesIO
         qr_image.alpha_composite(logo_bg, (logo_x, logo_y))
 
     if label_mode:
-        footer_height = max(96, qr_width // 3)
-        square_size = qr_width
-        qr_target_size = square_size - footer_height - 12
-        qr_for_label = qr_image.resize((qr_target_size, qr_target_size), Image.Resampling.NEAREST)
-        canvas = Image.new("RGBA", (square_size, square_size), "white")
-        qr_x = (square_size - qr_target_size) // 2
-        canvas.paste(qr_for_label, (qr_x, 0))
+        footer_height = 84
+        canvas = Image.new("RGBA", (qr_width, qr_height + footer_height), "white")
+        canvas.paste(qr_image, (0, 0))
         draw = ImageDraw.Draw(canvas)
-        font = load_font(max(52, square_size // 6))
+        font = load_font(40)
         brand_text = "Vesta"
         text_bbox = draw.textbbox((0, 0), brand_text, font=font)
         text_width = text_bbox[2] - text_bbox[0]
-        text_x = (square_size - text_width) // 2
-        text_y = qr_target_size + 12
+        text_x = (qr_width - text_width) // 2
+        text_y = qr_height + 10
         draw.text((text_x, text_y), brand_text, fill="black", font=font)
 
         # Thermal label printers render much more reliably from a strict black/white image.
