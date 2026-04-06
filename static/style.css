@@ -1583,6 +1583,10 @@ tbody tr:nth-child(odd) td {
   margin: 32px auto;
 }
 
+.label-page {
+  background: #f7f0e8;
+}
+
 .label-card {
   width: 36mm;
   height: 36mm;
@@ -1604,6 +1608,14 @@ tbody tr:nth-child(odd) td {
 
 .label-actions {
   margin-top: 16px;
+}
+
+.label-print-image {
+  width: 36mm;
+  height: 36mm;
+  display: block;
+  background: white;
+  object-fit: contain;
 }
 
 @media print {
@@ -1632,6 +1644,17 @@ tbody tr:nth-child(odd) td {
     margin: 0;
     padding: 0;
     overflow: hidden;
+  }
+
+  .label-card {
+    display: none;
+  }
+
+  .label-print-image {
+    width: 36mm;
+    height: 36mm;
+    margin: 0;
+    padding: 0;
   }
 
   .label-card {
