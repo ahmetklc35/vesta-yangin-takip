@@ -1584,8 +1584,8 @@ tbody tr:nth-child(odd) td {
 }
 
 .label-card {
-  width: 18mm;
-  height: 24mm;
+  width: 36mm;
+  height: 36mm;
   background: white;
   border: 1px dashed rgba(98, 69, 49, 0.25);
   border-radius: 0;
@@ -1596,8 +1596,8 @@ tbody tr:nth-child(odd) td {
 }
 
 .label-qr-only img {
-  width: 16mm;
-  height: 22mm;
+  width: 34mm;
+  height: 34mm;
   display: block;
   object-fit: contain;
 }
@@ -1608,7 +1608,7 @@ tbody tr:nth-child(odd) td {
 
 @media print {
   @page {
-    size: 18mm 24mm;
+    size: 36mm 36mm;
     margin: 0;
   }
 
@@ -1621,13 +1621,13 @@ tbody tr:nth-child(odd) td {
   }
 
   .label-shell {
-    width: 18mm;
+    width: 36mm;
     margin: 0;
   }
 
   .label-card {
-    width: 18mm;
-    height: 24mm;
+    width: 36mm;
+    height: 36mm;
     break-inside: avoid;
     border: 0;
     padding: 1mm;
@@ -1635,8 +1635,8 @@ tbody tr:nth-child(odd) td {
   }
 
   .label-qr-only img {
-    width: 16mm;
-    height: 22mm;
+    width: 34mm;
+    height: 34mm;
   }
 }
 
