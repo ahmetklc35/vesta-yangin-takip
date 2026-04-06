@@ -1612,8 +1612,14 @@ tbody tr:nth-child(odd) td {
     margin: 0;
   }
 
+  html,
   body {
+    width: 36mm;
+    height: 36mm;
+    margin: 0;
+    padding: 0;
     background: white;
+    overflow: hidden;
   }
 
   .no-print {
@@ -1622,16 +1628,22 @@ tbody tr:nth-child(odd) td {
 
   .label-shell {
     width: 36mm;
+    height: 36mm;
     margin: 0;
+    padding: 0;
+    overflow: hidden;
   }
 
   .label-card {
     width: 36mm;
     height: 36mm;
+    margin: 0;
     break-inside: avoid;
+    page-break-inside: avoid;
     border: 0;
     padding: 1mm;
     box-sizing: border-box;
+    overflow: hidden;
   }
 
   .label-qr-only img {
