@@ -1615,7 +1615,8 @@ tbody tr:nth-child(odd) td {
   height: 36mm;
   display: block;
   background: white;
-  object-fit: contain;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 @media print {
@@ -1655,6 +1656,8 @@ tbody tr:nth-child(odd) td {
     height: 36mm;
     margin: 0;
     padding: 0;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
   }
 
   .label-card {
