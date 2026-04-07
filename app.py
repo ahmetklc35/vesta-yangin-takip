@@ -2987,6 +2987,25 @@ def build_control_form_document_data(public_id: str) -> dict:
         for row in inspection_rows:
             latest_inspections.setdefault(row["extinguisher_id"], row)
 
+    latest_log = fetch_one(
+        select(service_logs)
+        .where(service_logs.c.extinguisher_id == extinguisher["id"])
+        .order_by(desc(service_logs.c.service_date), desc(service_logs.c.id))
+        .limit(1)
+    )
+    latest_inspection = latest_inspections.get(extinguisher["id"])
+    starter_dates = [
+        coerce_date(extinguisher.get("last_service_date")),
+        coerce_date((latest_inspection or {}).get("inspection_date")),
+        coerce_date((latest_log or {}).get("service_date")),
+    ]
+    starter_dates = [value for value in starter_dates if value]
+    control_date = (
+        starter_dates[0].strftime("%d.%m.%Y")
+        if starter_dates
+        else datetime.now().strftime("%d.%m.%Y")
+    )
+
     control_rows = []
     for index, row in enumerate(company_extinguishers, start=1):
         inspection = latest_inspections.get(row["id"], {})
