@@ -1184,6 +1184,25 @@ def run_schema_migrations() -> None:
                     connection.execute(
                         text(f"ALTER TABLE monthly_inspections ADD COLUMN {column_name} BOOLEAN NOT NULL DEFAULT 0")
                     )
+            connection.execute(
+                text(
+                    """
+                    UPDATE monthly_inspections
+                    SET
+                        check_a = item_1,
+                        check_b = item_2,
+                        check_c = item_2,
+                        check_d = item_3,
+                        check_e = item_4,
+                        check_f = item_5,
+                        check_g = item_6
+                    WHERE extinguisher_id IN (
+                        SELECT id FROM extinguishers WHERE asset_category = :ysc_category
+                    )
+                    """
+                ),
+                {"ysc_category": DEFAULT_ASSET_CATEGORY},
+            )
 
             connection.execute(
                 text(
@@ -1367,6 +1386,25 @@ def run_schema_migrations() -> None:
                     connection.execute(
                         text(f"ALTER TABLE monthly_inspections ADD COLUMN {column_name} BOOLEAN NOT NULL DEFAULT FALSE")
                     )
+            connection.execute(
+                text(
+                    """
+                    UPDATE monthly_inspections mi
+                    SET
+                        check_a = item_1,
+                        check_b = item_2,
+                        check_c = item_2,
+                        check_d = item_3,
+                        check_e = item_4,
+                        check_f = item_5,
+                        check_g = item_6
+                    FROM extinguishers e
+                    WHERE mi.extinguisher_id = e.id
+                      AND e.asset_category = :ysc_category
+                    """
+                ),
+                {"ysc_category": DEFAULT_ASSET_CATEGORY},
+            )
             connection.execute(
                 text(
                     "UPDATE extinguishers SET asset_category = :default_category "
@@ -2524,6 +2562,20 @@ def build_control_form_values(form_data) -> dict[str, bool]:
     return values
 
 
+def derive_ysc_control_form_values(inspection_values: dict[str, bool], control_values: dict[str, bool]) -> dict[str, bool]:
+    if any(control_values.values()):
+        return control_values
+    return {
+        "check_a": bool(inspection_values.get("item_1")),
+        "check_b": bool(inspection_values.get("item_2")),
+        "check_c": bool(inspection_values.get("item_2")),
+        "check_d": bool(inspection_values.get("item_3")),
+        "check_e": bool(inspection_values.get("item_4")),
+        "check_f": bool(inspection_values.get("item_5")),
+        "check_g": bool(inspection_values.get("item_6")),
+    }
+
+
 def save_monthly_inspection(
     connection,
     extinguisher_id: int,
@@ -3140,11 +3192,11 @@ def build_scba_company_document_data(public_id: str) -> dict:
         checks = []
         for key, _label in SCBA_CONTROL_ITEMS:
             if key == "item_7":
-                checks.append("V")
+                checks.append("✓")
             elif inspection:
-                checks.append("V" if inspection.get(key) else "X")
+                checks.append("✓" if inspection.get(key) else "X")
             else:
-                checks.append("V")
+                checks.append("✓")
         rows.append(
             {
                 "device_no": index,
@@ -3242,9 +3294,9 @@ def build_special_category_company_document_data(public_id: str) -> dict:
         checks = []
         for key, label in asset_profile["monthly_control_items"]:
             if "servis etiketi ekipmana" in label.lower():
-                checks.append("V")
+                checks.append("✓")
             elif inspection:
-                checks.append("V" if inspection.get(key) else "X")
+                checks.append("✓" if inspection.get(key) else "X")
             else:
                 checks.append("-")
         for candidate in [
@@ -3520,7 +3572,7 @@ def build_special_category_company_form_pdf(document_data: dict) -> io.BytesIO:
     col_widths = first_col_widths + [check_width] * check_count
 
     static_col_count = len(first_col_widths)
-    header_row_1 = [Paragraph(f"<b>{document_data['section_title']}</b>", body_style)] + [""] * (static_col_count - 1) + [Paragraph("<b>TESPIT VE DEGERLENDIRME</b><br/><font size='6'>(V: UYGUN, X: UYGUN DEGIL, -: UYGULAMA YOK)</font>", tiny_bold_style)] + [""] * (check_count - 1)
+    header_row_1 = [Paragraph(f"<b>{document_data['section_title']}</b>", body_style)] + [""] * (static_col_count - 1) + [Paragraph("<b>TESPIT VE DEGERLENDIRME</b><br/><font size='6'>(✓: UYGUN, X: UYGUN DEGIL, -: UYGULAMA YOK)</font>", tiny_bold_style)] + [""] * (check_count - 1)
     header_row_2 = [
         Paragraph("<b>CIHAZ NO</b>", tiny_bold_style),
         Paragraph("<b>KATEGORI / CINSI</b>", tiny_bold_style),
@@ -3806,7 +3858,7 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
         "",
         "",
         Paragraph(
-            "<b>TESPİT VE DEĞERLENDİRME</b><br/><font size='6'>(V: UYGUN, X: UYGUN DEĞİL, -: UYGULAMA YOK)</font>",
+            "<b>TESPİT VE DEĞERLENDİRME</b><br/><font size='6'>(✓: UYGUN, X: UYGUN DEĞİL, -: UYGULAMA YOK)</font>",
             tiny_bold_style,
         ),
         "",
@@ -5174,7 +5226,10 @@ def create_extinguisher():
         now = datetime.now().isoformat(timespec="seconds")
         public_id = uuid.uuid4().hex[:12]
         inspection_values = build_monthly_inspection_values(request.form)
-        control_values = build_control_form_values(request.form)
+        control_values = derive_ysc_control_form_values(
+            inspection_values,
+            build_control_form_values(request.form),
+        )
 
         try:
             with engine.begin() as connection:
@@ -6033,7 +6088,14 @@ def add_service_log(public_id: str):
 
         now = datetime.now().isoformat(timespec="seconds")
         inspection_values = build_monthly_inspection_values(request.form, asset_profile["monthly_control_items"])
-        control_values = build_control_form_values(request.form) if asset_profile["control_form_items"] else build_control_form_values({})
+        control_values = (
+            derive_ysc_control_form_values(
+                inspection_values,
+                build_control_form_values(request.form),
+            )
+            if asset_profile["control_form_items"]
+            else build_control_form_values({})
+        )
         with engine.begin() as connection:
             connection.execute(
                 insert(service_logs).values(
@@ -6186,7 +6248,14 @@ def add_monthly_inspection(public_id: str):
 
         now = datetime.now().isoformat(timespec="seconds")
         inspection_values = build_monthly_inspection_values(request.form, asset_profile["monthly_control_items"])
-        control_values = build_control_form_values(request.form) if asset_profile["control_form_items"] else build_control_form_values({})
+        control_values = (
+            derive_ysc_control_form_values(
+                inspection_values,
+                build_control_form_values(request.form),
+            )
+            if asset_profile["control_form_items"]
+            else build_control_form_values({})
+        )
         with engine.begin() as connection:
             save_monthly_inspection(
                 connection=connection,
