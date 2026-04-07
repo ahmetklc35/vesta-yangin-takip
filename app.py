@@ -2803,7 +2803,7 @@ def build_control_form_pdf_from_template(
                 x0, x1 = column_edges[check_index]
                 symbol = ""
                 if inspection:
-                    symbol = "V" if inspection.get(key) else "X"
+                    symbol = "✓" if inspection.get(key) else "X"
                 draw_box_text(page, (x0, top + 1, x1, bottom - 1), symbol, fontname=bold_font, fontsize=8, align=1)
 
     for page_index, start in enumerate(range(0, len(extinguishers_for_company), rows_per_page)):
@@ -2934,7 +2934,7 @@ def build_control_form_pdf_exact(
                 x0, x1 = column_edges[check_index]
                 symbol = ""
                 if inspection:
-                    symbol = "V" if inspection.get(key) else "X"
+                    symbol = "✓" if inspection.get(key) else "X"
                 draw_text_box(x0, top, x1, bottom, symbol, font="VestaArialBold", size=8, align="center")
 
         pdf.showPage()
@@ -2970,6 +2970,7 @@ def build_control_form_document_data(public_id: str) -> dict:
     company_extinguishers = fetch_all(
         select(extinguishers)
         .where(extinguishers.c.company_name == company_name)
+        .where(extinguishers.c.asset_category == "Yangin Sondurme Cihazi")
         .order_by(extinguishers.c.location_detail, extinguishers.c.serial_number)
     )
     extinguisher_ids = [row["id"] for row in company_extinguishers]
@@ -3020,7 +3021,7 @@ def build_control_form_document_data(public_id: str) -> dict:
                 "hydrostatic_test_date": row.get("hydrostatic_test_date") or "-",
                 "location_detail": row.get("location_detail") or "-",
                 "checks": [
-                    "V" if inspection.get(key) else "X" if inspection else "-"
+                    "✓" if inspection.get(key) else "X" if inspection else "-"
                     for key, _label in CONTROL_FORM_ITEMS
                 ],
             }
