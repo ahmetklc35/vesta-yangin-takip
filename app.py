@@ -196,6 +196,17 @@ SPECIAL_CATEGORY_FORM_CONFIGS = {
             "NOT 3: Bu muayene raporundaki bulgular muayene tarihindeki isletme kosullari icin gecerlidir.",
         ],
     },
+    "Kasik Sedye": {
+        "form_code": "F-26",
+        "subject": "KASIK SEDYE Periyodik Kontrol Formu",
+        "section_title": "KASIK SEDYE BILGILERI",
+        "method_text": "IEKSGSY ve firma kontrol kriterlerine gore kontrol edilmistir.",
+        "notes": [
+            "NOT 1: Aluminyum yuzeylerde catlak, egilme veya deformasyon tespit edilirse sedye hizmetten kaldirilmalidir.",
+            "NOT 2: Acilma-kapanma mekanizmasi, kilitler veya sabitleme pimleri calismiyorsa sedye kullanima verilmemelidir.",
+            "NOT 3: Bu muayene raporundaki bulgular muayene tarihindeki isletme kosullari icin gecerlidir.",
+        ],
+    },
 }
 
 EQUIPMENT_OPTIONS = [
