@@ -259,6 +259,11 @@ ASSET_CATEGORIES = [
         "label": "Elektrik Ic Tesisati",
         "description": "Elektrik ic tesisati periyodik kontrol raporlarini goruntule.",
     },
+    {
+        "slug": "kasik-sedye",
+        "label": "Kasik Sedye",
+        "description": "Kasik sedye periyodik kontrol kayitlarini goruntule.",
+    },
 ]
 DEFAULT_ASSET_CATEGORY = ASSET_CATEGORIES[0]["label"]
 ASSET_CATEGORY_BY_SLUG = {item["slug"]: item for item in ASSET_CATEGORIES}
@@ -328,6 +333,12 @@ REGISTRATION_GROUPS = [
         "slug": "elektrik-ic-tesisati",
         "label": "Elektrik Ic Tesisati",
         "description": "Elektrik ic tesisati gozle kontrol ve fonksiyon testleri icin trial kayit akisi.",
+        "status": "active",
+    },
+    {
+        "slug": "kasik-sedye",
+        "label": "Kasik Sedye",
+        "description": "Kasik sedye periyodik kontrol kayit akisi.",
         "status": "active",
     },
 ]
@@ -527,6 +538,15 @@ HYDRANT_CONTROL_ITEMS = [
     ("item_8", "17.H.1001.A.8 Cikis agizlari kontrol edildi (Rekor dislerinde veya tirnaklarinda asinma veya deformasyon var mi)"),
     ("item_9", "17.H.1001.A.9 Servis etiketi ekipmana yapistirildi"),
 ]
+KASIK_SEDYE_CONTROL_ITEMS = [
+    ("item_1", "17.KS.1001.A.1 Aluminyum yuzeyler catlak, egilme ve deformasyon yonunden kontrol edildi"),
+    ("item_2", "17.KS.1001.A.2 Sedyenin ortadan acilma-kapanma mekanizmasi calisiyor, kilitler tam oturuyor"),
+    ("item_3", "17.KS.1001.A.3 Boyaya yatirma mekanizmasi calisir durumda, sabitleme pimleri ve baglama tokalari caliisiyor"),
+    ("item_4", "17.KS.1001.A.4 Sedye Hijyen kontrolu yapildi"),
+    ("item_5", "17.KS.1001.A.5 Bulundugu Yerde Ulasilabilir Durumda"),
+    ("item_6", "17.KS.1001.A.6 Servis Etiketi Ekipmana Yapistirildi"),
+]
+
 ASSET_PROFILES = {
     "Yangin Sondurme Cihazi": {
         "label": "Yangin Sondurme Cihazi",
@@ -724,6 +744,24 @@ ASSET_PROFILES = {
         "control_form_enabled": False,
         "fixed_type": "Elektrik Ic Tesisati",
         "monthly_control_items": [],
+        "control_form_items": [],
+    },
+    "Kasik Sedye": {
+        "label": "Kasik Sedye",
+        "type_label": "Ekipman Tipi",
+        "class_label": "Kategori / Cinsi",
+        "brand_label": "Marka",
+        "owner_label": "Ekipman Yetkilisi",
+        "last_service_label": "Son Kontrol",
+        "next_service_label": "Sonraki Kontrol",
+        "service_input_label": "Kontrol tarihi",
+        "next_service_input_label": "Sonraki kontrol tarihi",
+        "show_weight": True,
+        "show_pressure": False,
+        "show_hydrostatic": False,
+        "control_form_enabled": False,
+        "fixed_type": "Kasik Sedye",
+        "monthly_control_items": KASIK_SEDYE_CONTROL_ITEMS,
         "control_form_items": [],
     },
 }
