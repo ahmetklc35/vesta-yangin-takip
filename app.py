@@ -745,7 +745,7 @@ ASSET_PROFILES = {
         "next_service_label": "Sonraki Kontrol",
         "service_input_label": "Kontrol tarihi",
         "next_service_input_label": "Sonraki kontrol tarihi",
-        "size_label": "Beden (S/M/L/XL)"
+        "size_label": "Beden (S/M/L/XL)",
         "show_weight": False,
         "show_pressure": False,
         "show_hydrostatic": False,
