@@ -209,8 +209,8 @@ SPECIAL_CATEGORY_FORM_CONFIGS = {
     },
     "Yangin Cizmesi": {
         "form_code": "F-27",
-        "subject": "YANGIN ÇİZMESİ Kontrol Formu", [cite: 1]
-        "section_title": "YANGIN ÇİZMESİ BİLGİLERİ", [cite: 1]
+        "subject": "YANGIN ÇİZMESİ Kontrol Formu", 
+        "section_title": "YANGIN ÇİZMESİ BİLGİLERİ", 
         "method_text": "İEKSGŞY ve firma kontrol kriterlerine göre kontrol edilmiştir.",
         "notes": [
             "NOT 1: Çizme yüzeyinde veya tabanında koruyucu özelliği yitiren hasar tespit edilirse ekipman değiştirilmelidir.",
