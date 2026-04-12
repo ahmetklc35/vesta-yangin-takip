@@ -682,6 +682,7 @@ FALL_ARRESTER_CONTROL_ITEMS = [
     ("item_3", "17.DD.1001.A.3 Hat serbestçe çekilip geri sarıyor mu, takılma veya ani boşalma var mı"),
     ("item_4", "17.DD.1001.A.4 Ani çekmede sistem kilitleniyor mu, kilitleme gecikmesi var mı"),
     ("item_5", "17.DD.1001.A.5 Bulunduğu yerde ulaşılabilir durumda ve uygun koşullarda mı"),
+    ("item_6", "17.DD.1001.A.6 Servis Etiketi Ekipmana Yapıştırıldı"),
 ]
 SPINE_BOARD_CONTROL_ITEMS = [
     ("item_1", "17.OT.1001.A.1 Tahta yüzeylerde çatlak, kırık, eğilme ve deformasyon kontrolü"),
@@ -697,6 +698,7 @@ SAFETY_HARNESS_CONTROL_ITEMS = [
     ("item_3", "17.PEK.1001.A.3 Sırt, göğüs ve yan bağlantı noktaları sağlam mı"),
     ("item_4", "17.PEK.1001.A.4 Kemer temiz ve kullanılabilir durumda mı"),
     ("item_5", "17.PEK.1001.A.5 Bulunduğu yerde ulaşılabilir ve uygun saklama koşullarında mı"),
+    ("item_6", "17.PEK.1001.A.6 Servis etiketi ekipmana yapıştırıldı"),
 ]
 STRETCHER_SLING_CONTROL_ITEMS = [
     ("item_1", "17.TS.1001.A.1 Sapan gövdesinde kesik, yırtık, lif kopması ve aşınma kontrolü"),
@@ -743,7 +745,8 @@ ASSET_PROFILES = {
         "next_service_label": "Sonraki Kontrol",
         "service_input_label": "Kontrol tarihi",
         "next_service_input_label": "Sonraki kontrol tarihi",
-        "show_weight": True,
+        "size_label": "Beden (S/M/L/XL)"
+        "show_weight": False,
         "show_pressure": False,
         "show_hydrostatic": False,
         "control_form_enabled": False,
@@ -761,7 +764,7 @@ ASSET_PROFILES = {
         "next_service_label": "Sonraki Kontrol",
         "service_input_label": "Kontrol tarihi",
         "next_service_input_label": "Sonraki kontrol tarihi",
-        "show_weight": True,
+        "show_weight": False,
         "show_pressure": False,
         "show_hydrostatic": False,
         "control_form_enabled": False,
