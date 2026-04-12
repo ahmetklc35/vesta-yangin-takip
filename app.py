@@ -580,11 +580,11 @@ KASIK_SEDYE_CONTROL_ITEMS = [
     ("item_6", "17.KS.1001.A.6 Servis Etiketi Ekipmana Yapistirildi"),
 ]
 FIRE_BOOTS_CONTROL_ITEMS = [
-    ("item_1", "17.YÇ.1001.A.1 Çizme yüzeyinde yırtık, çatlak, delik veya aşırı aşınma kontrolü"), [cite: 1]
-    ("item_2", "17.YÇ.1001.A.2 Çizme tabanında kaymazlık özelliği, çelik burun veya ara taban deformasyon kontrolü"), [cite: 1]
-    ("item_3", "17.YÇ.1001.A.3 Çizme içindeki astarın zarar görüp görmediği, temizliği ve hijyeni kontrol edildi"), [cite: 1]
-    ("item_4", "17.YÇ.1001.A.4 Bulunduğu Yerde Ulaşılabilir Durumda mı"), [cite: 1]
-    ("item_5", "17.YÇ.1001.A.5 Servis Etiketi Ekipmana Yapıştırıldı"), [cite: 1]
+    ("item_1", "17.YÇ.1001.A.1 Çizme yüzeyinde yırtık, çatlak, delik veya aşırı aşınma kontrolü"), 
+    ("item_2", "17.YÇ.1001.A.2 Çizme tabanında kaymazlık özelliği, çelik burun veya ara taban deformasyon kontrolü"), 
+    ("item_3", "17.YÇ.1001.A.3 Çizme içindeki astarın zarar görüp görmediği, temizliği ve hijyeni kontrol edildi"), 
+    ("item_4", "17.YÇ.1001.A.4 Bulunduğu Yerde Ulaşılabilir Durumda mı"), 
+    ("item_5", "17.YÇ.1001.A.5 Servis Etiketi Ekipmana Yapıştırıldı"), 
 ]
 ASSET_PROFILES = {
     "Yangin Sondurme Cihazi": {
@@ -804,11 +804,11 @@ ASSET_PROFILES = {
         "control_form_items": [],
     },
     "Yangin Cizmesi": {
-        "label": "Yangin Cizmesi", [cite: 1]
+        "label": "Yangin Cizmesi", 
         "type_label": "Ekipman Tipi",
-        "class_label": "Kategori / Cinsi", [cite: 1]
-        "brand_label": "Marka", [cite: 1]
-        "owner_label": "Ekipman Yetkilisi", [cite: 1]
+        "class_label": "Kategori / Cinsi", 
+        "brand_label": "Marka", 
+        "owner_label": "Ekipman Yetkilisi", 
         "last_service_label": "Son Kontrol",
         "next_service_label": "Sonraki Kontrol",
         "service_input_label": "Kontrol tarihi",
