@@ -207,6 +207,17 @@ SPECIAL_CATEGORY_FORM_CONFIGS = {
             "NOT 3: Bu muayene raporundaki bulgular muayene tarihindeki isletme kosullari icin gecerlidir.",
         ],
     },
+    "Yangin Cizmesi": {
+        "form_code": "F-27",
+        "subject": "YANGIN ÇİZMESİ Kontrol Formu", [cite: 1]
+        "section_title": "YANGIN ÇİZMESİ BİLGİLERİ", [cite: 1]
+        "method_text": "İEKSGŞY ve firma kontrol kriterlerine göre kontrol edilmiştir.",
+        "notes": [
+            "NOT 1: Çizme yüzeyinde veya tabanında koruyucu özelliği yitiren hasar tespit edilirse ekipman değiştirilmelidir.",
+            "NOT 2: Hijyen ve astar bütünlüğü kullanıcı sağlığı için periyodik olarak denetlenmelidir.",
+            "NOT 3: Bu muayene raporundaki bulgular muayene tarihindeki işletme koşulları için geçerlidir.",
+        ],
+    },
 }
 
 EQUIPMENT_OPTIONS = [
@@ -274,6 +285,11 @@ ASSET_CATEGORIES = [
         "slug": "kasik-sedye",
         "label": "Kasik Sedye",
         "description": "Kasik sedye periyodik kontrol kayitlarini goruntule.",
+    },
+    {
+        "slug": "yangin-cizmesi",
+        "label": "Yangin Cizmesi",
+        "description": "Yangin cizmesi periyodik kontrol kayitlarini goruntule.",
     },
 ]
 DEFAULT_ASSET_CATEGORY = ASSET_CATEGORIES[0]["label"]
@@ -350,6 +366,12 @@ REGISTRATION_GROUPS = [
         "slug": "kasik-sedye",
         "label": "Kasik Sedye",
         "description": "Kasik sedye periyodik kontrol kayit akisi.",
+        "status": "active",
+    },
+    {
+        "slug": "yangin-cizmesi",
+        "label": "Yangin Cizmesi",
+        "description": "Yangin cizmesi kontrol formuna uygun kayit akisi.",
         "status": "active",
     },
 ]
@@ -557,7 +579,13 @@ KASIK_SEDYE_CONTROL_ITEMS = [
     ("item_5", "17.KS.1001.A.5 Bulundugu Yerde Ulasilabilir Durumda"),
     ("item_6", "17.KS.1001.A.6 Servis Etiketi Ekipmana Yapistirildi"),
 ]
-
+FIRE_BOOTS_CONTROL_ITEMS = [
+    ("item_1", "17.YÇ.1001.A.1 Çizme yüzeyinde yırtık, çatlak, delik veya aşırı aşınma kontrolü"), [cite: 1]
+    ("item_2", "17.YÇ.1001.A.2 Çizme tabanında kaymazlık özelliği, çelik burun veya ara taban deformasyon kontrolü"), [cite: 1]
+    ("item_3", "17.YÇ.1001.A.3 Çizme içindeki astarın zarar görüp görmediği, temizliği ve hijyeni kontrol edildi"), [cite: 1]
+    ("item_4", "17.YÇ.1001.A.4 Bulunduğu Yerde Ulaşılabilir Durumda mı"), [cite: 1]
+    ("item_5", "17.YÇ.1001.A.5 Servis Etiketi Ekipmana Yapıştırıldı"), [cite: 1]
+]
 ASSET_PROFILES = {
     "Yangin Sondurme Cihazi": {
         "label": "Yangin Sondurme Cihazi",
@@ -773,6 +801,24 @@ ASSET_PROFILES = {
         "control_form_enabled": False,
         "fixed_type": "Kasik Sedye",
         "monthly_control_items": KASIK_SEDYE_CONTROL_ITEMS,
+        "control_form_items": [],
+    },
+    "Yangin Cizmesi": {
+        "label": "Yangin Cizmesi", [cite: 1]
+        "type_label": "Ekipman Tipi",
+        "class_label": "Kategori / Cinsi", [cite: 1]
+        "brand_label": "Marka", [cite: 1]
+        "owner_label": "Ekipman Yetkilisi", [cite: 1]
+        "last_service_label": "Son Kontrol",
+        "next_service_label": "Sonraki Kontrol",
+        "service_input_label": "Kontrol tarihi",
+        "next_service_input_label": "Sonraki kontrol tarihi",
+        "show_weight": False,
+        "show_pressure": False,
+        "show_hydrostatic": False,
+        "control_form_enabled": True,
+        "fixed_type": "Yangin Cizmesi",
+        "monthly_control_items": FIRE_BOOTS_CONTROL_ITEMS,
         "control_form_items": [],
     },
 }
