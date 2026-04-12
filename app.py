@@ -218,6 +218,41 @@ SPECIAL_CATEGORY_FORM_CONFIGS = {
             "NOT 3: Bu muayene raporundaki bulgular muayene tarihindeki işletme koşulları için geçerlidir.",
         ],
     },
+    "Geri Sarimli Dussundurucu": {
+        "form_code": "F-28",
+        "subject": "GERİ SARIMLI DÜŞÜŞ DURDURUCU Kontrol Formu",
+        "section_title": "EKİPMAN BİLGİLERİ",
+        "method_text": "İEKSGŞY ve üretici kriterlerine göre kontrol edilmiştir.",
+        "notes": ["NOT: Kilitleme mekanizmasında gecikme olan cihazlar derhal servis dışı bırakılmalıdır."],
+    },
+    "Omurga Tahtasi": {
+        "form_code": "F-29",
+        "subject": "OMURGA TAHTASI Periyodik Kontrol Formu",
+        "section_title": "SEDYE BİLGİLERİ",
+        "method_text": "Firma kontrol kriterlerine göre kontrol edilmiştir.",
+        "notes": ["NOT: Yüzeyde derin çatlak tespit edilen tahtalar taşıma kapasitesini yitirmiş sayılır."],
+    },
+    "Parasut Tipi Kemer": {
+        "form_code": "F-30",
+        "subject": "PARAŞÜT TİPİ EMNİYET KEMERİ Kontrol Formu",
+        "section_title": "KEMER BİLGİLERİ",
+        "method_text": "İEKSGŞY ve ilgili standartlara göre kontrol edilmiştir.",
+        "notes": ["NOT: Tekstil aksamda erime, kimyasal yanık veya kesik varsa kemer imha edilmelidir."],
+    },
+    "Sedye Tasima Sapani": {
+        "form_code": "F-31",
+        "subject": "SEDYE TAŞIMA SAPANI Kontrol Formu",
+        "section_title": "SAPAN BİLGİLERİ",
+        "method_text": "Firma güvenlik prosedürlerine göre kontrol edilmiştir.",
+        "notes": ["NOT: Dengesiz yükleme riskine karşı bağlantı halkaları periyodik kontrol edilmelidir."],
+    },
+    "Sepet Sedye": {
+        "form_code": "F-32",
+        "subject": "SEPET SEDYE Kontrol Formu",
+        "section_title": "SEDYE BİLGİLERİ",
+        "method_text": "Firma kontrol kriterlerine göre kontrol edilmiştir.",
+        "notes": ["NOT: Halat ve zincir bağlantılarında korozyon kontrolü hayati önem taşır."],
+    },
 }
 
 EQUIPMENT_OPTIONS = [
@@ -290,6 +325,31 @@ ASSET_CATEGORIES = [
         "slug": "yangin-cizmesi",
         "label": "Yangin Cizmesi",
         "description": "Yangin cizmesi periyodik kontrol kayitlarini goruntule.",
+    },
+    {
+        "slug": "geri-sarimli-dusus-durdurucu",
+        "label": "Geri Sarımlı Düşüş Durdurucu",
+        "description": "Geri sarımlı düşüş durdurucu ekipmanlarının periyodik kontrollerini yönet.",
+    },
+    {
+        "slug": "omurga-tahtasi",
+        "label": "Omurga Tahtası",
+        "description": "Omurga tahtası (backboard) ekipmanlarına ait kayıtları görüntüle.",
+    },
+    {
+        "slug": "parasut-tipi-emniyet-kemeri",
+        "label": "Paraşüt Tipi Emniyet Kemeri",
+        "description": "Paraşüt tipi emniyet kemerlerinin teknik kontrollerini listele.",
+    },
+    {
+        "slug": "sedye-tasima-sapani",
+        "label": "Sedye Taşıma Sapanı",
+        "description": "Sedye taşıma sapanı ekipmanlarının periyodik muayene kayıtları.",
+    },
+    {
+        "slug": "sepet-sedye",
+        "label": "Sepet Sedye",
+        "description": "Sepet sedye ekipmanlarına ait periyodik kontrol formlarını yönet.",
     },
 ]
 DEFAULT_ASSET_CATEGORY = ASSET_CATEGORIES[0]["label"]
@@ -372,6 +432,36 @@ REGISTRATION_GROUPS = [
         "slug": "yangin-cizmesi",
         "label": "Yangin Cizmesi",
         "description": "Yangin cizmesi kontrol formuna uygun kayit akisi.",
+        "status": "active",
+    },
+    {
+        "slug": "geri-sarimli-dusus-durdurucu",
+        "label": "Geri Sarımlı Düşüş Durdurucu",
+        "description": "Düşüş durdurucu sistemler için kayıt akışı.",
+        "status": "active",
+    },
+    {
+        "slug": "omurga-tahtasi",
+        "label": "Omurga Tahtası",
+        "description": "Omurga tahtası sedyeler için kayıt akışı.",
+        "status": "active",
+    },
+    {
+        "slug": "parasut-tipi-emniyet-kemeri",
+        "label": "Paraşüt Tipi Emniyet Kemeri",
+        "description": "Emniyet kemerleri için kayıt akışı.",
+        "status": "active",
+    },
+    {
+        "slug": "sedye-tasima-sapani",
+        "label": "Sedye Taşıma Sapanı",
+        "description": "Taşıma sapanları için kayıt akışı.",
+        "status": "active",
+    },
+    {
+        "slug": "sepet-sedye",
+        "label": "Sepet Sedye",
+        "description": "Sepet sedyeler için kayıt akışı.",
         "status": "active",
     },
 ]
@@ -585,6 +675,44 @@ FIRE_BOOTS_CONTROL_ITEMS = [
     ("item_3", "17.YÇ.1001.A.3 Çizme içindeki astarın zarar görüp görmediği, temizliği ve hijyeni kontrol edildi"), 
     ("item_4", "17.YÇ.1001.A.4 Bulunduğu Yerde Ulaşılabilir Durumda mı"), 
     ("item_5", "17.YÇ.1001.A.5 Servis Etiketi Ekipmana Yapıştırıldı"), 
+]
+FALL_ARRESTER_CONTROL_ITEMS = [
+    ("item_1", "17.DD.1001.A.1 Gövde kısımda; kırık, çatlak veya darbe izi var mı, muhafaza sağlam mı"),
+    ("item_2", "17.DD.1001.A.2 Çelik halat/kolonda kesilme, ezilme, lif kopması, paslanma var mı"),
+    ("item_3", "17.DD.1001.A.3 Hat serbestçe çekilip geri sarıyor mu, takılma veya ani boşalma var mı"),
+    ("item_4", "17.DD.1001.A.4 Ani çekmede sistem kilitleniyor mu, kilitleme gecikmesi var mı"),
+    ("item_5", "17.DD.1001.A.5 Bulunduğu yerde ulaşılabilir durumda ve uygun koşullarda mı"),
+]
+SPINE_BOARD_CONTROL_ITEMS = [
+    ("item_1", "17.OT.1001.A.1 Tahta yüzeylerde çatlak, kırık, eğilme ve deformasyon kontrolü"),
+    ("item_2", "17.OT.1001.A.2 Tutma yerleri ergonomik ve sağlam mı"),
+    ("item_3", "17.OT.1001.A.3 Kayış bağlantı noktaları, aparatlar ve tokalar düzgün çalışıyor mu"),
+    ("item_4", "17.OT.1001.A.4 Sedye hijyenik durumda mı"),
+    ("item_5", "17.OT.1001.A.5 Bulunduğu yerde ulaşılabilir durumda mı"),
+    ("item_6", "17.OT.1001.A.6 Servis etiketi ekipmana yapıştırıldı"),
+]
+SAFETY_HARNESS_CONTROL_ITEMS = [
+    ("item_1", "17.PEK.1001.A.1 Sapan gövdesinde kesik, yırtık, aşınma ve dikiş kontrolü"),
+    ("item_2", "17.PEK.1001.A.2 Metal akşamlarda çatlak, paslanma, deformasyon ve kanca emniyet kilidi kontrolü"),
+    ("item_3", "17.PEK.1001.A.3 Sırt, göğüs ve yan bağlantı noktaları sağlam mı"),
+    ("item_4", "17.PEK.1001.A.4 Kemer temiz ve kullanılabilir durumda mı"),
+    ("item_5", "17.PEK.1001.A.5 Bulunduğu yerde ulaşılabilir ve uygun saklama koşullarında mı"),
+]
+STRETCHER_SLING_CONTROL_ITEMS = [
+    ("item_1", "17.TS.1001.A.1 Sapan gövdesinde kesik, yırtık, lif kopması ve aşınma kontrolü"),
+    ("item_2", "17.TS.1001.A.2 Metal akşamlarda çatlak, paslanma, korozyon ve emniyet mandalı kontrolü"),
+    ("item_3", "17.TS.1001.A.3 Sedye ile bağlantı noktaları uygun mu, dengesiz yükleme riski var mı"),
+    ("item_4", "17.TS.1001.A.4 Sapan temiz ve kullanılabilir durumda mı"),
+    ("item_5", "17.TS.1001.A.5 Bulunduğu yerde ulaşılabilir durumda mı"),
+    ("item_6", "17.TS.1001.A.6 Servis etiketi ekipmana yapıştırıldı"),
+]
+BASKET_STRETCHER_CONTROL_ITEMS = [
+    ("item_1", "17.SS.1001.A.1 Gövde, kenar korumaları ve iç yüzeyde çatlak, deformasyon veya kırık kontrolü"),
+    ("item_2", "17.SS.1001.A.2 Halat bağlantı noktaları, karabina ve zincirlerde paslanma veya gevşeme kontrolü"),
+    ("item_3", "17.SS.1001.A.3 Emniyet kemerleri, sabitleme kayışları ve baş sabitleyici aparat kontrolü"),
+    ("item_4", "17.SS.1001.A.4 Sedye hijyenik durumda mı"),
+    ("item_5", "17.SS.1001.A.5 Bulunduğu yerde ulaşılabilir durumda mı"),
+    ("item_6", "17.SS.1001.A.6 Servis etiketi ekipmana yapıştırıldı"),
 ]
 ASSET_PROFILES = {
     "Yangin Sondurme Cihazi": {
