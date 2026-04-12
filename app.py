@@ -436,25 +436,25 @@ REGISTRATION_GROUPS = [
     },
     {
         "slug": "geri-sarimli-dusus-durdurucu",
-        "label": "Geri Sarımlı Düşüş Durdurucu",
+        "label": "Geri Sarimli Dusus Durdurucu",
         "description": "Düşüş durdurucu sistemler için kayıt akışı.",
         "status": "active",
     },
     {
         "slug": "omurga-tahtasi",
-        "label": "Omurga Tahtası",
+        "label": "Omurga Tahtasi",
         "description": "Omurga tahtası sedyeler için kayıt akışı.",
         "status": "active",
     },
     {
         "slug": "parasut-tipi-emniyet-kemeri",
-        "label": "Paraşüt Tipi Emniyet Kemeri",
+        "label": "Parasut Tipi Emniyet Kemeri",
         "description": "Emniyet kemerleri için kayıt akışı.",
         "status": "active",
     },
     {
         "slug": "sedye-tasima-sapani",
-        "label": "Sedye Taşıma Sapanı",
+        "label": "Sedye Tasima Sapani",
         "description": "Taşıma sapanları için kayıt akışı.",
         "status": "active",
     },
@@ -949,8 +949,8 @@ ASSET_PROFILES = {
         "monthly_control_items": FIRE_BOOTS_CONTROL_ITEMS,
         "control_form_items": [],
     },
-    "geri-sarimli-dusus-durdurucu": {
-        "label": "Geri Sarımlı Düşüş Durdurucu",
+    "Geri Sarimli Dusus Durdurucu": {
+        "label": "Geri Sarimli Dusus Durdurucu",
         "type_label": "Ekipman Tipi",
         "class_label": "Kategori / Cinsi",
         "brand_label": "Marka",
@@ -965,8 +965,8 @@ ASSET_PROFILES = {
         "monthly_control_items": FALL_ARRESTER_CONTROL_ITEMS,
         "control_form_items": [],
     },
-    "omurga-tahtasi": {
-        "label": "Omurga Tahtası",
+    "Omurga Tahtasi": {
+        "label": "Omurga Tahtasi",
         "type_label": "Sedye Tipi",
         "class_label": "Kategori",
         "brand_label": "Marka",
@@ -981,8 +981,8 @@ ASSET_PROFILES = {
         "monthly_control_items": SPINE_BOARD_CONTROL_ITEMS,
         "control_form_items": [],
     },
-    "parasut-tipi-emniyet-kemeri": {
-        "label": "Paraşüt Tipi Emniyet Kemeri",
+    "Parasut Tipi Emniyet Kemeri": {
+        "label": "Parasut Tipi Emniyet Kemeri",
         "type_label": "Kemer Tipi",
         "class_label": "Cinsi",
         "brand_label": "Marka",
@@ -995,8 +995,8 @@ ASSET_PROFILES = {
         "monthly_control_items": SAFETY_HARNESS_CONTROL_ITEMS,
         "control_form_items": [],
     },
-    "sedye-tasima-sapani": {
-        "label": "Sedye Taşıma Sapanı",
+    "Sedye Tasima Sapani": {
+        "label": "Sedye Tasima Sapani",
         "type_label": "Sapan Tipi",
         "brand_label": "Marka",
         "show_weight": False,
@@ -1006,7 +1006,7 @@ ASSET_PROFILES = {
         "monthly_control_items": STRETCHER_SLING_CONTROL_ITEMS,
         "control_form_items": [],
     },
-    "sepet-sedye": {
+    "Sepet Sedye": {
         "label": "Sepet Sedye",
         "type_label": "Sedye Tipi",
         "brand_label": "Marka",
