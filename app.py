@@ -1000,6 +1000,7 @@ ASSET_PROFILES = {
     "Sedye Tasima Sapani": {
         "label": "Sedye Tasima Sapani",
         "type_label": "Sapan Tipi",
+        "class_label": "Kategori",
         "brand_label": "Marka",
         "show_weight": False,
         "show_pressure": False,
@@ -1011,7 +1012,9 @@ ASSET_PROFILES = {
     "Sepet Sedye": {
         "label": "Sepet Sedye",
         "type_label": "Sedye Tipi",
+        "class_label": "Kategori",
         "brand_label": "Marka",
+        "owner_label": "Ekipman Yetkilisi",
         "show_weight": True,
         "show_pressure": False,
         "control_form_enabled": True,
