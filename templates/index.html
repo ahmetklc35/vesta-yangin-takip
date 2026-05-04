@@ -71,6 +71,7 @@
                 <th>Sonraki Kontrol</th>
                 <th>Kalan Gun</th>
                 <th>E-posta</th>
+                <th>Islem</th>
               </tr>
             </thead>
             <tbody>
@@ -83,6 +84,10 @@
                   <td>{{ asset.next_service_date or "-" }}</td>
                   <td>{{ asset.days_left }}</td>
                   <td>{{ asset.company_email or "-" }}</td>
+                  <td class="actions">
+                    <a href="{{ url_for('add_service_log', public_id=asset.public_id) }}">Bakim Yap</a>
+                    <a href="{{ url_for('extinguisher_detail', public_id=asset.public_id) }}">Detay</a>
+                  </td>
                 </tr>
               {% endfor %}
             </tbody>
