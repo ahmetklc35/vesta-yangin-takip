@@ -3031,7 +3031,7 @@ def build_control_form_pdf(company_name: str, extinguishers_for_company: list[di
         "YSC SINIFI",
         "SERİ NO / KOD",
         "YSC ÜRETİCİ",
-        "DOLUM TARİHİ",
+        "KONTROL TARİHİ",
         "HİDROSTATİK TEST TARİHİ",
         "BULUNDUĞU YER",
     ] + [label.split(")")[0] + ")" for _key, label in CONTROL_FORM_ITEMS]
@@ -4194,7 +4194,7 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
         Paragraph("<b>YSC SINIFI</b>", tiny_bold_style),
         Paragraph("<b>SERİ NO / KOD</b>", tiny_bold_style),
         Paragraph("<b>YSC ÜRETİCİ</b>", tiny_bold_style),
-        Paragraph("<b>DOLUM TARİHİ</b>", tiny_bold_style),
+        Paragraph("<b>KONTROL TARİHİ</b>", tiny_bold_style),
         Paragraph("<b>HİDROSTATİK</b><br/><b>TEST TARİHİ</b>", tiny_bold_style),
         Paragraph("<b>BULUNDUĞU YER</b>", tiny_bold_style),
         *[
