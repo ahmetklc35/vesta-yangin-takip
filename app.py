@@ -355,6 +355,21 @@ ASSET_CATEGORIES = [
 DEFAULT_ASSET_CATEGORY = ASSET_CATEGORIES[0]["label"]
 ASSET_CATEGORY_BY_SLUG = {item["slug"]: item for item in ASSET_CATEGORIES}
 ASSET_CATEGORY_BY_LABEL = {item["label"]: item for item in ASSET_CATEGORIES}
+TUSE_PETROL_HIDDEN_PUBLIC_CATEGORY_SLUGS = {
+    "yangin-elbisesi",
+    "yangin-bareti",
+    "yangin-baltasi",
+    "scba",
+    "eebd",
+    "hava-tupu",
+    "elektrik-ic-tesisati",
+    "kasik-sedye",
+    "yangin-cizmesi",
+    "omurga-tahtasi",
+    "parasut-tipi-emniyet-kemeri",
+    "sedye-tasima-sapani",
+    "sepet-sedye",
+}
 REGISTRATION_GROUPS = [
     {
         "slug": "yangin-sondurme-cihazi",
@@ -2258,7 +2273,17 @@ seed_companies_from_extinguishers()
 seed_asset_categories()
 
 
-def build_company_portal_sections(company_id: int) -> list[dict]:
+def get_hidden_public_category_slugs(company: dict | None) -> set[str]:
+    if not company:
+        return set()
+    company_key = slugify_company_name(f"{company.get('name', '')} {company.get('slug', '')}")
+    if "tuse" in company_key:
+        return TUSE_PETROL_HIDDEN_PUBLIC_CATEGORY_SLUGS
+    return set()
+
+
+def build_company_portal_sections(company_id: int, company: dict | None = None) -> list[dict]:
+    hidden_category_slugs = get_hidden_public_category_slugs(company)
     assets = fetch_all(
         select(
             extinguishers.c.public_id,
@@ -2280,6 +2305,8 @@ def build_company_portal_sections(company_id: int) -> list[dict]:
 
     sections = []
     for category in ASSET_CATEGORIES:
+        if category["slug"] in hidden_category_slugs:
+            continue
         items = grouped.get(category["label"], [])
         sections.append(
             {
@@ -6284,7 +6311,7 @@ def public_electrical_report_pdf(public_id: str):
 @app.route("/firma/<company_slug>")
 def public_company_portal(company_slug: str):
     company = get_company_by_slug(company_slug)
-    sections = build_company_portal_sections(company["id"])
+    sections = build_company_portal_sections(company["id"], company)
     return render_template(
         "public_company_portal.html",
         company=company,
@@ -6298,9 +6325,9 @@ def public_company_portal(company_slug: str):
 def public_company_assets(company_slug: str, category_slug: str):
     company = get_company_by_slug(company_slug)
     selected_category = get_asset_category(slug=category_slug)
-    if selected_category is None:
+    if selected_category is None or category_slug in get_hidden_public_category_slugs(company):
         abort(404)
-    sections = build_company_portal_sections(company["id"])
+    sections = build_company_portal_sections(company["id"], company)
     selected_section = next(
         (section for section in sections if section["slug"] == category_slug),
         None,
