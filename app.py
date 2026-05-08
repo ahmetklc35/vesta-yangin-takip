@@ -6465,18 +6465,24 @@ def add_service_log(public_id: str):
         flash("Bakim kaydi eklendi.", "success")
         return redirect(url_for("extinguisher_detail", public_id=public_id))
 
+    form_defaults = {
+        "technician_name": current_user_full_name(),
+        "company_id": str(extinguisher.get("company_id") or ""),
+        "company_name": extinguisher.get("company_name") or "",
+        "company_address": extinguisher.get("company_address") or "",
+        "company_contact": extinguisher.get("company_contact") or "",
+        "asset_category": extinguisher.get("asset_category") or DEFAULT_ASSET_CATEGORY,
+    }
+    for key, _label in asset_profile["monthly_control_items"]:
+        form_defaults[key] = True
+    for key, _label in asset_profile["control_form_items"]:
+        form_defaults[key] = True
+
     return render_template(
         "service_log_form.html",
         extinguisher=extinguisher,
-        form={
-            "technician_name": current_user_full_name(),
-            "company_id": str(extinguisher.get("company_id") or ""),
-            "company_name": extinguisher.get("company_name") or "",
-            "company_address": extinguisher.get("company_address") or "",
-            "company_contact": extinguisher.get("company_contact") or "",
-            "asset_category": extinguisher.get("asset_category") or DEFAULT_ASSET_CATEGORY,
-        },
-        monthly_control_items=MONTHLY_CONTROL_ITEMS,
+        form=form_defaults,
+        monthly_control_items=asset_profile["monthly_control_items"],
         equipment_options=EQUIPMENT_OPTIONS,
         equipment_presets=EQUIPMENT_PRESETS,
         companies=company_choices,
