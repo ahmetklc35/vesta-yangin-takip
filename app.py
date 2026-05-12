@@ -2489,15 +2489,11 @@ def render_profile_record_form(group_slug: str):
 
     return render_template(
         "create_asset_profile.html",
-        form=build_default_passed_form_values(
-            {
-                "technician_name": current_user_full_name(),
-                "asset_category": group["label"],
-                "extinguisher_type": asset_profile.get("fixed_type") or group["label"],
-            },
-            asset_profile["monthly_control_items"],
-            asset_profile["control_form_items"],
-        ),
+        form={
+            "technician_name": current_user_full_name(),
+            "asset_category": group["label"],
+            "extinguisher_type": asset_profile.get("fixed_type") or group["label"],
+        },
         companies=company_choices,
         asset_profile=asset_profile,
         group=group,
@@ -2869,24 +2865,8 @@ def build_monthly_inspection_values(form_data, items: list[tuple[str, str]] | No
     source_items = items or MONTHLY_CONTROL_ITEMS
     values = {f"item_{index}": False for index in range(1, 15)}
     for key, _label in source_items:
-        if "servis etiketi ekipmana" in _label.lower():
-            values[key] = True
-        else:
-            values[key] = form_data.get(key) == "on"
+        values[key] = form_data.get(key) == "on"
     return values
-
-
-def build_default_passed_form_values(
-    base_form: dict | None = None,
-    monthly_items: list[tuple[str, str]] | None = None,
-    control_items: list[tuple[str, str]] | None = None,
-) -> dict:
-    form = dict(base_form or {})
-    for key, _label in monthly_items or []:
-        form.setdefault(key, True)
-    for key, _label in control_items or []:
-        form.setdefault(key, True)
-    return form
 
 
 def build_control_form_values(form_data) -> dict[str, bool]:
@@ -2940,7 +2920,7 @@ def with_monthly_control_labels(rows: list[dict], items: list[tuple[str, str]] |
         checks = []
         passed_count = 0
         for key, label in source_items:
-            passed = True if "servis etiketi ekipmana" in label.lower() else bool(row.get(key))
+            passed = bool(row.get(key))
             if passed:
                 passed_count += 1
             checks.append({"key": key, "label": label, "passed": passed})
@@ -2982,8 +2962,6 @@ def build_monthly_table(rows: list[dict], items: list[tuple[str, str]] | None = 
             code = label.split(" ", 1)[0]
             if source is None:
                 value = None
-            elif "servis etiketi ekipmana" in label.lower():
-                value = True
             else:
                 value = bool(source.get(key))
             cells.append({"code": code, "value": value})
@@ -3627,9 +3605,7 @@ def build_special_category_company_document_data(public_id: str) -> dict:
         last_log = latest_logs.get(row["id"])
         checks = []
         for key, label in asset_profile["monthly_control_items"]:
-            if "servis etiketi ekipmana" in label.lower():
-                checks.append("✓")
-            elif inspection:
+            if inspection:
                 checks.append("✓" if inspection.get(key) else "X")
             else:
                 checks.append("-")
@@ -5633,14 +5609,10 @@ def create_extinguisher():
 
     return render_template(
         "create_extinguisher.html",
-        form=build_default_passed_form_values(
-            {
-                "technician_name": current_user_full_name(),
-                "asset_category": DEFAULT_ASSET_CATEGORY,
-            },
-            MONTHLY_CONTROL_ITEMS,
-            CONTROL_FORM_ITEMS,
-        ),
+        form={
+            "technician_name": current_user_full_name(),
+            "asset_category": DEFAULT_ASSET_CATEGORY,
+        },
         monthly_control_items=MONTHLY_CONTROL_ITEMS,
         equipment_options=EQUIPMENT_OPTIONS,
         equipment_presets=EQUIPMENT_PRESETS,
@@ -6486,23 +6458,17 @@ def add_service_log(public_id: str):
         flash("Bakim kaydi eklendi.", "success")
         return redirect(url_for("extinguisher_detail", public_id=public_id))
 
-    form_defaults = {
-        "technician_name": current_user_full_name(),
-        "company_id": str(extinguisher.get("company_id") or ""),
-        "company_name": extinguisher.get("company_name") or "",
-        "company_address": extinguisher.get("company_address") or "",
-        "company_contact": extinguisher.get("company_contact") or "",
-        "asset_category": extinguisher.get("asset_category") or DEFAULT_ASSET_CATEGORY,
-    }
-    for key, _label in asset_profile["monthly_control_items"]:
-        form_defaults[key] = True
-    for key, _label in asset_profile["control_form_items"]:
-        form_defaults[key] = True
-
     return render_template(
         "service_log_form.html",
         extinguisher=extinguisher,
-        form=form_defaults,
+        form={
+            "technician_name": current_user_full_name(),
+            "company_id": str(extinguisher.get("company_id") or ""),
+            "company_name": extinguisher.get("company_name") or "",
+            "company_address": extinguisher.get("company_address") or "",
+            "company_contact": extinguisher.get("company_contact") or "",
+            "asset_category": extinguisher.get("asset_category") or DEFAULT_ASSET_CATEGORY,
+        },
         monthly_control_items=asset_profile["monthly_control_items"],
         equipment_options=EQUIPMENT_OPTIONS,
         equipment_presets=EQUIPMENT_PRESETS,
@@ -6622,11 +6588,7 @@ def add_monthly_inspection(public_id: str):
         extinguisher=extinguisher,
         monthly_control_items=asset_profile["monthly_control_items"],
         control_form_items=asset_profile["control_form_items"],
-        form=build_default_passed_form_values(
-            {"inspector_name": current_user_full_name()},
-            asset_profile["monthly_control_items"],
-            asset_profile["control_form_items"],
-        ),
+        form={"inspector_name": current_user_full_name()},
         asset_profile=asset_profile,
     )
 
