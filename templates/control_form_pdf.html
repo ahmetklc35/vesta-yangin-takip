@@ -33,6 +33,11 @@
       .bold { font-weight: 700; }
       .tiny { font-size: 8px; }
       .small { font-size: 9px; }
+      .company-name-cell {
+        font-size: 8px;
+        line-height: 1.1;
+        overflow-wrap: anywhere;
+      }
 
       .header td {
         height: 26px;
@@ -106,9 +111,9 @@
       </tr>
       <tr>
         <td class="bold" style="width: 14%;">FIRMA ADI</td>
-        <td colspan="3" style="width: 54%;">{{ company_name }}</td>
-        <td class="bold" style="width: 16%;">KONTROL TARIHI</td>
-        <td style="width: 16%;">{{ control_date }}</td>
+        <td colspan="3" class="company-name-cell" style="width: 50%;">{{ company_name }}</td>
+        <td class="bold" style="width: 18%;">KONTROL TARIHI</td>
+        <td style="width: 18%;">{{ control_date }}</td>
       </tr>
       <tr>
         <td class="bold">MUAYENE ADRESI</td>

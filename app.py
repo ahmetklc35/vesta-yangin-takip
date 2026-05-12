@@ -4120,17 +4120,23 @@ def build_control_form_pdf_reportlab(document_data: dict) -> io.BytesIO:
     address_cell_style.leading = 5
     address_cell_style.spaceBefore = 0
     address_cell_style.spaceAfter = 0
+    company_cell_style = styles["BodyText"].clone("vesta_company_cell")
+    company_cell_style.fontName = "VestaPDF"
+    company_cell_style.fontSize = 4.8
+    company_cell_style.leading = 5.2
+    company_cell_style.spaceBefore = 0
+    company_cell_style.spaceAfter = 0
 
     info_table = PdfTable(
         [
             [Paragraph("<b>GENEL BİLGİLER</b>", body_style), "", "", "", "", ""],
-            ["FIRMA ADI", document_data["company_name"], "", "", "KONTROL TARIHI", document_data["control_date"]],
+            ["FIRMA ADI", Paragraph(document_data["company_name"], company_cell_style), "", "", "KONTROL TARIHI", document_data["control_date"]],
             ["MUAYENE ADRESI", Paragraph(document_data["company_address"], address_cell_style), "", "", "FIRMA YETKILI KISI", document_data["company_contact"]],
             ["PERIYODIK KONTROL METODU", method_paragraph, "", "", "", ""],
         ],
-        colWidths=[56 * mm, 58 * mm, 2 * mm, 2 * mm, 34 * mm, 52 * mm],
+        colWidths=[56 * mm, 50 * mm, 2 * mm, 2 * mm, 42 * mm, 52 * mm],
         hAlign="CENTER",
-        rowHeights=[7 * mm, 7 * mm, 7 * mm, 9 * mm],
+        rowHeights=[7 * mm, 8 * mm, 7 * mm, 9 * mm],
     )
     info_table.setStyle(
         TableStyle(

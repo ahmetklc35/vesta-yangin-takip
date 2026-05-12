@@ -50,6 +50,11 @@
     .control-form-sheet .bold { font-weight: 700; }
     .control-form-sheet .tiny { font-size: 8px; }
     .control-form-sheet .small { font-size: 9px; }
+    .control-form-sheet .company-name-cell {
+      font-size: 9px;
+      line-height: 1.1;
+      overflow-wrap: anywhere;
+    }
     .control-form-sheet .section {
       background: #f3f3f3;
       text-align: center;
@@ -170,9 +175,9 @@
         </tr>
         <tr>
           <td class="bold" style="width: 14%;">FIRMA ADI</td>
-          <td colspan="3" style="width: 54%;">{{ company_name }}</td>
-          <td class="bold" style="width: 16%;">KONTROL TARIHI</td>
-          <td style="width: 16%;">{{ control_date }}</td>
+          <td colspan="3" class="company-name-cell" style="width: 50%;">{{ company_name }}</td>
+          <td class="bold" style="width: 18%;">KONTROL TARIHI</td>
+          <td style="width: 18%;">{{ control_date }}</td>
         </tr>
         <tr>
           <td class="bold">MUAYENE ADRESI</td>
