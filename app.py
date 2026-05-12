@@ -2489,11 +2489,15 @@ def render_profile_record_form(group_slug: str):
 
     return render_template(
         "create_asset_profile.html",
-        form={
-            "technician_name": current_user_full_name(),
-            "asset_category": group["label"],
-            "extinguisher_type": asset_profile.get("fixed_type") or group["label"],
-        },
+        form=build_default_passed_form_values(
+            {
+                "technician_name": current_user_full_name(),
+                "asset_category": group["label"],
+                "extinguisher_type": asset_profile.get("fixed_type") or group["label"],
+            },
+            asset_profile["monthly_control_items"],
+            asset_profile["control_form_items"],
+        ),
         companies=company_choices,
         asset_profile=asset_profile,
         group=group,
@@ -2870,6 +2874,19 @@ def build_monthly_inspection_values(form_data, items: list[tuple[str, str]] | No
         else:
             values[key] = form_data.get(key) == "on"
     return values
+
+
+def build_default_passed_form_values(
+    base_form: dict | None = None,
+    monthly_items: list[tuple[str, str]] | None = None,
+    control_items: list[tuple[str, str]] | None = None,
+) -> dict:
+    form = dict(base_form or {})
+    for key, _label in monthly_items or []:
+        form.setdefault(key, True)
+    for key, _label in control_items or []:
+        form.setdefault(key, True)
+    return form
 
 
 def build_control_form_values(form_data) -> dict[str, bool]:
@@ -5616,10 +5633,14 @@ def create_extinguisher():
 
     return render_template(
         "create_extinguisher.html",
-        form={
-            "technician_name": current_user_full_name(),
-            "asset_category": DEFAULT_ASSET_CATEGORY,
-        },
+        form=build_default_passed_form_values(
+            {
+                "technician_name": current_user_full_name(),
+                "asset_category": DEFAULT_ASSET_CATEGORY,
+            },
+            MONTHLY_CONTROL_ITEMS,
+            CONTROL_FORM_ITEMS,
+        ),
         monthly_control_items=MONTHLY_CONTROL_ITEMS,
         equipment_options=EQUIPMENT_OPTIONS,
         equipment_presets=EQUIPMENT_PRESETS,
@@ -5778,7 +5799,7 @@ def edit_extinguisher_record(public_id: str):
                 return render_template(
                     "create_extinguisher.html",
                     form=form,
-                    monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                    monthly_control_items=asset_profile["monthly_control_items"],
                     equipment_options=EQUIPMENT_OPTIONS,
                     equipment_presets=EQUIPMENT_PRESETS,
                     companies=company_choices,
@@ -5806,7 +5827,7 @@ def edit_extinguisher_record(public_id: str):
                 return render_template(
                     "create_extinguisher.html",
                     form=form,
-                    monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                    monthly_control_items=asset_profile["monthly_control_items"],
                     equipment_options=EQUIPMENT_OPTIONS,
                     equipment_presets=EQUIPMENT_PRESETS,
                     companies=company_choices,
@@ -5823,7 +5844,7 @@ def edit_extinguisher_record(public_id: str):
                 return render_template(
                     "create_extinguisher.html",
                     form=form,
-                    monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                    monthly_control_items=asset_profile["monthly_control_items"],
                     equipment_options=EQUIPMENT_OPTIONS,
                     equipment_presets=EQUIPMENT_PRESETS,
                     companies=company_choices,
@@ -5844,7 +5865,7 @@ def edit_extinguisher_record(public_id: str):
                 return render_template(
                     "create_extinguisher.html",
                     form=form,
-                    monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                    monthly_control_items=asset_profile["monthly_control_items"],
                     equipment_options=EQUIPMENT_OPTIONS,
                     equipment_presets=EQUIPMENT_PRESETS,
                     companies=company_choices,
@@ -5910,7 +5931,7 @@ def edit_extinguisher_record(public_id: str):
         return render_template(
             "create_extinguisher.html",
             form=form,
-            monthly_control_items=MONTHLY_CONTROL_ITEMS,
+            monthly_control_items=asset_profile["monthly_control_items"],
             equipment_options=EQUIPMENT_OPTIONS,
             equipment_presets=EQUIPMENT_PRESETS,
             companies=company_choices,
@@ -6343,7 +6364,7 @@ def add_service_log(public_id: str):
                 "service_log_form.html",
                 extinguisher=extinguisher,
                 form=form,
-                monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                monthly_control_items=asset_profile["monthly_control_items"],
                 equipment_options=EQUIPMENT_OPTIONS,
                 equipment_presets=EQUIPMENT_PRESETS,
                 companies=company_choices,
@@ -6375,7 +6396,7 @@ def add_service_log(public_id: str):
                 "service_log_form.html",
                 extinguisher=extinguisher,
                 form=form,
-                monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                monthly_control_items=asset_profile["monthly_control_items"],
                 equipment_options=EQUIPMENT_OPTIONS,
                 equipment_presets=EQUIPMENT_PRESETS,
                 companies=company_choices,
@@ -6395,7 +6416,7 @@ def add_service_log(public_id: str):
                     "service_log_form.html",
                     extinguisher=extinguisher,
                     form=form,
-                    monthly_control_items=MONTHLY_CONTROL_ITEMS,
+                    monthly_control_items=asset_profile["monthly_control_items"],
                     equipment_options=EQUIPMENT_OPTIONS,
                     equipment_presets=EQUIPMENT_PRESETS,
                     companies=company_choices,
@@ -6601,7 +6622,11 @@ def add_monthly_inspection(public_id: str):
         extinguisher=extinguisher,
         monthly_control_items=asset_profile["monthly_control_items"],
         control_form_items=asset_profile["control_form_items"],
-        form={"inspector_name": current_user_full_name()},
+        form=build_default_passed_form_values(
+            {"inspector_name": current_user_full_name()},
+            asset_profile["monthly_control_items"],
+            asset_profile["control_form_items"],
+        ),
         asset_profile=asset_profile,
     )
 
